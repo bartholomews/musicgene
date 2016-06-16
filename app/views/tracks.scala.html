@@ -1,0 +1,28 @@
+@import com.wrapper.spotify.models.Track
+@(title: String, tracks: List[Track])
+
+@main("MIR") {
+
+    <html>
+        <head>
+            <script src="@routes.Assets.versioned("javascripts/jquery-1.12.1.min.js")" type="text/javascript"></script>
+        </head>
+
+        <body>
+            <strong>YOUR SONGS</strong><br>
+
+            <div id="tracks">
+                <ul class="tracks">
+                @tracks.map { track =>
+                    <li>
+                        <p> <em>@track.getArtists.get(0).getName</em> - <strong>@track.getName</strong>
+                             (ID:@track.getId /POP:@track.getPopularity)</p>
+                    </li>
+                }
+                </ul>
+            </div>
+            <div id="content">
+            </div>
+        </body>
+    </html>
+}
