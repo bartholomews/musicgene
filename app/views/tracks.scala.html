@@ -1,5 +1,4 @@
 @import com.wrapper.spotify.models.Track
-@(title: String, tracks: List[Track])
 
 @main("MIR") {
 
@@ -13,12 +12,7 @@
 
             <div id="tracks">
                 <ul class="tracks">
-                @tracks.map { track =>
-                    <li>
-                        <p> <em>@track.getArtists.get(0).getName</em> - <strong>@track.getName</strong>
-                             (ID:@track.getId /POP:@track.getPopularity)</p>
-                    </li>
-                }
+
                 </ul>
             </div>
             <div id="content">
