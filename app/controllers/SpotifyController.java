@@ -8,10 +8,7 @@ import com.wrapper.spotify.exceptions.BadRequestException;
 import com.wrapper.spotify.exceptions.WebApiException;
 import com.wrapper.spotify.methods.CurrentUserRequest;
 import com.wrapper.spotify.methods.authentication.ClientCredentialsGrantRequest;
-import com.wrapper.spotify.models.AuthorizationCodeCredentials;
-import com.wrapper.spotify.models.LibraryTrack;
-import com.wrapper.spotify.models.Page;
-import com.wrapper.spotify.models.User;
+import com.wrapper.spotify.models.*;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -95,8 +92,10 @@ public class SpotifyController {
     /**
      * Use the request object to make the request, either asynchronously (getAsync)
      * or synchronously (get)
+     * IF RETURNS NULL?
      */
     public void getAccessToken(String code) {
+        String token = null;
         // Make a token request. Asynchronous requests are made with the .getAsync method and synchronous requests
         // are made with the .get method. This holds for all type of requests. */
         final SettableFuture<AuthorizationCodeCredentials> authorizationCodeCredentialsFuture = api.authorizationCodeGrant(code).build().getAsync();
@@ -195,6 +194,11 @@ public class SpotifyController {
             System.out.println(br.getMessage());
             throw br;
         }
+    }
+
+    // TODO getAsync, and maybe also BUILD THE NEW JAR!
+    public AudioFeature getAnalysis(String id) throws IOException, WebApiException {
+        return api.getAudioFeature(id).build().get();
     }
 
 
