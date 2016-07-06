@@ -1,4 +1,8 @@
 @import com.wrapper.spotify.models.Track
+@import com.wrapper.spotify.models.AudioFeature
+@import com.wrapper.spotify.models.SimplePlaylist
+
+@(title: String, playlists: Vector[(SimplePlaylist, Vector[(Track, AudioFeature)])])
 
 @main("MIR") {
 
@@ -9,14 +13,24 @@
 
         <body>
             <strong>YOUR SONGS</strong><br>
-
-            <div id="tracks">
+            <div id="playlists">
+            @playlists.map { playlist =>
+                <h4><strong>@playlist._1.getName</strong></h4>
                 <ul class="tracks">
-
+                    @playlist._2.map { track =>
+                        <li>
+                            <p> <em></em>@track._1.getArtists.get(0).getName - <strong>@track._1.getName</strong>
+                                (ID:@track._1.getId POP:@track._1.getPopularity ACOUST:@track._2.getAcousticness
+                                TEMPO:@track._2.getTempo)
+                            </p>
+                        </li>
+                    }
                 </ul>
+            }
             </div>
             <div id="content">
             </div>
         </body>
     </html>
+
 }
