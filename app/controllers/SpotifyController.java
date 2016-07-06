@@ -9,9 +9,11 @@ import com.wrapper.spotify.exceptions.WebApiException;
 import com.wrapper.spotify.methods.CurrentUserRequest;
 import com.wrapper.spotify.methods.authentication.ClientCredentialsGrantRequest;
 import com.wrapper.spotify.models.*;
+import model.music.*;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -21,6 +23,7 @@ public class SpotifyController {
     private static volatile SpotifyController instance;
     private static final Object lock = new Object();
 
+    // TODO inject?
     private static final String CLIENT_ID = "24c87b0353a141768e9b842eb7bd0f67";
     private static final String CLIENT_SECRET = "cc5d6ebca4b445c782b6aced791710ab";
     private static final String REDIRECT_URI = "http://localhost:9000/callback";
@@ -56,7 +59,7 @@ public class SpotifyController {
      * @return an instance of SpotifyController
      */
     public static SpotifyController getInstance() {
-        SpotifyController i = instance;
+        SpotifyController i;
         if (instance == null) {
             synchronized (lock) {   // While waiting for the lock, another
                 i = instance;       // thread may have instantiated the object.
@@ -163,9 +166,9 @@ public class SpotifyController {
      *
      * @return a List of `LibraryTrack`s
      */
-    public List<LibraryTrack> getSavedTracks() throws IOException, WebApiException {
+    public List<LibraryTrack> getSavedTracks(int offset, int pageSize) throws IOException, WebApiException {
         try { // getAsync() returns a Settable<Future>, check that with Java 8
-            return sendTracks(20);
+            return sendTracks(offset, pageSize);
         } catch (Exception e) {
             // might be a 401 invalid credential: redirect to login?
             System.out.println("Something went wrong! DARN: " + e.getMessage());
@@ -173,15 +176,57 @@ public class SpotifyController {
         }
     }
 
-    private List<LibraryTrack> sendTracks(int pageSize) throws WebApiException, IOException {
-        String next;
-        int offset = 0;
-        // do {
-        //next =
-        return sendTracks(offset, pageSize);
-        //offset += pageSize;
-        //  } while(next != null); FIX THIS LATER, TRY WITH ONE BATCH OF TRACKS;
+    public String getID() throws IOException, WebApiException {
+        try {
+            return api.getMe().build().get().getId();
+        } catch(WebApiException ex) {
+            System.out.println(ex.getMessage());
+            throw ex;
+        }
     }
+
+    // again check with getAsync and Java8
+    public List<SimplePlaylist> getSavedPlaylists() throws IOException, WebApiException {
+        List<SimplePlaylist> list = api.getPlaylistsForUser(getID()).build().get().getItems();
+        for (SimplePlaylist p : list) {
+            System.out.println(p.getName());
+            // find a nice way to get ALL playlists, goddamit.
+            // again, too many requests.
+            /*
+            List<PlaylistTrack> page1 = api.getPlaylistTracks(id, p.getId()).build().get().getItems();
+            for(PlaylistTrack t : page1) {
+                System.out.println(t.getTrack().getName());
+            }
+            */
+        }
+        return list;
+    }
+
+    // TODO it should work with "current user" get playlist, try with multiple (i.e. no need to getID)
+    public List<PlaylistTrack> getPlaylistTracks(SimplePlaylist playlist) throws IOException, WebApiException {
+        try {
+            return api.getPlaylistTracks(playlist.getOwner().getId(), playlist.getId()).build().get().getItems();
+        } catch (WebApiException ex) {
+            System.out.println("getPlaylistTracks error code: " + ex.getMessage());
+            throw ex;
+        }
+    }
+
+    /*
+    private List<LibraryTrack> sendTracks(int offset, int pageSize) throws WebApiException, IOException {
+        List<LibraryTrack> result = new LinkedList<>();
+        boolean again = true;
+        return sendTracks(offset, pageSize);
+        /* THIS WILL CRASH WITH 429 TOO MANY REQUESTS
+        do {
+            List<LibraryTrack> temp = sendTracks(offset, pageSize);
+            if (temp != null) {
+                result.addAll(temp);
+            } else again = false;
+            offset += pageSize;
+        } while (again);
+        return result;
+        */
 
     private List<LibraryTrack> sendTracks(int offset, int pageSize) throws IOException, WebApiException {
         try {
@@ -190,10 +235,12 @@ public class SpotifyController {
             //  String next = libraryTracksPage.getNext();
             //  System.out.println("NEXT: " + next);
             //  return next;
-        } catch(BadRequestException br) {
+        } catch (BadRequestException br) {
             System.out.println(br.getMessage());
             throw br;
         }
+        // status code 429: too many requests (have a look in the Retry-After header, that is the
+        // seconds you have to wait before sending new requests)
     }
 
     // TODO getAsync, and maybe also BUILD THE NEW JAR!

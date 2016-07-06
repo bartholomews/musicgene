@@ -3,12 +3,13 @@ package controllers
 import javax.inject._
 
 import com.wrapper.spotify.exceptions.BadRequestException
-import com.wrapper.spotify.models.{AudioFeature, Track}
-import model.music.MusicCollection
-import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
+import com.wrapper.spotify.models.{AudioFeature, SimplePlaylist, Track}
+import model.music.{Attribute, MusicCollection, MusicUtil, Song}
+//import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.mvc._
 
 import scala.collection.JavaConversions._
+import collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -17,7 +18,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * application's home page.
  */
 @Singleton
-class HomeController @Inject() (ws: WSClient) extends Controller {
+class HomeController @Inject() extends Controller {
   val spotify = SpotifyController.getInstance()
 
   /**
@@ -32,15 +33,18 @@ class HomeController @Inject() (ws: WSClient) extends Controller {
 
   def getTracks = Action {
     try {
-      // not sure about this. How's caching?
-  //    val tracks: List[(Track, AudioFeature)] = spotify.getSavedTracks.toList.map
-  //    { t => (t.getTrack, getTracksAnalysis(t.getTrack)) }
-      val tracks: List[Track] = spotify.getSavedTracks.toList.map(t => t.getTrack)
-      val collection = new MusicCollection(tracks) // TODO async
-      println(collection.toString)
-      val analysis = getTracksAnalysis(tracks)
-      analysis.foreach(a => println("TEMPO: " + a.getTempo))
-      Ok(views.html.index("FOCKOFF"))
+      // not sure about this. How's caching? Async?
+
+    //  val tracks = spotify.getSavedTracks(0, 50).toList.map(t => t.getTrack)
+
+      // vector might be better than list in this case, see odersky
+      val playlists: Vector[SimplePlaylist] = spotify.getSavedPlaylists.toVector
+
+      val collection: Vector[(SimplePlaylist, Vector[(Track, AudioFeature)])] = getPlaylistsCollection(playlists)
+
+      writeSongsToJSON(new MusicCollection(MusicUtil.toSongs(collection.flatMap(p => p._2))))
+
+      Ok(views.html.tracks("tracks", collection))
     } catch {
       case _:BadRequestException => BadRequest("That was a bad request.")
       case _:NullPointerException => BadRequest("Something went wrong.") // should return something else not badreq>
@@ -48,12 +52,56 @@ class HomeController @Inject() (ws: WSClient) extends Controller {
     }
   }
 
-  // this would make sense and you should modify the wrapper to do multiple requests at one time
-  def getIDs(tracks: List[Track]): String = tracks.map(t => t.getId).mkString(",")
-
-  def getTracksAnalysis(tracks: List[Track]): List[AudioFeature] = {
-    tracks.map(t => spotify.getAnalysis(t.getId))
+  def getPlaylistsCollection(list: Vector[SimplePlaylist]): Vector[(SimplePlaylist, Vector[(Track, AudioFeature)])] = {
+    val tuple: Vector[(SimplePlaylist, Vector[Track])] = getPlaylistTuple(list)
+    tuple.map(t => (t._1, getTracksFeatures(t._2)))
   }
+
+  /*
+  def getPlaylistsCollection(list: List[SimplePlaylist]): List[(SimplePlaylist, List[Song])] = {
+    val tuple: List[(SimplePlaylist, List[Track])] = getPlaylistTuple(list)
+    tuple.map(t => (t._1, getTracksFeatures(t._2)))
+  }
+  */
+
+  def getPlaylistCollection(playlist: SimplePlaylist): (SimplePlaylist, Seq[Song]) = {
+    val trackList = spotify.getPlaylistTracks(playlist).map(t => t.getTrack).toVector
+    val songs = MusicUtil.toSongs(trackList.map(t => (t, spotify.getAnalysis(t.getId))))
+    (playlist, songs)
+  }
+
+  /*
+  def writePlaylistsToJSON(db: List[(SimplePlaylist, List[Song])] = {
+    db.foreach(p => JsonController.writeJSON(p._1, p._2.map(s => s.)))
+  }
+  */
+
+  def writeSongsToJSON(db: MusicCollection) = {
+    db.songs.foreach(s => JsonController.writeJSON(s.id, s.attributes.asJava))
+  }
+
+  def getTracksFeatures(list: Vector[Track]): Vector[(Track, AudioFeature)] = {
+    list.map { t => (t, spotify.getAnalysis(t.getId)) }
+  }
+
+  // TODO async and multibucket
+  def createCollection(list: Vector[Track]): MusicCollection = {
+    val tracks: Vector[(Track, AudioFeature)] = list.map { t => (t, spotify.getAnalysis(t.getId)) }
+    new MusicCollection(MusicUtil.toSongs(tracks))
+  }
+
+  def getPlaylistTracks(playlist: SimplePlaylist): Vector[Track] = {
+    val debug = spotify.getPlaylistTracks(playlist).map(t => t.getTrack).toVector
+    debug.foreach(t => println(t.getName))
+    debug
+  }
+
+  def getPlaylistTuple(playlists: Vector[SimplePlaylist]): Vector[(SimplePlaylist, Vector[Track])] = {
+    playlists.map(p => (p, spotify.getPlaylistTracks(p).map(t => t.getTrack).toVector))
+  }
+
+  // this makes sense and you should modify the wrapper to do multiple requests at one time
+  def getIDs(tracks: List[Track]): String = tracks.map(t => t.getId).mkString(",")
 
   /*
   def getTracksAnalysis(tracks: List[Track]) = {
