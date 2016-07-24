@@ -4,12 +4,28 @@ import model.constraints.Constraint
 import model.music.{MusicCollection, Song}
 
 /**
-  * ALL THESE F*CKING CONVERSIONS....
   * ARRAY vs LIST
   * Random access
   * That sorting looks expensive
   */
 object PlaylistsFactory {
+
+  /*
+    Instead of roulette wheel selection,
+    ad hoc selection with individual (per song) fitness function
+    relative to individual constraints (e.g. not in range, Unary)
+    A better algorithm would still check in range constraints
+    to first select more songs with that attribute,
+    sorting that later
+   */
+  def selection(db: MusicCollection, f: FitnessFunction, poolSize: Int, c: Set[Constraint]) = {
+    val collection = new Playlist(db.songs, StandardFitness(c))
+
+  }
+
+  //  StandardFitness(c).getFitness(db)
+    // TODO it doesnt make sense for Playlist to have a fitnessFunction in it.
+    // fitness function should be an independent singleton
 
   // Generate 'poolSize` playlists each containing `size` songs from the db collection in random order
   def generatePlaylists(db: MusicCollection, f: FitnessFunction, poolSize: Int, size: Int): Vector[Playlist] = {
