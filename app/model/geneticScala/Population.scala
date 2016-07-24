@@ -19,7 +19,7 @@ class Population(val playlists: Vector[Playlist]) {
   def apply(c: Playlist) = playlists.find(x => x == c)
 
   def fittest(x: Playlist, y: Playlist): Playlist = if(x.fitness > y.fitness) x else y
-  def getFittest: Playlist = playlists.reduce(fittest(_, _))
+  def getFittest: Playlist = playlists.reduce(fittest)
   def getFitness(c: Playlist): Float = c.fitness
   def maxFitness = getFittest.fitness
 
