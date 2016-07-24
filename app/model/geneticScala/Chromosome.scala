@@ -1,8 +1,5 @@
 package model.geneticScala
 
-import model.constraints.Constraint
-import model.music.Song
-
 /**
   * A Chromosome is a Playlist with an Array of genes = songs
   */

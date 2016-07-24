@@ -1,6 +1,5 @@
 package model.geneticScala
 
-import model.constraints.Constraint
 import model.music.MusicCollection
 
 /**
@@ -18,7 +17,7 @@ object PopFactory {
     * @return
     */
   def generatePopulation(db: MusicCollection, f: FitnessFunction, size: Int) = {
-    new Population(PlaylistsFactory.generatePlaylists(db, f, GASettings.popSize, size))
+    new Population(PlaylistsFactory.generatePlaylists(db, f, GASettings.popSize, size).sortWith((p1, p2) => f.getFitness(p1) > f.getFitness(p2)))
   }
 
   /**

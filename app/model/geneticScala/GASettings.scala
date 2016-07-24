@@ -5,14 +5,11 @@ package model.geneticScala
   */
 object GASettings {
 
-  //
-  val maxFitness = 1.0
-
   // number of candidate playlists
-  val popSize = 8
+  val popSize = 20
 
   // Maximum number of generations
-  val maxGen = 2048
+  val maxGen = 8196
 
   // The probability of crossover for any member of the population,
   // where 0.0 <= crossoverRatio <= 1.0

@@ -1,6 +1,6 @@
 package model.geneticScala
 
-import model.constraints._
+import model.constraints.{Constraint, Include, UnaryEqualAny}
 import model.music._
 
 /**
@@ -17,11 +17,11 @@ object IndividualTest extends App {
 
   val constraints: Set[Constraint] = Set (
     Include(0, Artist("Wu-Tang Clan")),
-    IncludeAny(Title("Liquid Swords")),
-    IncludeAny(Artist("The Wailers")),
-    IncludeAny(Title("I Shot The Sheriff")),
-    IncludeAny(Year(2001)),
-    IncludeAny(Year(1960))
+    Include(1, Title("Liquid Swords")),
+    Include(2, Artist("The Wailers")),
+    Include(3, Title("I Shot The Sheriff")),
+    UnaryEqualAny(Year(2001))
+  //  UnaryEqualAny(Year(1960))
   )
 
   val pop = PopFactory.generatePopulation(db, new StandardFitness(constraints))
