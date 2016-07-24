@@ -1,7 +1,7 @@
 package model.geneticScala
 
 import model.constraints.Constraint
-import model.music.{Song, Title}
+import model.music.{Duration, Song, Title}
 
 import scala.util.Random
 
@@ -12,6 +12,8 @@ class Playlist(val songs: Vector[Song], val f: FitnessFunction) {
 
   def get(index: Int) = songs(index)
   def size = songs.length
+
+  val duration: Double = songs.map(s => s.duration).sum
 
   val fitness: Float = f.getFitness(this)
 
