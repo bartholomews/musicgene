@@ -1,6 +1,6 @@
 @import model.music.Song
 
-@(title: String, playlists: Vector[(String, Vector[Song])])
+@(title: String, tracks: Vector[(String, Vector[Song])])
 
 @main("MIR") {
 
@@ -56,6 +56,62 @@
                 <br/><br/>
                 <button type="button" class="btn btn-primary" id="reset-constraints"
                 onclick="resetConstraints()">CLEAR CONSTRAINTS</button>
+            </div>
+
+                <!-- Existing Music collection -->
+            <div class="music-collection" id="music-collection">
+            @tracks.map { t =>
+                <table class="table table-hover">
+                    <caption>@t._1</caption>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Title</th>
+                            <th>Duration</th>
+                            <th>Artist</th>
+                            <th>Album</th>
+                            <th>Loudness</th>
+                            <th>Tempo</th>
+                            <th>Acousticness</th>
+                        </tr>
+                    </thead>
+                    <tbody class="music-collection-tbody">
+                    @t._2.zip(Stream from 1).map { case (track, index) =>
+                    <tr id="@track.id">
+                        <th scope="row">@index</th>
+                        <td>@track.title</td>
+                        <td>@track.duration</td>
+                        <td>@track.artist</td>
+                        <td>@track.album</td>
+                        <td>@track.loudness</td>
+                        <td>@track.tempo</td>
+                        <td>@track.acousticness</td>
+                    </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+            </div>
+
+                <!-- Newly generated playlist -->
+            <div class="new-playlist" id="new-playlist" style-di>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Title</th>
+                            <th>Duration</th>
+                            <th>Artist</th>
+                            <th>Album</th>
+                            <th>Loudness</th>
+                            <th>Tempo</th>
+                            <th>Acousticness</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                            <!-- Append generated songs here -->
+                    </tbody>
+                </table>
             </div>
 
         </body>
