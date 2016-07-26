@@ -8,7 +8,9 @@
 
         <head>
             <script src="@routes.Assets.versioned("javascripts/playlistgen.js")" type="text/javascript"></script>
-                <!-- Bootstrap-select -->
+            <script src="@routes.Assets.versioned("javascripts/modals.js")" type="text/javascript"></script>
+            <script src="@routes.Assets.versioned("javascripts/constraints.js")" type="text/javascript"></script>
+            <!-- Bootstrap-select -->
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
             <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
                 <!-- Bootstrap switch -->
@@ -161,10 +163,10 @@
                                 <div class="form-group">
                                     <label class="radio-inline"><input type="radio" id="radio-duration-any" name="radio-duration" value="Any" checked="checked">ANY</label>
                                     <label class="radio-inline"><input type="radio" id="radio-duration-all" name="radio-duration" value="All">ALL</label>
-                                    <label class="radio-inline"><input type="radio" id="radio-duration-none" name="radio-duration" value="No">NONE</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-duration-none" name="radio-duration" value="None">NONE</label>
                                     <label class="input-attr"> having <strong>DURATION</strong> </label>
-                                    <label class="radio-inline"><input type="radio" id="radio-duration-all" name="duration-ltgt" value="UnaryLarger" checked="checked">GT</label>
-                                    <label class="radio-inline"><input type="radio" id="radio-duration-none" name="duration-ltgt" value="UnarySmaller">LT</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-duration-lt" name="duration-ltgt" value="UnarySmaller">LT</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-duration-gt" name="duration-ltgt" value="UnaryLarger" checked="checked">GT</label>
                                     <label for="duration-input"></label>
                                     <input type="time" class="form-control" id="duration-input"
                                     onkeypress="return isEnterKeyPressed(event, 'duration-save')">
@@ -199,8 +201,8 @@
                                     <label class="radio-inline"><input type="radio" id="radio-tempo-all" name="radio-tempo" value="All">ALL</label>
                                     <label class="radio-inline"><input type="radio" id="radio-tempo-none" name="radio-tempo" value="None">NONE</label>
                                     <label class="input-attr"> having <strong>TEMPO</strong> </label>
-                                    <label class="radio-inline"><input type="radio" id="radio-tempo-all" name="tempo-ltgt" value="UnaryLarger" checked="checked">GT</label>
-                                    <label class="radio-inline"><input type="radio" id="radio-tempo-none" name="tempo-ltgt" value="UnarySmaller">LT</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-tempo-lt" name="tempo-ltgt" value="UnarySmaller">LT</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-tempo-gt" name="tempo-ltgt" value="UnaryLarger" checked="checked">GT</label>
                                     <label for="tempo-input"></label>
                                     <input type="number" class="form-control" id="tempo-input"
                                     onkeypress="return isEnterKeyPressed(event, 'tempo-save')">
@@ -235,8 +237,8 @@
                                     <label class="radio-inline"><input type="radio" id="radio-tempo-all" name="radio-loudness" value="All">ALL</label>
                                     <label class="radio-inline"><input type="radio" id="radio-tempo-none" name="radio-loudness" value="None">NONE</label>
                                     <label class="input-attr"> having <strong>LOUDNESS</strong> </label>
-                                    <label class="radio-inline"><input type="radio" id="radio-tempo-all" name="loudness-ltgt" value="UnaryLarger" checked="checked">GT</label>
-                                    <label class="radio-inline"><input type="radio" id="radio-tempo-none" name="loudness-ltgt" value="UnarySmaller">LT</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-loudness-lt" name="loudness-ltgt" value="UnarySmaller">LT</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-loudness-gt" name="loudness-ltgt" value="UnaryLarger" checked="checked">GT</label>
                                     <label for="loudness-input"></label>
                                     <input type="number" class="form-control" id="loudness-input"
                                     onkeypress="return isEnterKeyPressed(event, 'radio-save')">
@@ -271,8 +273,8 @@
                                     <label class="radio-inline"><input type="radio" id="radio-acousticness-all" name="radio-acousticness" value="All">ALL</label>
                                     <label class="radio-inline"><input type="radio" id="radio-acousticness-none" name="radio-acousticness" value="None">NONE</label>
                                     <label class="input-attr"> having <strong>ACOUSTICNESS</strong> </label>
-                                    <label class="radio-inline"><input type="radio" id="radio-acousticness-all" name="acousticness-ltgt" value="UnaryLarger" checked="checked">GT</label>
-                                    <label class="radio-inline"><input type="radio" id="radio-acousticness-none" name="acousticness-ltgt" value="UnarySmaller">LT</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-acousticness-lt" name="acousticness-ltgt" value="UnarySmaller">LT</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-acousticness-gt" name="acousticness-ltgt" value="UnaryLarger" checked="checked">GT</label>
                                     <label for="acousticness-input"></label>
                                     <input type="number" class="form-control" id="acousticness-input"
                                     onkeypress="return isEnterKeyPressed(event, 'acousticness-save')">
