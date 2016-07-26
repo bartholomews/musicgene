@@ -94,7 +94,7 @@
             </div>
 
                 <!-- Newly generated playlist -->
-            <div class="new-playlist" id="new-playlist" style-di>
+            <div class="new-playlist" id="new-playlist">
                 <table class="table table-hover">
                     <thead>
                         <tr>
@@ -112,6 +112,180 @@
                             <!-- Append generated songs here -->
                     </tbody>
                 </table>
+            </div>
+
+                <!-- PlaylistName modal -->
+            <div class="modal fade" id="modal-playlistName" tabindex="-1"
+            role="dialog" aria-labelledby="myModalLabel">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <a class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                    <span class="sr-only">Close</span>
+                                </a>
+                                <h4 class="modal-title" id="modal-label">Name your playlist</h4>
+                            </div>
+                            <div class="modal-body">
+                                <label>
+                                    <input type="text" id="generate-playlist"
+                                    onkeypress="return isEnterKeyPressed(event, 'playlist-input')">
+                                </label>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
+                                <button type="button" id="playlist-input" class="btn btn-success"
+                                onclick="createNewPlaylist()">GENE-RATE</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <!-- #Duration modal -->
+            <div class="modal fade" id="modal-duration" tabindex="-1"
+            role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <a class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                <span class="sr-only">Close</span>
+                            </a>
+                            <h4 class="modal-title" id="modal-label">Duration parameters</h4>
+                        </div>
+
+                        <div class="modal-body">
+                            <form class="form-inline">
+                                <div class="form-group">
+                                    <label class="radio-inline"><input type="radio" id="radio-duration-any" name="radio-duration" value="Any" checked="checked">ANY</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-duration-all" name="radio-duration" value="All">ALL</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-duration-none" name="radio-duration" value="No">NONE</label>
+                                    <label class="input-attr"> having <strong>DURATION</strong> </label>
+                                    <label class="radio-inline"><input type="radio" id="radio-duration-all" name="duration-ltgt" value="UnaryLarger" checked="checked">GT</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-duration-none" name="duration-ltgt" value="UnarySmaller">LT</label>
+                                    <label for="duration-input"></label>
+                                    <input type="time" class="form-control" id="duration-input"
+                                    onkeypress="return isEnterKeyPressed(event, 'duration-save')">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
+                            <button type="button" class="btn btn-primary" id="duration-save"
+                            onclick="saveModal('duration')">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <!-- #Tempo modal -->
+            <div class="modal fade" id="modal-tempo" tabindex="-1"
+            role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <a class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                <span class="sr-only">Close</span>
+                            </a>
+                            <h4 class="modal-title" id="modal-label">Tempo Constraint</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form class="form-inline" id="tempo-form">
+                                <div class="form-group">
+                                    <label class="radio-inline"><input type="radio" id="radio-tempo-any" name="radio-tempo" value="Any" checked="checked">ANY</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-tempo-all" name="radio-tempo" value="All">ALL</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-tempo-none" name="radio-tempo" value="None">NONE</label>
+                                    <label class="input-attr"> having <strong>TEMPO</strong> </label>
+                                    <label class="radio-inline"><input type="radio" id="radio-tempo-all" name="tempo-ltgt" value="UnaryLarger" checked="checked">GT</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-tempo-none" name="tempo-ltgt" value="UnarySmaller">LT</label>
+                                    <label for="tempo-input"></label>
+                                    <input type="number" class="form-control" id="tempo-input"
+                                    onkeypress="return isEnterKeyPressed(event, 'tempo-save')">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
+                            <button type="button" class="btn btn-primary" id="tempo-save"
+                            onclick="saveModal('tempo')">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <!-- #Loudness modal -->
+            <div class="modal fade" id="modal-loudness" tabindex="-1"
+            role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <a class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                <span class="sr-only">Close</span>
+                            </a>
+                            <h4 class="modal-title" id="modal-label">Loudness Constraint</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form class="form-inline">
+                                <div class="form-group">
+                                    <label class="radio-inline"><input type="radio" id="radio-tempo-any" name="radio-loudness" value="Any" checked="checked">ANY</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-tempo-all" name="radio-loudness" value="All">ALL</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-tempo-none" name="radio-loudness" value="None">NONE</label>
+                                    <label class="input-attr"> having <strong>LOUDNESS</strong> </label>
+                                    <label class="radio-inline"><input type="radio" id="radio-tempo-all" name="loudness-ltgt" value="UnaryLarger" checked="checked">GT</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-tempo-none" name="loudness-ltgt" value="UnarySmaller">LT</label>
+                                    <label for="loudness-input"></label>
+                                    <input type="number" class="form-control" id="loudness-input"
+                                    onkeypress="return isEnterKeyPressed(event, 'radio-save')">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
+                            <button type="button" class="btn btn-primary" id="radio-save"
+                            onclick="saveModal('loudness')">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <!-- #Acousticness modal -->
+            <div class="modal fade" id="modal-acousticness" tabindex="-1"
+            role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <a class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                <span class="sr-only">Close</span>
+                            </a>
+                            <h4 class="modal-title" id="modal-label">Constraint parameters</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form class="form-inline">
+                                <div class="form-group">
+                                    <label class="radio-inline"><input type="radio" id="radio-acousticness-any" name="radio-acousticness" value="Any" checked="checked">ANY</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-acousticness-all" name="radio-acousticness" value="All">ALL</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-acousticness-none" name="radio-acousticness" value="None">NONE</label>
+                                    <label class="input-attr"> having <strong>ACOUSTICNESS</strong> </label>
+                                    <label class="radio-inline"><input type="radio" id="radio-acousticness-all" name="acousticness-ltgt" value="UnaryLarger" checked="checked">GT</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-acousticness-none" name="acousticness-ltgt" value="UnarySmaller">LT</label>
+                                    <label for="acousticness-input"></label>
+                                    <input type="number" class="form-control" id="acousticness-input"
+                                    onkeypress="return isEnterKeyPressed(event, 'acousticness-save')">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
+                            <button type="button" class="btn btn-primary" id="acousticness-save"
+                            onclick="saveModal('acousticness')">Save</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </body>
