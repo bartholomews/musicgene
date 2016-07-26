@@ -4,22 +4,61 @@
 
 @main("MIR") {
 
-    <html xmlns="http://www.w3.org/1999/html">
+    <html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
 
         <head>
             <script src="@routes.Assets.versioned("javascripts/playlistgen.js")" type="text/javascript"></script>
-    <!-- Bootstrap-select -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
-    <!-- Bootstrap switch -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.2/css/bootstrap3/bootstrap-switch.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.2/js/bootstrap-switch.min.js"></script>
-    <!-- Bootstrap slider -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.1.1/css/bootstrap-slider.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.1.1/bootstrap-slider.min.js"></script>
-</head>
+                <!-- Bootstrap-select -->
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
+                <!-- Bootstrap switch -->
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.2/css/bootstrap3/bootstrap-switch.min.css">
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.3.2/js/bootstrap-switch.min.js"></script>
+                <!-- Bootstrap slider -->
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.1.1/css/bootstrap-slider.min.css">
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.1.1/bootstrap-slider.min.js"></script>
+        </head>
 
+        <body>
 
+            <div class="jumbotron text-center" id="jumbotron">
+                <h1 id="playlist-title">Your Saved Playlists</h1>
+                <p>Tick the songs to get the analysis.
+                    Do something else.
+                    See the plot.
+                    Select constraints</p>
+                <button type="button" class="btn btn-success btn-lg" data-toggle="modal"
+                data-target="#modal-playlistName">GENE-RATE</button>
+                <br/><br/>
+                    <!-- Constraint recap -->
+                <div class="constraints" id="query" data-clean="true">
+                    <p id="constraints-first">A 20 tracks playlist with no constraints</p>
+                </div>
+                    <!-- Dropdown button Constraints modal -->
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary dropdown-toggle" id="constraints-toggle"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        ADD CONSTRAINT</button>
+                    <div class="dropdown-menu">
+                        <button type="button" class="btn" data-toggle="modal"
+                        data-target="#modal-duration">Duration</button>
+                        <div class="dropdown-divider"></div>
+                        <button type="button" class="btn" data-toggle="modal"
+                        data-target="#modal-tempo">Tempo</button>
+                        <div class="dropdown-divider"></div>
+                        <button type="button" class="btn" data-toggle="modal"
+                        data-target="#modal-loudness">Loudness</button>
+                        <div class="dropdown-divider"></div>
+                        <button type="button" class="btn" data-toggle="modal"
+                        data-target="#modal-acousticness">Acousticness</button>
+                    </div>
+                </div>
+                <br/><br/>
+                <button type="button" class="btn btn-primary" id="reset-constraints"
+                onclick="resetConstraints()">CLEAR CONSTRAINTS</button>
+            </div>
+
+        </body>
 </html>
 
 }
