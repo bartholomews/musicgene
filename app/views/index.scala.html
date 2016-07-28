@@ -1,46 +1,22 @@
-@(message: String)
 
-    @main("MIR") {
-        <html>
+@(title: String)
 
-            <head>
-                <script type = "text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-                <link href='http://fonts.googleapis.com/css?family=Titillium+Web' rel='stylesheet' type='text/css'>
-                <link rel = "stylesheet" type = "text/css" href = "main.css">
+@main("MUSIC-GENE") {
+    <html>
 
-                <style type="text/css">
+        <head>
+            <title>@title</title>
+        </head>
 
-                .site-wrapper {
-                    position: absolute;
-                    left: 0px;
-                    top: 0px;
-                    width: 50%;
-                    height: 50%;
-                }
-                .site-wrapper-inner {
-                    position: absolute;
-                    right: -250px;
-                    bottom: -30px;
-                    width: 500px;
-                    height: 100px;
-                }
-
-
-                </style>
-
-            </head>
-
-            <body>
-                <br>
-                <div id = "banner"></div>
-                <div class = "site-wrapper"><div class="site-wrapper-inner">
-                    <div id="title">MIR The Music Information Retrieval App </div>
-
-                    <form action = "@routes.AuthController.auth" method = "post">
-                        <button>Login</button>
-                    </form>
-                </div>
-                </div>
-            </body>
-        </html>
-    }
+        <body>
+            <div class="jumbotron text-center">
+                <h1>GENETIC PLAYLISTS</h1>
+                <p>Create context-aware playlists</p>
+                <p>based on content-based audio analysis features</p>
+                <form action = "@routes.AuthController.auth" method = "post">
+                    <button class="btn btn-success btn-lg">Login</button>
+                </form>
+            </div>
+        </body>
+    </html>
+}
