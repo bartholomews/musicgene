@@ -3,21 +3,16 @@
 @main("MIR") {
     <html xmlns="http://www.w3.org/1999/html">
 
-        <head>
-        </head>
+        <head></head>
 
         <body>
-
-            <div>
-                <p>@message</p>
-            </div>
-
-            <div>
-                <form action="@routes.HomeController.getTracks" method="get">
-                    <button>GET_TRACKS</button>
+            <div class="jumbotron text-center">
+                <h2>@message</h2>
+                <form action = "@routes.HomeController.getTracks()" method = "get">
+                    <button class="btn btn-success">Get Your Tracks</button>
                 </form>
             </div>
-
         </body>
+
     </html>
 }
