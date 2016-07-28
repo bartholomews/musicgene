@@ -26,6 +26,13 @@ trait Constraint {
   def calc(p: Playlist): Boolean
 }
 
+trait RangeConstraint {
+  def calc(p: Playlist): List[Boolean]
+}
+
+trait UnaryConstraint extends Constraint
+trait GlobalConstraint extends Constraint
+
 /*
 abstract class IndexConstraint(val index: Int) {}
 
@@ -36,58 +43,172 @@ abstract class OverallConstraint {
 
 // ================================================================================================
 
-case class UnaryEqualAll(a: Attribute) extends Constraint {
+case class UnaryEqualAll(a: Attribute) extends UnaryConstraint {
   override def calc(p: Playlist): Boolean = {
     p.songs.forall(s => s.attributes.contains(a))
   }
 }
 
-case class UnaryEqualAny(a: Attribute) extends Constraint {
+case class UnaryEqualAny(a: Attribute) extends UnaryConstraint {
   override def calc(p: Playlist): Boolean = {
     p.songs.exists(s => s.attributes.contains(a))
   }
 }
 
-case class UnaryEqualNone(a: Attribute) extends Constraint {
+case class UnaryEqualNone(a: Attribute) extends UnaryConstraint {
   override def calc(p: Playlist): Boolean = {
     !p.songs.exists(s => s.attributes.contains(a))
   }
 }
 
 // all songs in the playlist have Attribute value x > a.value
-case class UnaryLargerAll(a: AudioAttribute) extends Constraint {
+case class UnaryLargerAll(a: AudioAttribute) extends UnaryConstraint {
   override def calc(p: Playlist): Boolean = p.songs.forall(s => calc(s))
   def calc(s: Song): Boolean = ConstraintsUtil.compare(s, a, x => x > a.value)
 }
 
-case class UnaryLargerAny(a: AudioAttribute) extends Constraint {
+case class UnaryLargerAny(a: AudioAttribute) extends UnaryConstraint {
   override def calc(p: Playlist): Boolean = p.songs.exists(s => calc(s))
   def calc(s: Song): Boolean = ConstraintsUtil.compare(s, a, x => x > a.value)
 }
 
-case class UnaryLargerNone(a: AudioAttribute) extends Constraint {
+case class UnaryLargerNone(a: AudioAttribute) extends UnaryConstraint {
   override def calc(p: Playlist): Boolean = !p.songs.exists(s => calc(s))
-  def calc(s: Song): Boolean = ConstraintsUtil.compare(s, a, x => x > a.value)
+  def calc(s: Song): Boolean = ConstraintsUtil.compareNone(s, a, x => x > a.value)
 }
 
-case class UnarySmallerAll(a: AudioAttribute) extends Constraint {
+case class UnarySmallerAll(a: AudioAttribute) extends UnaryConstraint {
   override def calc(p: Playlist): Boolean = p.songs.forall(s => calc(s))
   def calc(s: Song): Boolean = ConstraintsUtil.compare(s, a, x => x < a.value)
 }
 
-case class UnarySmallerAny(a: AudioAttribute) extends Constraint {
+case class UnarySmallerAny(a: AudioAttribute) extends UnaryConstraint {
   override def calc(p: Playlist): Boolean = p.songs.exists(s => calc(s))
   def calc(s: Song): Boolean = ConstraintsUtil.compare(s, a, x => x < a.value)
 }
 
-case class UnarySmallerNone(a: AudioAttribute) extends Constraint {
+// no songs have attribute a with value < that.value
+case class UnarySmallerNone(a: AudioAttribute) extends UnaryConstraint {
   override def calc(p: Playlist): Boolean = !p.songs.exists(s => calc(s))
-  def calc(s: Song): Boolean = ConstraintsUtil.compare(s, a, x => x < a.value)
+  def calc(s: Song): Boolean = ConstraintsUtil.compareNone(s, a, x => x < a.value)
 }
+
+/**
+  * Song at position `i` must include Attribute `y`
+  *
+  * @param index the index of the song in the playlist
+  * @param attribute the attribute the song needs to match
+  * @return true if the attribute x of the song matches y, false otherwise
+  */
+case class Include(index: Int, attribute: Attribute) extends Constraint {
+  override def calc(p: Playlist) = {
+    if (index < 0 || index > p.size) false
+    else p.songs(index).attributes.contains(attribute)
+  }
+}
+
+
+/**
+  * Song at position `index` must exclude `that` Attribute value
+  *
+  * @param attribute
+  * @param index
+  */
+case class Exclude(index: Int, attribute: Attribute) extends Constraint {
+  override def calc(p: Playlist): Boolean = {
+    if (index < 0 || index > p.size) false
+    else !p.songs(index).attributes.contains(attribute)
+  }
+}
+
+/**
+  * Song at position `i` must include Attribute `y` with value < that
+  *
+  * @param index the index of the song in the playlist
+  * @param that the attribute the song needs to match
+  * @return true if the attribute x of the song matches y, false otherwise
+  */
+case class IncludeSmaller(index: Int, that: AudioAttribute) extends Constraint {
+  override def calc(p: Playlist) = {
+    if (index < 0 || index > p.size) false
+    else ConstraintsUtil.compare(p.songs(index), that, x => x < that.value)
+  }
+}
+
+/**
+  * Song at position `i` must include Attribute `y` with value > that
+  *
+  * @param index the index of the song in the playlist
+  * @param that the attribute the song needs to match
+  * @return true if the attribute x of the song matches y, false otherwise
+  */
+case class IncludeLarger(index: Int, that: AudioAttribute) extends Constraint {
+  override def calc(p: Playlist) = {
+    if (index < 0 || index > p.size) false
+    else ConstraintsUtil.compare(p.songs(index), that, x => x > that.value)
+  }
+}
+
+// song at index 'i' need to have attribute == a.value +- tolerance
+case class IncludeEquals(index: Int, that: AudioAttribute, tolerance: Double) extends UnaryConstraint {
+  override def calc(p: Playlist): Boolean =
+    ConstraintsUtil.compareWithTolerance(p.songs(index), that, tolerance, x => x == that.value)
+}
+
+case class CompareAdjacent(index: Int, that: AudioAttribute, f: Double => Boolean) extends Constraint {
+  override def calc(p: Playlist): Boolean =
+    ConstraintsUtil.compare(p.songs(index), that, x => f(x))
+}
+
+
+
+
 
 // ================================================================================================
 
+/*
+trait ScoreConstraint {
+  def calc(p: Playlist): Score
+}
 
+/*
+// song at index i have Attribute with that value
+case class UnaryInclude(that: Attribute, i: Int) extends ScoreConstraint {
+  override def calc(p: Playlist): Boolean = p.songs(i).attributes.exists(a => a.value == that.value)
+}
+*/
+
+/**
+  * `Song` at index i have that `Attribute` value +- tolerance
+  *
+  * @param that the `Attribute` to be tested against
+  * @param i the index of the `Song` to test
+  * @param tolerance a Double value defining the acceptable amount of variation from the target result
+  *                  to be considered a positive match
+  */
+case class UnaryIncludeRange(that: AudioAttribute, i: Int, tolerance: Double) extends ScoreConstraint {
+  override def calc(p: Playlist): Score = {
+    ConstraintsUtil.compareScore(p.songs(i), that, tolerance, (x, y) => x == y)
+  }
+
+}
+
+
+// all songs satisfy
+case class IncludeConstraintAll(that: Constraint) extends ScoreConstraint {
+  override def calc(p: Playlist): Score = null
+}
+
+//
+case class UnaryExclude(a: Attribute, i: Int) extends ScoreConstraint {
+  override def calc(p: Playlist): Score = null
+}
+
+
+
+case class UnaryExcludeRange(a: AudioAttribute, i: Int, threshold: Double) extends ScoreConstraint {
+  override def calc(p: Playlist): Score = null
+}
 
 
 /*
@@ -134,19 +255,7 @@ case class UnaryEqualAny(index: Int, a: AudioAttribute) extends Constraint {
 
 /*
 
-  /**
-    * Song at position `i` must include Attribute `y`
-    *
-    * @param index the index of the song in the playlist
-    * @param attribute the attribute the song needs to match
-    * @return true if the attribute x of the song matches y, false otherwise
-    */
-  case class Include(index: Int, attribute: Attribute) extends Constraint {
-    override def calc(p: Playlist) = {
-      if (index < 0 || index > p.size) false
-      else p.songs(index).attributes.contains(attribute)
-    }
-  }
+
     /**
       * All songs must include Attribute `y`
       *
@@ -167,12 +276,7 @@ case class UnaryEqualAny(index: Int, a: AudioAttribute) extends Constraint {
     case class Exclude(attribute: Attribute) extends Constraint {
   }
 
-  case class Exclude(attribute: Attribute, index: Int) {
-    override def calc(p: Playlist, index: Int) = {
-      if (index < 0 || index > p.size) false
-      else !p.songs(index).attributes.contains(attribute)
-    }
-  }
+
 
     case class ExcludeAny(attribute: Attribute) extends Constraint {
       override def calc(p: Playlist) = p.songs.exists(s => !s.attributes.contains(attribute))
@@ -213,6 +317,8 @@ abstract class DerivedConstraint() extends Constraint
 
 // TODO
 abstract class UserDefinedConstraint() extends Constraint
+
+*/
 
 */
 
