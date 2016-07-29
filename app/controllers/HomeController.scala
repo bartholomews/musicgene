@@ -22,31 +22,40 @@ class HomeController @Inject() extends Controller {
   val spotify = SpotifyController.getInstance()
 
   /**
+    * TODO THE WHOLE PROCESS OF RETRIEVING DATA SHOULD GO TO ITN OWN CLASS
+    * I NEED MUSIC_UTIL.GetSONG(id) as well (now in Cache)
+    *
    * Create an Action to render an HTML page with a welcome message.
    * The configuration in the `routes` file means that this method
    * will be called when the application receives a `GET` request with
    * a path of `/`.
    */
   def index = Action {
-    Ok(views.html.index("M-I-R"))
+    Ok(views.html.index("GEN"))
   }
 
+  // pass just the minimum necessary, why all the weight, unused.
   def getTracks = Action {
     try {
       // not sure about this. How's caching? Async?
-
     //  val tracks = spotify.getSavedTracks(0, 50).toList.map(t => t.getTrack)
 
       // vector might be better than list in this case, see odersky
-      val playlists: Vector[SimplePlaylist] = spotify.getSavedPlaylists.toVector
+      val simplePlaylists: Vector[SimplePlaylist] = spotify.getSavedPlaylists.toVector
+      val collection: Vector[(SimplePlaylist, Vector[(Track, AudioFeature)])] = getPlaylistsCollection(simplePlaylists)
 
-      val collection: Vector[(SimplePlaylist, Vector[(Track, AudioFeature)])] = getPlaylistsCollection(playlists)
+      // TODO refactor to be a List or Vector of Playlist(string name as val inside)
+      val playlists: Vector[(String, Vector[Song])] = collection.map {
+        c => (c._1.getName, MusicUtil.toSongs(c._2))
+      }
 
-      writeSongsToJSON(new MusicCollection(MusicUtil.toSongs(collection.flatMap(p => p._2))))
+//TODO      writeSongsToJSON(new MusicCollection(MusicUtil.toSongs(collection.flatMap(p => p._2))))
 
-      Ok(views.html.tracks("tracks", collection))
+
+      Ok(views.html.tracks("PLAYLISTS", playlists))
+
     } catch {
-      case _:BadRequestException => BadRequest("That was a bad request.")
+      case _:BadRequestException => BadRequest("That was a bad request.") // TODO implement Button BACK to index
       case _:NullPointerException => BadRequest("Something went wrong.") // should return something else not badreq>
       // case _  => // some other exception handling
     }
