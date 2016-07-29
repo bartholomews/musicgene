@@ -7,9 +7,10 @@
     <html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
 
         <head>
-            <script src="@routes.Assets.versioned("javascripts/playlistgen.js")" type="text/javascript"></script>
             <script src="@routes.Assets.versioned("javascripts/modals.js")" type="text/javascript"></script>
             <script src="@routes.Assets.versioned("javascripts/constraints.js")" type="text/javascript"></script>
+            <script src="@routes.Assets.versioned("javascripts/playlistRequest.js")" type="text/javascript"></script>
+            <script src="@routes.Assets.versioned("javascripts/playlistResponse.js")" type="text/javascript"></script>
             <!-- Bootstrap-select -->
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
             <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
@@ -60,10 +61,18 @@
                 onclick="resetConstraints()">CLEAR CONSTRAINTS</button>
             </div>
 
+                <!-- Generated playlist chart with C3.js -->
+            <div id="playlist-chart">
+            </div>
+
+                <!-- Generated playlist float chart with C3.js -->
+            <div id="playlist-float-chart">
+            </div>
+
                 <!-- Existing Music collection -->
             <div class="music-collection" id="music-collection">
             @tracks.map { t =>
-                <table class="table table-hover">
+                <table class="table table-hover" id="music-collection-table">
                     <caption>@t._1</caption>
                     <thead>
                         <tr>
@@ -81,13 +90,13 @@
                     @t._2.zip(Stream from 1).map { case (track, index) =>
                     <tr id="@track.id">
                         <th scope="row">@index</th>
-                        <td>@track.title</td>
-                        <td>@track.duration</td>
-                        <td>@track.artist</td>
-                        <td>@track.album</td>
-                        <td>@track.loudness</td>
-                        <td>@track.tempo</td>
-                        <td>@track.acousticness</td>
+                        <td id="@track.id-title">@track.title</td>
+                        <td id="@track.id-duration">@track.durationToString</td>
+                        <td id="@track.id-artist">@track.artist</td>
+                        <td id="@track.id-album">@track.album</td>
+                        <td id="@track.id-loudness">@track.loudness</td>
+                        <td id="@track.id-tempo">@track.tempo</td>
+                        <td id="@track.id-acousticness">@track.acousticness</td>
                     </tr>
                     }
                     </tbody>
