@@ -7,7 +7,7 @@ import controllers.SpotifyController
 /**
   *
   */
-class Song(val id: String, val attributes: Set[Attribute]) {
+class Song(val id: String, val preview_url: String, val attributes: Set[Attribute]) {
 
   def getAttribute(that: Attribute): Option[Attribute] = attributes.find(a => a.getClass == that.getClass)
 

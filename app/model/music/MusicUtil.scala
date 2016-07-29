@@ -11,7 +11,7 @@ import play.api.libs.json.{JsLookupResult, JsUndefined, JsValue}
 object MusicUtil {
 
   def toSongs(songs: Vector[(Track, AudioFeature)]): Vector[Song] = {
-    songs.map(t => new Song(t._1.getId,
+    songs.map(t => new Song(t._1.getId, t._1.getPreviewUrl,
       Set[Attribute](
         Title(t._1.getName),
         Album(t._1.getAlbum.getName),
