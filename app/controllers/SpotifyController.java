@@ -9,47 +9,24 @@ import com.wrapper.spotify.exceptions.WebApiException;
 import com.wrapper.spotify.methods.CurrentUserRequest;
 import com.wrapper.spotify.methods.authentication.ClientCredentialsGrantRequest;
 import com.wrapper.spotify.models.*;
-import model.music.*;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
  * {@see https://github.com/thelinmichael/spotify-web-api-java}
+ *
+ * TODO DETAILED ANALYSIS?
  */
 public class SpotifyController {
     private static volatile SpotifyController instance;
     private static final Object lock = new Object();
-
     // TODO inject?
     private static final String CLIENT_ID = "24c87b0353a141768e9b842eb7bd0f67";
     private static final String CLIENT_SECRET = "cc5d6ebca4b445c782b6aced791710ab";
     private static final String REDIRECT_URI = "http://localhost:9000/callback";
     //  static final String REDIRECT_URI = "https://mir-analytics.herokuapp.com/callback";
-
-    private static final Api api = Api.builder()
-            .clientId(CLIENT_ID)
-            .clientSecret(CLIENT_SECRET)
-            .redirectURI(REDIRECT_URI)
-            .build();
-
-    /* Set the necessary scopes that the application will need from the user */ // TODO
-    private final List<String> scopes = Arrays.asList("user-read-private", "user-read-email",
-            "user-library-read", "user-library-modify", "playlist-modify-public");
-
-    /* Set a state. This is used to prevent cross site request forgeries. */
-    private final String state = "someExpectedStateString"; // TODO
-
-    /**
-     * TODO SHOULD BE INJECTED AT CONSTRUCTION TIME
-     */
-    // private String authorizeURL = api.createAuthorizeURL(scopes, state);
-    private String authorizeURL = createAuthorizeURL(scopes, state, true);
-
-    /* Create a request object. */
-    final ClientCredentialsGrantRequest request = api.clientCredentialsGrant().build();
 
     private SpotifyController() {}
 
@@ -71,6 +48,54 @@ public class SpotifyController {
         }
         return instance;
     }
+
+    private static final Api api = Api.builder()
+            .clientId(CLIENT_ID)
+            .clientSecret(CLIENT_SECRET)
+            .redirectURI(REDIRECT_URI)
+            .build();
+
+    /**
+     * Client Credentials flow for requests which do not require user's permission.
+     * This flow doesn't return a refresh token, but it still benefits of higher rate limits
+     * when making requests.
+     */
+    public void clientCredentialsFlow() {
+        // create a request object
+        final ClientCredentialsGrantRequest request = api.clientCredentialsGrant().build();
+        // use the request object to make an asynchronous request
+        final SettableFuture<ClientCredentials> responseFuture = request.getAsync();
+        Futures.addCallback(responseFuture, new FutureCallback<ClientCredentials>() {
+            @Override
+            public void onSuccess(ClientCredentials clientCredentials) {
+                // set access token on the Api object
+                api.setAccessToken(clientCredentials.getAccessToken());
+            }
+            @Override
+            public void onFailure(Throwable t) {
+                // client id/secret is invalid
+            }
+        });
+    }
+
+
+    /* Set the necessary scopes that the application will need from the user */ // TODO
+    private final List<String> scopes = Arrays.asList("user-read-private", "user-read-email",
+            "user-library-read", "user-library-modify", "playlist-modify-public");
+
+    /* Set a state. This is used to prevent cross site request forgeries. */
+    private final String state = "someExpectedStateString"; // TODO
+
+    /**
+     * TODO SHOULD BE INJECTED AT CONSTRUCTION TIME
+     */
+
+    // private String authorizeURL = api.createAuthorizeURL(scopes, state);
+    // scopes, state, showDialog)
+    private String authorizeURL = createAuthorizeURL(scopes, state, true);
+
+    /* Create a request object. */
+    final ClientCredentialsGrantRequest request = api.clientCredentialsGrant().build();
 
     private String createAuthorizeURL(List<String> scopes, String state, boolean val) {
         return api.createAuthorizeURL(scopes)
@@ -101,7 +126,8 @@ public class SpotifyController {
         String token = null;
         // Make a token request. Asynchronous requests are made with the .getAsync method and synchronous requests
         // are made with the .get method. This holds for all type of requests. */
-        final SettableFuture<AuthorizationCodeCredentials> authorizationCodeCredentialsFuture = api.authorizationCodeGrant(code).build().getAsync();
+        final SettableFuture<AuthorizationCodeCredentials> authorizationCodeCredentialsFuture =
+                api.authorizationCodeGrant(code).build().getAsync();
 
         // Add callbacks to handle success and failure
         Futures.addCallback(authorizationCodeCredentialsFuture, new FutureCallback<AuthorizationCodeCredentials>() {
@@ -171,7 +197,7 @@ public class SpotifyController {
             return sendTracks(offset, pageSize);
         } catch (Exception e) {
             // might be a 401 invalid credential: redirect to login?
-            System.out.println("Something went wrong! DARN: " + e.getMessage());
+            System.out.println("Something went wrong: " + e.getMessage());
             throw e;
         }
     }
@@ -246,6 +272,11 @@ public class SpotifyController {
     // TODO getAsync, and maybe also BUILD THE NEW JAR!
     public AudioFeature getAnalysis(String id) throws IOException, WebApiException {
         return api.getAudioFeature(id).build().get();
+    }
+
+    public void getDetailedAnalysis(AudioFeature a) throws IOException {
+        String URL = a.getAnalysisUrl();
+
     }
 
 
