@@ -20,14 +20,12 @@ import java.util.*;
  */
 public class JsonController {
 
-    private final static String PATH = "/Users/bartholomews/Google_Drive/dev/Genetic-playlists/app/data/";
+    private final static String PATH = "/Users/bartholomews/Google_Drive/dev/Genetic-playlists/app/resources/";
 
     @SuppressWarnings("unchecked")
     public static void writeJSON(String id, Set<Attribute> attributes) throws IOException {
         File f = new File(PATH + id + ".json");
-        if(f.exists()) {
-            System.out.println(id + " already in cache");
-        } else {
+        if (!f.exists()) {
             String artist = "unknown_artist";
             String title = "unknown_title";
             System.out.println("WRITING JSON FILE...");
@@ -115,6 +113,8 @@ public class JsonController {
         return getFiles(new File(PATH));
     }
 
+    public static String getFile(String id) { return getFile(id, new File(PATH)); }
+
     private static List<String> getFiles(File folder) {
         List<String> result = new LinkedList<>();
         File[] files = folder.listFiles();
@@ -125,6 +125,18 @@ public class JsonController {
             }
         }
         return result;
+    }
+
+    private static String getFile(String id, File folder) {
+        File[] files = folder.listFiles();
+        assert files != null;
+        for(File f : files) {
+            if(f.isFile() && f.getName().equals(id + ".json")) {
+                // TODO ugly
+                return f.getName();
+            }
+        }
+        return null;
     }
 
 }
