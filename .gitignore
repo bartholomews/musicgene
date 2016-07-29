@@ -6,3 +6,47 @@ target
 /.project
 /.settings
 /RUNNING_PID
+
+app/views/playlistgen.scala.html
+public/javascripts/jquery-1.12.1.min.js
+### Java template
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+### Scala template
+
+# sbt specific
+.cache
+.lib/
+dist/*
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+# Scala-IDE specific
+.scala_dependencies
+.worksheet
+### PlayFramework template
+# Ignore Play! working directory #
+bin/
+/db
+.eclipse
+/lib/
+/modules
+tmp/
+test-result
+server.pid
+*.eml
+/dist/
+/public/bootstrap-3.3.6-dist/
+/public/javascripts/d3.min.js
+/public/javascripts/c3.min.js
