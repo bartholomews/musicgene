@@ -1,4 +1,14 @@
 /**
+ *
+ * @param ms
+ */
+function convertDuration(ms) {
+    var minutes = (ms / (1000*60)) % 60;
+    var seconds = (ms / 1000) % 60;
+    return minutes + ":" + seconds
+}
+
+/**
  * build a Constraint String and add append a <p> element to the jumbotron
  *
  * @param name the name of a Constraint
