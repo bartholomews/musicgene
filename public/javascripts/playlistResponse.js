@@ -1,10 +1,47 @@
 /**
  *
  */
+
+var audio = null;
+
+/**
+ * reference:
+ * @see https://github.com/plamere/SmarterPlaylists/blob/master/web/playlist.js
+ *
+ * TODO loop would be nice, with fade even nicer
+ */
 function playPreview() {
     $(document).on('click', '.playable', function() {
-        window.alert("PLAY!");
+        var url = $(this).attr('data-preview');
+        if (audio == null) {
+            audio = $("<audio>");
+        }
+        if (isPlaying()) {
+            // pause the current playing track
+            audio.get(0).pause();
+            // if the click is on same track, just return
+            if (audio.attr('src') == url) {
+                return;
+            }
+        }
+        // bind the audio src to the track preview and play
+        audio.attr('src', url);
+        audio.get(0).play();
     });
+}
+
+function playPreviewGraph(url) {
+    // TODO
+}
+
+function isPlaying() {
+    return !audio.get(0).paused;
+}
+
+function stopPreview() {
+    if(audio) {
+        audio.get(0).pause();
+    }
 }
 
 /*
@@ -35,8 +72,6 @@ function createPlaylistTable(tracks) {
         // TODO: what if id == null (that is, the song is NOT on the user collection?)
         // need to create copy, don't override track index of music collection
         var row = document.getElementById(tracks[i]).cloneNode(true);
-        // TODO check if it is really playable first
-        row.setAttribute("class", "playable");
         // push data into datum to feed the graph
         pushGraphData(obj, tracks[i]);
         row.children[0].innerHTML = "" + index;
