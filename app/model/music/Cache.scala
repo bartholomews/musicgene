@@ -28,12 +28,13 @@ object Cache {
 
     private def parseSong(file: String): Song = {
         val list = controllers.JsonController.readJSON(file).toVector
-        val id = list.head
-        val attributes = list.tail.map(a => {
+        val id = list(0)
+        val preview = list(1)
+        val attributes = list.drop(2).map(a => {
             val tuple: Array[String] = a.split(": ")
             extractAttribute((tuple(0), tuple(1)))
         }).toSet
-        new Song(id, attributes)
+        new Song(id, preview, attributes)
     }
 
     def get(id: String): Option[Song] = {
@@ -55,7 +56,7 @@ object Cache {
             case ("Speechiness", value) => Speechiness(value.toDouble)
             case ("Album", value) => Album(value)
             case ("Acousticness", value) => Acousticness(value.toDouble)
-            case ("Duration", value) => Duration(value.toInt)
+            case ("Duration", value) => Duration(value.toDouble)
             case ("Valence", value) => Valence(value.toDouble)
             case ("Instrumentalness", value) => Instrumentalness(value.toDouble)
             case ("Liveness", value) => Liveness(value.toDouble)

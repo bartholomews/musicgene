@@ -23,7 +23,7 @@ public class JsonController {
     private final static String PATH = "/Users/bartholomews/Google_Drive/dev/Genetic-playlists/app/resources/";
 
     @SuppressWarnings("unchecked")
-    public static void writeJSON(String id, Set<Attribute> attributes) throws IOException {
+    public static void writeJSON(String id, String preview, Set<Attribute> attributes) throws IOException {
         File f = new File(PATH + id + ".json");
         if (!f.exists()) {
             String artist = "unknown_artist";
@@ -37,8 +37,9 @@ public class JsonController {
                 attr.add(simpleName + ": " + a.value());
                 //      obj.put(a.getClass().toString(),);
             }
-            obj.put("attributes", attr);
             obj.put("ID", id);
+            obj.put("preview_url", preview);
+            obj.put("attributes", attr);
             /*
             JSONArray company = new JSONArray();
             company.add("Compnay: eBay");
@@ -66,8 +67,10 @@ public class JsonController {
                 Object obj = parser.parse(new FileReader(PATH + f));
                 JSONObject jsonObject = (JSONObject) obj;
                 String id = (String) jsonObject.get("ID");
+                String preview = (String) jsonObject.get("preview_url");
                 JSONArray audioFeatures = (JSONArray) jsonObject.get("attributes");
                 System.out.println("ID: " + id);
+                System.out.println("preview_url: " + preview);
                 System.out.println("\nAttributes:");
                 for (String audioFeature : (Iterable<String>) audioFeatures) {
                     System.out.println(audioFeature);
@@ -97,6 +100,7 @@ public class JsonController {
             Object obj = parser.parse(new FileReader(PATH + file));
             JSONObject jsonObject = (JSONObject) obj;
             result.add((String)jsonObject.get("ID"));
+            result.add((String)jsonObject.get("preview_url"));
             JSONArray features = (JSONArray) jsonObject.get("attributes");
             for(String f : (Iterable<String>) features) {
                 result.add(f);

@@ -49,7 +49,7 @@ class HomeController @Inject() extends Controller {
         c => (c._1.getName, MusicUtil.toSongs(c._2))
       }
 
-//TODO      writeSongsToJSON(new MusicCollection(MusicUtil.toSongs(collection.flatMap(p => p._2))))
+      writeSongsToJSON(new MusicCollection(MusicUtil.toSongs(collection.flatMap(p => p._2))))
 
 
       Ok(views.html.tracks("PLAYLISTS", playlists))
@@ -80,13 +80,14 @@ class HomeController @Inject() extends Controller {
   }
 
   /*
-  def writePlaylistsToJSON(db: List[(SimplePlaylist, List[Song])] = {
+  TODO
+  def writePlaylistsToJSON(db: List[(SimplePlaylist, List[Song])]) = {
     db.foreach(p => JsonController.writeJSON(p._1, p._2.map(s => s.)))
   }
   */
 
   def writeSongsToJSON(db: MusicCollection) = {
-    db.songs.foreach(s => JsonController.writeJSON(s.id, s.attributes.asJava))
+    db.songs.foreach(s => JsonController.writeJSON(s.id, s.preview_url, s.attributes.asJava))
   }
 
   def getTracksFeatures(list: Vector[Track]): Vector[(Track, AudioFeature)] = {
