@@ -7,19 +7,17 @@ import scala.util.Random
 /**
   *
   */
-class Playlist(val songs: Vector[Song], val f: FitnessFunction) {
+class Playlist(val songs: Vector[Song], f: FitnessFunction) {
 
   def get(index: Int) = songs(index)
   def size = songs.length
 
-  val fitness: Float = f.getFitness(this)
+  // ok now really i want to get rid of f here, should really go into pop
+  def fitness: Float = f.getFitness(this)
 
   def prettyPrint() = {
     songs.foreach(s => {
-      s.attributes.foreach {
-        case Title(value) => println("o " + value)
-        case _ =>
-      }
+      println("- " + s.title + "(T: " + s.tempo + ", L: " + s.loudness + ")")
     })
   }
 
