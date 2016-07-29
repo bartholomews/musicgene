@@ -1,3 +1,12 @@
+/**
+ *
+ */
+function playPreview() {
+    $(document).on('click', '.playable', function() {
+        window.alert("PLAY!");
+    });
+}
+
 /*
  Object { name: "playlist-name", tracks: { id: "id", number: "index" } }
  */
@@ -20,11 +29,14 @@ function createPlaylistTable(tracks) {
         acousticness: ['acousticness'],
         loudness: ['loudness']
     };
+    // TODO find better performance iteration over whole table
     for(var i = 0; i < tracks.length; i++) {
         var index = i + 1;
         // TODO: what if id == null (that is, the song is NOT on the user collection?)
         // need to create copy, don't override track index of music collection
         var row = document.getElementById(tracks[i]).cloneNode(true);
+        // TODO check if it is really playable first
+        row.setAttribute("class", "playable");
         // push data into datum to feed the graph
         pushGraphData(obj, tracks[i]);
         row.children[0].innerHTML = "" + index;

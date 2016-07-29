@@ -88,7 +88,7 @@
                     </thead>
                     <tbody class="music-collection-tbody">
                     @t._2.zip(Stream from 1).map { case (track, index) =>
-                    <tr id="@track.id">
+                    <tr class="playable" id="@track.id">
                         <th scope="row">@index</th>
                         <td id="@track.id-title">@track.title</td>
                         <td id="@track.id-duration">@track.durationToString</td>
