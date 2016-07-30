@@ -2,9 +2,9 @@
  * TODO clear input modals when either 'undo' or 'save' button pressed
  */
 $(document).ready(function () {
-    playPreview();  // listen for mouse click on track rows
+    playPreviewTable();  // listen for mouse click on track rows
     resetModal(); // listen for a closed modal
-    checkSubmitModal();
+    //checkSubmitModal();
 });
 
 /**
@@ -42,7 +42,7 @@ function checkSubmitModal() {
 }
 
 /**
- * Triggered when a modal is closed
+ * Triggered when a modal is closed: TODO empty text input field
  */
 function resetModal() {
     $('body').on('hidden.bs.modal', '.modal', function(){
