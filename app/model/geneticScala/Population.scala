@@ -9,7 +9,7 @@ import scala.util.Random
   * The collection might have duplicates, to avoid that need another function???
   * I don't think so
   */
-class Population(val playlists: Vector[Playlist]) {
+class Population(val playlists: Vector[Playlist], f: FitnessFunction) {
 
   // the number of the initial candidate playlists
   val popSize = playlists.length
@@ -18,15 +18,27 @@ class Population(val playlists: Vector[Playlist]) {
   def get(i: Int) = playlists(i)
   def apply(c: Playlist) = playlists.find(x => x == c)
 
+
+
+  def getFittest: Playlist = playlists.sortWith((p1, p2) => f.getFitness(p1) > f.getFitness(p2)).head // playlists.reduce(fittest)
   def fittest(x: Playlist, y: Playlist): Playlist = if(x.fitness > y.fitness) x else y
-  def getFittest: Playlist = playlists.reduce(fittest)
   def getFitness(c: Playlist): Float = c.fitness
   def maxFitness = getFittest.fitness
 
+  /*
+  // since it's sorted, would be just smaller indices
+  // why with this group it bounces back and forth? I think crossover
+  val getFittest = playlists.head
+  def fittest(p1: Playlist, p2: Playlist) = if(f.getFitness(p1) >= f.getFitness(p2)) p1 else p2
+  def getFitness(c: Playlist) = f.getFitness(c)
+  val maxFitness = f.getFitness(playlists.head)
+  */
+
+
   def prettyPrint() = {
     playlists.foreach(p => {
-      println("=" * 10 + '\n' + "PLAYLIST " + playlists.indexOf(p) + " (" + p.fitness + ")" + '\n' + "=" * 10)
-      p.prettyPrint()
+      println("=" * 10 + '\n' + "PLAYLIST " + playlists.indexOf(p) + " (" + getFitness(p) + ")" + '\n' + "=" * 10)
+      p.prettyPrint
     })
   }
 
@@ -56,7 +68,10 @@ class Population(val playlists: Vector[Playlist]) {
       else mutate(darwinian)
     }).toArray
 
-    val p = new Population((eliteBuffer ++ inferiors).sortBy(p => p.fitness))
+  //  val p = new Population((eliteBuffer ++ inferiors).sortWith((p1, p2) => f.getFitness(p1) < f.getFitness(p2)), f)
+    val p = new Population((eliteBuffer ++ inferiors).sortBy(p => p.fitness), f)
+
+
     //println("NEW POP:")
     //p.prettyPrint()
     p
@@ -64,7 +79,7 @@ class Population(val playlists: Vector[Playlist]) {
 
   // will mutate also fit ones, if over there it will test each song to be mutated:
   // that is, this is a high mutation rate algo
-  def mutate(p: Playlist) = p.mutate
+  def mutate(p: Playlist): Playlist = p.mutate
 
   /*
   private def randomMutate(p: Playlist) = {
@@ -79,7 +94,7 @@ class Population(val playlists: Vector[Playlist]) {
     * TODO this will work if the two playlists have the same size and set
     * of songs.
     */
-  def crossover(p1: Playlist, p2: Playlist) = {
+  def crossover(p1: Playlist, p2: Playlist): Playlist = {
     if(fittest(p1, p2) == p1) p1.crossover(p2)
     else p2.crossover(p1)
   }

@@ -3,7 +3,7 @@ package model.geneticScala
 import model.music.MusicCollection
 
 /**
-  * ALL THESE F*CKING CONVERSIONS....
+  * ALL THESE CONVERSIONS....
   * ARRAY vs LIST
   * Random access
   * That sorting looks expensive
@@ -11,16 +11,16 @@ import model.music.MusicCollection
 object PlaylistsFactory {
 
   // Generate 'poolSize` playlists each containing `size` songs from the db collection in random order
-  def generatePlaylists(db: MusicCollection, f: FitnessFunction, poolSize: Int, size: Int): Vector[Playlist] = {
-    (for(n <- 1 to poolSize) yield { generatePlaylist(db, f, size) }).toVector.sortBy(p => p.fitness)
+  def generatePlaylists(db: MusicCollection, poolSize: Int, size: Int, f: FitnessFunction): Vector[Playlist] = {
+    (for(n <- 1 to poolSize) yield { generatePlaylist(db, size, f) }).toVector
   }
 
   // Generate `poolSize` playlists each containing the whole database collection in random order
-  def generatePlaylists(db: MusicCollection, f: FitnessFunction, poolSize: Int): Vector[Playlist] = {
-    (for (n <- 1 to poolSize) yield { generatePlaylist(db, f) }).toVector.sortBy(p => p.fitness)
+  def generatePlaylists(db: MusicCollection, poolSize: Int, f: FitnessFunction): Vector[Playlist] = {
+    (for (n <- 1 to poolSize) yield { generatePlaylist(db, f) }).toVector
   }
 
-  def generatePlaylist(db: MusicCollection, f: FitnessFunction, size: Int): Playlist = {
+  def generatePlaylist(db: MusicCollection, size: Int, f: FitnessFunction): Playlist = {
     new Playlist(util.Random.shuffle(db.songs).take(size), f)
   }
 
