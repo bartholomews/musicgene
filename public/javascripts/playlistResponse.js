@@ -1,47 +1,42 @@
 /**
- *
+ * reference
+ * @see https://github.com/plamere/SmarterPlaylists/blob/master/web/playlist.js
  */
-
 var audio = null;
 
 /**
- * reference:
- * @see https://github.com/plamere/SmarterPlaylists/blob/master/web/playlist.js
- *
+ * if preview_url == null (e.g. Xtal) catch DOMException: Failed to load because no supported source was found.
  * TODO loop would be nice, with fade even nicer
  */
-function playPreview() {
+function playPreviewTable() {
     $(document).on('click', '.playable', function() {
         var url = $(this).attr('data-preview');
-        if (audio == null) {
-            audio = $("<audio>");
-        }
-        if (isPlaying()) {
-            // pause the current playing track
-            audio.get(0).pause();
-            // if the click is on same track, just return
-            if (audio.attr('src') == url) {
-                return;
-            }
-        }
-        // bind the audio src to the track preview and play
-        audio.attr('src', url);
-        audio.get(0).play();
+        playPreview(url);
     });
 }
 
-function playPreviewGraph(url) {
-    // TODO
+function playPreviewGraph(i) {
+    var url = $('#new-playlist-table').find('> tbody > tr').eq(i).attr("data-preview");
+    playPreview(url)
+}
+
+function playPreview(url) {
+    if (audio == null) {
+        audio = $("<audio>");
+    }
+    if (isPlaying()) {
+        // pause the current playing track
+        audio.get(0).pause();
+        // if the click is on same track, just return
+        if (audio.attr('src') == url) return;
+    }
+    // bind the audio src to the track preview and play
+    audio.attr('src', url);
+    audio.get(0).play();
 }
 
 function isPlaying() {
     return !audio.get(0).paused;
-}
-
-function stopPreview() {
-    if(audio) {
-        audio.get(0).pause();
-    }
 }
 
 /*
@@ -62,9 +57,15 @@ function createPlaylistTable(tracks) {
     var newPlaylistTableBody = newPlaylist.getElementsByTagName('tbody')[0];
     var obj = {
         name: [],
+        // BPM
         tempo: ['tempo'],
+        // dB
+        loudness: ['loudness'],
+        // acoustic attributes with range 0.0 to 1.0
         acousticness: ['acousticness'],
-        loudness: ['loudness']
+        danceability: ['danceability'],
+        liveness: ['liveness'],
+        speechiness: ['speechiness']
     };
     // TODO find better performance iteration over whole table
     for(var i = 0; i < tracks.length; i++) {
@@ -74,6 +75,7 @@ function createPlaylistTable(tracks) {
         var row = document.getElementById(tracks[i]).cloneNode(true);
         // push data into datum to feed the graph
         pushGraphData(obj, tracks[i]);
+        // write the track# on first child rows
         row.children[0].innerHTML = "" + index;
         newPlaylistTableBody.appendChild(row);
     }
@@ -82,10 +84,16 @@ function createPlaylistTable(tracks) {
 }
 
 function pushGraphData(obj, ID) {
+    console.log("pushing track " + ID);
     obj.name.push(($('#'+ID+"-title").text()));
     obj.tempo.push(($('#'+ID+"-tempo").text()));
-    obj.acousticness.push(($('#'+ID+"-acousticness").text()));
     obj.loudness.push(($('#'+ID+"-loudness").text()));
+
+    obj.acousticness.push(($('#'+ID+"-acousticness").text()));
+    obj.danceability.push(($('#'+ID+"-danceability").text()));
+    obj.liveness.push(($('#'+ID+"-liveness").text()));
+    obj.speechiness.push(($('#'+ID+"-speechiness").text()));
+
     return obj;
 }
 
@@ -94,19 +102,30 @@ function generateFloatChart(obj) {
         bindto: '#playlist-float-chart',
         data: {
             columns: [
-                obj.acousticness
+                obj.acousticness,
+                obj.danceability,
+                obj.liveness,
+                obj.speechiness
             ],
-            axes: {
-                'acousticness': 'y'
-            },
             colors: {
-                acousticness: '8b4513'
-            }
+                acousticness: '8b4513',
+                danceability: '9933FF',
+                liveness: '000066',
+                speechiness: 'CCFFFF'
+            },
+            onclick: function(d) { playPreviewGraph(d.index) }
         },
         axis: {
+            x: {
+                tick: {
+                    culling: false
+                }
+            },
             y: {
-                label: '0 (min) to 1 (max)',
-                position: 'outer-middle',
+            //    label: '0 (min) to 1 (max)',
+            //    position: 'outer-middle',
+                max: 1.0,
+                min: 0.0,
                 show: true
             }
         },
@@ -133,9 +152,15 @@ function generateChart(obj) {
             axes: {
                 'tempo': 'y', //bpm
                 'loudness': 'y2'   //dB
-            }
+            },
+            onclick: function(d) { playPreviewGraph(d.index) }
         },
         axis: {
+            x: {
+                tick: {
+                    culling: false
+                }
+            },
             y: {
                 label: 'BPM',
                 position: 'outer-middle',

@@ -84,6 +84,9 @@
                             <th>Loudness</th>
                             <th>Tempo</th>
                             <th>Acousticness</th>
+                            <th>Danceability</th>
+                            <th>Liveness</th>
+                            <th>Speechiness</th>
                         </tr>
                     </thead>
                     <tbody class="music-collection-tbody">
@@ -97,6 +100,9 @@
                         <td id="@track.id-loudness">@track.loudness</td>
                         <td id="@track.id-tempo">@track.tempo</td>
                         <td id="@track.id-acousticness">@track.acousticness</td>
+                        <td id="@track.id-danceability">@track.danceability</td>
+                        <td id="@track.id-liveness">@track.liveness</td>
+                        <td id="@track.id-speechiness">@track.speechiness</td>
                     </tr>
                     }
                     </tbody>
@@ -106,7 +112,7 @@
 
                 <!-- Newly generated playlist -->
             <div class="new-playlist" id="new-playlist">
-                <table class="table table-hover">
+                <table class="table table-hover" id="new-playlist-table">
                     <thead>
                         <tr>
                             <th>#</th>

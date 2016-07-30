@@ -39,7 +39,37 @@ class Song(val id: String, val preview_url: String, val attributes: Set[Attribut
   val album = find(Album(""))
   val tempo = find(Tempo(0))
   val loudness = find(Loudness(0))
+
+  /**
+    * The more suitable for dancing,
+    * the closer to 1.0 value.
+    * @see http://developer.echonest.com/acoustic-attributes.html
+    */
+  val danceability = find(Danceability(0))
+  /**
+    * Voice and acoustic instruments closer to 0
+    * Synthesizers, amplifiers, distortions, etc. closer to 1
+    */
   val acousticness = find(Acousticness(0))
+  /**
+    * The more exclusively speech-like the closer to 1.0
+    * Above 0.66 tracks are probably made
+    * entirely of spoken words.
+    * Between 0.33 and 0.66 might contain both music and speech (e.g. rap)
+    * Below 0.33 most likely music
+    */
+  val speechiness = find(Speechiness(0))
+  /**
+    *  The more confident the track is live,
+    *  the closer to 1.0
+    *  Above 0.8 strong likelihood for live track,
+    *  below 0.6 most likely studio recordings
+    */
+  val liveness = find(Liveness(0))
+
+  val valence = find(Valence(0))
+  val energy = find(Energy(0))
+
 
   object Song
 }
