@@ -169,42 +169,65 @@ case class CompareAdjacent(index: Int, that: AudioAttribute, f: Double => Boolea
 trait ScoreConstraint {
   def distance(p: Playlist): Double
 
-/**
-  * Songs from index i to index j should have that Attribute value as close as possible
-  *
-  * @param that its value contains the penalty value: should be higher than any possible distance?
-  * @param i
-  * @param j
-  */
-case class ConstantRange(that: AudioAttribute, i: Int, j: Int) extends ScoreConstraint {
-  override def distance(p: Playlist) = {
-    val iterator = p.songs.take(j).sliding(2).map(v => {
-      ConstraintsUtil.extractValues(v.head, v.tail.head, that) match {
-        case None => that.value
-        case Some((x, y)) => ConstraintsUtil.constantDistance(x, y)
-      }
-    }).sum
-  }
-}
+  def calc(p: Playlist, that: AudioAttribute, i: Int, j: Int, f: (Double, Double) => Double): Double = {
 
-/**
-  * Songs from index i to index j should have that Attribute value as close as possible to f(x, y)
-  *
-  * @param that its value contains the penalty value: should be higher than any possible distance?
-  * @param i
-  * @param j
-  */
-case class IncreasingRange(that: AudioAttribute, i: Int, j: Int) extends ScoreConstraint {
-  override def distance(p: Playlist) = {
-    val iterator = p.songs.take(j).sliding(2).map(v => {
-      ConstraintsUtil.extractValues(v.head, v.tail.head, that) match {
-        case None => that.value
-        case Some((x, y)) => ConstraintsUtil.monotonicDistance(x, y, that.value, (x, y) => x > y)
-      }
-    }).sum
   }
-}
 
+  /**
+    * Songs from index i to index j should have that Attribute value as close as possible
+    *
+    * @param that its value contains the penalty value: should be higher than any possible distance?
+    * @param i
+    * @param j
+    */
+  case class ConstantRange(that: AudioAttribute, i: Int, j: Int) extends ScoreConstraint {
+    override def distance(p: Playlist) = {
+      p.songs.sliding(2).map(v => {
+        ConstraintsUtil.extractValues(v.head, v.tail.head, that) match {
+          case None => that.value
+          case Some((x, y)) => ConstraintsUtil.constantDistance(x, y)
+        }
+      }).sum
+    }
+  }
+
+  /**
+    * Songs from index i to index j should have that Attribute value as close as possible to f(x, y)
+    *
+    * @param that its value contains the penalty value: should be higher than any possible distance?
+    * @param i
+    * @param j
+    */
+  case class IncreasingRange(that: AudioAttribute, i: Int, j: Int) extends ScoreConstraint {
+    override def distance(p: Playlist) = {
+      p.songs.take(j).sliding(2).map(v => {
+        ConstraintsUtil.extractValues(v.head, v.tail.head, that) match {
+          case None => that.value
+          case Some((x, y)) => ConstraintsUtil.monotonicDistance(x, y, that.value, (x, y) => x > y)
+        }
+      }).sum
+    }
+  }
+
+  /** TODO AVOID CODE REPETITION
+    * Songs from index i to index j should have that Attribute value as close as possible to f(x, y)
+    *
+    * @param that its value contains the penalty value: should be higher than any possible distance?
+    * @param i
+    * @param j
+    */
+  case class DecreasingRange(that: AudioAttribute, i: Int, j: Int, f: Double => Boolean) extends ScoreConstraint {
+    override def distance(p: Playlist) = {
+      p.songs.take(j).sliding(2).map(v => {
+        ConstraintsUtil.extractValues(v.head, v.tail.head, that) match {
+          case None => that.value
+          case Some((x, y)) => ConstraintsUtil.monotonicDistance(x, y, that.value, (x, y) => x < y)
+        }
+      }).sum
+    }
+  }
+
+}
 
 
 /*
