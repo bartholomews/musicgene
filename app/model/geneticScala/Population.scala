@@ -8,6 +8,8 @@ import scala.util.Random
   * TODO this means the MC has to be filtered before running this.
   * The collection might have duplicates, to avoid that need another function???
   * I don't think so
+  *
+  * playlists should be already sorted with fitness function, with head having the best fitness score
   */
 class Population(val playlists: Vector[Playlist], f: FitnessFunction) {
 
@@ -18,12 +20,10 @@ class Population(val playlists: Vector[Playlist], f: FitnessFunction) {
   def get(i: Int) = playlists(i)
   def apply(c: Playlist) = playlists.find(x => x == c)
 
-
-
-  def getFittest: Playlist = playlists.sortWith((p1, p2) => f.getFitness(p1) > f.getFitness(p2)).head // playlists.reduce(fittest)
-  def fittest(x: Playlist, y: Playlist): Playlist = if(x.fitness > y.fitness) x else y
-  def getFitness(c: Playlist): Float = c.fitness
-  def maxFitness = getFittest.fitness
+  def getFitness(p: Playlist): Float = f.getFitness(p)
+  def getFittest: Playlist = playlists.sortWith((p1, p2) => getFitness(p1) > getFitness(p2)).head // playlists.reduce(fittest)
+  def fittest(x: Playlist, y: Playlist): Playlist = if(getFitness(x) > getFitness(y)) x else y
+  val maxFitness = getFitness(getFittest)
 
   /*
   // since it's sorted, would be just smaller indices
@@ -38,7 +38,7 @@ class Population(val playlists: Vector[Playlist], f: FitnessFunction) {
   def prettyPrint() = {
     playlists.foreach(p => {
       println("=" * 10 + '\n' + "PLAYLIST " + playlists.indexOf(p) + " (" + getFitness(p) + ")" + '\n' + "=" * 10)
-      p.prettyPrint
+      p.prettyPrint()
     })
   }
 
@@ -69,7 +69,7 @@ class Population(val playlists: Vector[Playlist], f: FitnessFunction) {
     }).toArray
 
   //  val p = new Population((eliteBuffer ++ inferiors).sortWith((p1, p2) => f.getFitness(p1) < f.getFitness(p2)), f)
-    val p = new Population((eliteBuffer ++ inferiors).sortBy(p => p.fitness), f)
+    val p = new Population((eliteBuffer ++ inferiors).sortBy(p => getFitness(p)), f)
 
 
     //println("NEW POP:")

@@ -7,13 +7,13 @@ import scala.util.Random
 /**
   *
   */
-class Playlist(val songs: Vector[Song], f: FitnessFunction) {
+class Playlist(val songs: Vector[Song]) {
 
   def get(index: Int) = songs(index)
   def size = songs.length
 
   // ok now really i want to get rid of f here, should really go into pop
-  def fitness: Float = f.getFitness(this)
+  //def fitness: Float = f.getFitness(this)
 
   def prettyPrint() = {
     songs.foreach(s => {
@@ -25,7 +25,6 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
   // maybe it's cost-effective to just swap 2 songs
   // and move the mutationRatio check in the Population method caller
   def mutate: Playlist = {
-
     val arr = songs.toArray
     for(i <- songs.indices) {
       if (Random.nextFloat() < GASettings.mutationRatio) {
@@ -35,7 +34,7 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
         arr(j) = aux
       }
     }
-    new Playlist(arr.toVector, f)
+    new Playlist(arr.toVector)
   }
 
   // single point crossover:
@@ -50,7 +49,7 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
     val v1 = this.songs.take(pivot)
     // some songs are dropped randomly. Need to improve that.
     val v2 = that.songs.filter(s => !v1.contains(s)).take(that.songs.length - pivot)
-    new Playlist(v1 ++ v2, f)
+    new Playlist(v1 ++ v2)
   }
 
 }

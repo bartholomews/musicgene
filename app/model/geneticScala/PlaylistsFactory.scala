@@ -11,21 +11,21 @@ import model.music.MusicCollection
 object PlaylistsFactory {
 
   // Generate 'poolSize` playlists each containing `size` songs from the db collection in random order
-  def generatePlaylists(db: MusicCollection, poolSize: Int, size: Int, f: FitnessFunction): Vector[Playlist] = {
-    (for(n <- 1 to poolSize) yield { generatePlaylist(db, size, f) }).toVector
+  def generatePlaylists(db: MusicCollection, poolSize: Int, size: Int): Vector[Playlist] = {
+    (for(n <- 1 to poolSize) yield { generatePlaylist(db, size) }).toVector
   }
 
   // Generate `poolSize` playlists each containing the whole database collection in random order
   def generatePlaylists(db: MusicCollection, poolSize: Int, f: FitnessFunction): Vector[Playlist] = {
-    (for (n <- 1 to poolSize) yield { generatePlaylist(db, f) }).toVector
+    (for (n <- 1 to poolSize) yield { generatePlaylist(db) }).toVector
   }
 
-  def generatePlaylist(db: MusicCollection, size: Int, f: FitnessFunction): Playlist = {
-    new Playlist(util.Random.shuffle(db.songs).take(size), f)
+  def generatePlaylist(db: MusicCollection, size: Int): Playlist = {
+    new Playlist(util.Random.shuffle(db.songs).take(size))
   }
 
-  def generatePlaylist(db: MusicCollection, f: FitnessFunction): Playlist = {
-    new Playlist(util.Random.shuffle(db.songs), f)
+  def generatePlaylist(db: MusicCollection): Playlist = {
+    new Playlist(util.Random.shuffle(db.songs))
   }
 
   /*  ====================================================================================================

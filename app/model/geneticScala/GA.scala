@@ -32,24 +32,27 @@ object GA extends App {
     //    UnarySmallerNone(Tempo(120))
     // ==, that's right
     IncludeSmaller(0, Tempo(120)),
-    IncludeSmaller(1, Tempo(120)),
-    IncludeSmaller(2, Tempo(120)),
+    IncludeLarger(1, Tempo(120)),
+    IncludeEquals(2, Tempo(120), 10),
     IncludeSmaller(3, Tempo(120)),
-    IncludeSmaller(4, Tempo(120)),
+    IncludeLarger(4, Tempo(120)),
     IncludeSmaller(5, Tempo(120)),
-    IncludeSmaller(6, Tempo(120))
-    /*  careful with IndexOutOfBounds
-    Include(5, Title("Mistakes")),
-    Include(6, Title("Dr. Echt")),
-    Include(7, Title("C.R.E.A.M.")),
-    Include(8, Title("A Drifting Up")),
-    Include(9, Title("#1")),
-    Include(10, Title("Come As You Are"))
-    */
+    IncludeLarger(5, Tempo(120)),
+    IncludeSmaller(6, Tempo(120)),
+    IncludeLarger(5, Tempo(120)),
+    IncludeSmaller(5, Tempo(120)),
+    IncludeLarger(5, Tempo(120)),
+    //  careful with IndexOutOfBounds
+    Include(5, Artist("Aphex Twin")),
+    Include(6, Artist("Aphex Twin")),
+    Include(7, Artist("Aphex Twin"))
+   //   Include(8, Title("A Drifting Up")),
+ //   Include(9, Title("#1"))
+ //   Include(10, Title("Come As You Are"))
   )
 
   // with few songs get stuck, whole database length eventually gets a good score
-  val p = generatePlaylist(constraints, 10)
+  val p = generatePlaylist(constraints, 100)
   println("GENERATED PLAYLIST: ")
   p.prettyPrint()
 
@@ -91,20 +94,20 @@ object GA extends App {
 
   // i still feel playlists shouldnt have a fitnessfunc
   def generateRandomPlaylist(length: Int) = {
-    new Playlist(util.Random.shuffle(Cache.extractSongs).take(length), NoFitness())
+    new Playlist(util.Random.shuffle(Cache.extractSongs).take(length))
   }
 
   def generateRandomPlaylist(db: MusicCollection) = {
-    new Playlist(util.Random.shuffle(db.songs).take(20), NoFitness())
+    new Playlist(util.Random.shuffle(db.songs).take(20))
   }
 
   def generateRandomPlaylist(db: MusicCollection, length: Int) = {
     println("OK, JUST A RANDOM P-LIST THEM")
-    new Playlist(util.Random.shuffle(db.songs).take(length), NoFitness())
+    new Playlist(util.Random.shuffle(db.songs).take(length))
   }
 
   def generateRandomPlaylist() = {
-    new Playlist(util.Random.shuffle(Cache.extractSongs).take(20), NoFitness())
+    new Playlist(util.Random.shuffle(Cache.extractSongs).take(20))
   }
 
   @tailrec
@@ -117,8 +120,8 @@ object GA extends App {
   private def printGAResults(pop: Population, generation: Int): Unit = {
     println("=" * 20 + "GEN-" + generation + "=" * 20)
     println("GENERATION " + generation + ", max fitness: " + pop.maxFitness)
-    println("FITTEST:")
-    pop.getFittest.prettyPrint()
+  //  println("FITTEST:")
+  //  pop.getFittest.prettyPrint()
   }
 
 }
