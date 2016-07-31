@@ -1,3 +1,6 @@
+import model.constraints._
+import model.geneticScala.{Playlist, StandardFitness}
+import model.music._
 import org.scalatest.{FlatSpec, Matchers}
 
 /**
@@ -5,9 +8,135 @@ import org.scalatest.{FlatSpec, Matchers}
   */
 class ConstraintsSpec extends FlatSpec with Matchers {
 
-  "A Constraint out of bounds" should "throw exception or do something else" in {
-
+  "A Range Constraint with indexes out of bounds" should "throw exception or do something else" in {
+    val c1 = ConstantRange(Loudness(10), 0, 2)
+// TODO   c1.distance(new Playlist(Vector())) shouldBe 0.0
   }
+
+  "it" should "handle case for a song without the constraint to calculate" in {
+    // TODO (return that.value?)
+  }
+
+  "ConstantRange with one constraint over two songs " should "calculate distance between them" in {
+    val p1 = new Playlist(Vector(
+      new Song("song1", "_", Set(Title("Title1"), Loudness(0.2))),
+      new Song("song2", "_", Set(Title("Title2"), Loudness(0.3)))
+    ))
+    val c1 = ConstantRange(Loudness(10), 0, 1)
+    c1.distance(p1) shouldBe 0.1
+  }
+
+  "it" should "sum distances up with one constraints over multiple songs" in {
+    val p1 = new Playlist(Vector(
+      new Song("song1", "_", Set(Title("Title1"), Loudness(0.2))),
+      new Song("song2", "_", Set(Title("Title2"), Loudness(0.1))),
+      new Song("song2", "_", Set(Title("Title2"), Loudness(0.1))),
+      new Song("song2", "_", Set(Title("Title2"), Loudness(0.5)))
+    ))
+    val c1 = ConstantRange(Loudness(100), 0, 4)
+    c1.distance(p1) shouldBe 0.5
+  }
+
+  "it" should "handle positive and negative values" in {
+    val p1 = new Playlist(Vector(
+      new Song("song1", "_", Set(Title("Title1"), Loudness(- 0.2))),
+      new Song("song2", "_", Set(Title("Title2"), Loudness(0.1))),
+      new Song("song2", "_", Set(Title("Title2"), Loudness(- 0.4))),
+      new Song("song2", "_", Set(Title("Title2"), Loudness(- 0.2)))
+    ))
+    val c1 = ConstantRange(Loudness(10), 0, 1)
+    c1.distance(p1) shouldBe 1.0
+  }
+
+  "it" should "be able to produce a negative distance" in {
+    val p1 = new Playlist(Vector(
+      new Song("song1", "_", Set(Title("Title1"), Loudness(0.2))),
+      new Song("song2", "_", Set(Title("Title2"), Loudness(0.3))),
+      new Song("song2", "_", Set(Title("Title2"), Loudness(0.3))),
+      new Song("song2", "_", Set(Title("Title2"), Loudness(0.3)))
+    ))
+    val c1 = ConstantRange(Loudness(10), 0, 1)
+    c1.distance(p1) shouldBe 0.1
+  }
+
+  //===========================================================================================
+
+  "IncreasingRange" should "sum increasing distances up" in {
+    val p1 = new Playlist(Vector(
+      new Song("song1", "_", Set(Title("Title1"), Loudness(0.2))),
+      new Song("song2", "_", Set(Title("Title2"), Loudness(0.3)))
+    ))
+    val c1 = IncreasingRange(Loudness(10), 0, 1)
+    c1.distance(p1) shouldBe 0.1
+  }
+
+  "it" should "add penalty value for a non-increasing range" in {
+    val p1 = new Playlist(Vector(
+      new Song("song1", "_", Set(Title("Title1"), Loudness(0.2))),
+      // distance = 0.1
+      new Song("song2", "_", Set(Title("Title2"), Loudness(0.3))),
+      // distance = 0.2
+      new Song("song2", "_", Set(Title("Title2"), Loudness(0.5))),
+      // distance = 0.0 + 10
+      new Song("song2", "_", Set(Title("Title2"), Loudness(0.5)))
+    ))
+    val c1 = IncreasingRange(Loudness(10), 0, 1)
+    c1.distance(p1) shouldBe 10.3
+  }
+
+  "IncreasingRange" should "work with negative values" in {
+    val p1 = new Playlist(Vector(
+      new Song("song1", "_", Set(Title("Title1"), Loudness(-0.4))),
+      // distance = 0.2
+      new Song("song1", "_", Set(Title("Title1"), Loudness(-0.2))),
+      // distance = 1.2
+      new Song("song1", "_", Set(Title("Title1"), Loudness(1.0))),
+      // distance = 0.2
+      new Song("song2", "_", Set(Title("Title2"), Loudness(1.2)))
+    ))
+    val c1 = IncreasingRange(Loudness(10), 0, 1)
+    c1.distance(p1) shouldBe 1.6
+  }
+
+  "it" should "assign an appropriate penalty value" in {
+    val p1 = new Playlist(Vector(
+      new Song("song1", "_", Set(Title("Title1"), Loudness(-0.4))),
+      // distance = 10.1
+      new Song("song1", "_", Set(Title("Title1"), Loudness(-0.5))),
+      // distance = 1.5
+      new Song("song1", "_", Set(Title("Title1"), Loudness(1.0))),
+      // distance = 10.2
+      new Song("song2", "_", Set(Title("Title2"), Loudness(0.8)))
+    ))
+    val c1 = IncreasingRange(Loudness(10), 0, 1)
+    c1.distance(p1) shouldBe 21.8
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+  // =======================================================================================
+
+  //"A UnaryRange constraint" should "work" in {
+
+    //val s1 = new Song("song1", Set(Title("Title"), Loudness(0.2), Mood(Happy)))
+
+    // val c: Constraint = UnaryRange(1, 1.0, 2.0)
+  //  val constraints = Set(UnaryRange)
+   // val ff = StandardFitness(constraints)
+ //   val p: Playlist = new Playlist(Seq(s1), new StandardFitness())
+  //  s1.find(Loudness(0.2)) shouldBe Some(Loudness(0.2))
+  //  UnaryRange[Loudness](1, 1.0, 2.0)
 
   /*
   val s1 = new Song("song1", Set(Title("Title"), Year(1999), Mood(Happy)))
@@ -57,5 +186,3 @@ class ConstraintsSpec extends FlatSpec with Matchers {
     assert(theArray.forall(s => s.length == 22))
   }
 */
-
-}

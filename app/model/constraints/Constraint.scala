@@ -168,10 +168,7 @@ case class CompareAdjacent(index: Int, that: AudioAttribute, f: Double => Boolea
 
 trait ScoreConstraint {
   def distance(p: Playlist): Double
-
-  def calc(p: Playlist, that: AudioAttribute, i: Int, j: Int, f: (Double, Double) => Double): Double = {
-
-  }
+}
 
   /**
     * Songs from index i to index j should have that Attribute value as close as possible
@@ -182,12 +179,16 @@ trait ScoreConstraint {
     */
   case class ConstantRange(that: AudioAttribute, i: Int, j: Int) extends ScoreConstraint {
     override def distance(p: Playlist) = {
-      p.songs.sliding(2).map(v => {
-        ConstraintsUtil.extractValues(v.head, v.tail.head, that) match {
+    // todo slice  p.songs.slice(i, j)
+      val db = p.songs.sliding(2).toList
+      println(db.toString)
+      val result = db.map(l => {
+        ConstraintsUtil.extractValues(l.head, l.tail.head, that) match {
           case None => that.value
           case Some((x, y)) => ConstraintsUtil.constantDistance(x, y)
         }
       }).sum
+      BigDecimal(result).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
     }
   }
 
@@ -200,12 +201,15 @@ trait ScoreConstraint {
     */
   case class IncreasingRange(that: AudioAttribute, i: Int, j: Int) extends ScoreConstraint {
     override def distance(p: Playlist) = {
-      p.songs.take(j).sliding(2).map(v => {
+      //p.songs.take(j)
+        val result = p.songs.sliding(2).map(v => {
         ConstraintsUtil.extractValues(v.head, v.tail.head, that) match {
           case None => that.value
-          case Some((x, y)) => ConstraintsUtil.monotonicDistance(x, y, that.value, (x, y) => x > y)
+          case Some((x, y)) => ConstraintsUtil.monotonicDistance(x, y, that.value, (x, y) => x < y)
         }
       }).sum
+      println("RESULT: " + result)
+      BigDecimal(result).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
     }
   }
 
@@ -221,13 +225,11 @@ trait ScoreConstraint {
       p.songs.take(j).sliding(2).map(v => {
         ConstraintsUtil.extractValues(v.head, v.tail.head, that) match {
           case None => that.value
-          case Some((x, y)) => ConstraintsUtil.monotonicDistance(x, y, that.value, (x, y) => x < y)
+          case Some((x, y)) => ConstraintsUtil.monotonicDistance(x, y, that.value, (x, y) => x > y)
         }
       }).sum
     }
   }
-
-}
 
 
 /*

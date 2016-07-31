@@ -78,15 +78,21 @@ object ConstraintsUtil {
 
   def calculateDistance(f: (Double, Double) => Boolean) = ???
 
-  // as equals as possible
+  // as equals as possible, TODO penalty?
   def constantDistance(x: Double, y: Double) = monotonicDistance(x, y, 0.0, (x, y) => x == y)
 
   // either increasing or decreasing
   def monotonicDistance(x: Double, y: Double, penalty: Double, f: (Double, Double) => Boolean) = {
+    // distance rounded to the nearest hundredth: TODO some features might need higher precision
     val distance = scala.math.abs(x - y)
+    println("DISTANCE: " + distance)
     // if y is <= of x for Increasing and vice-versa for Decreasing,
     // the distance is added to a penalty value to impact a negative score
-    if(!f(x, y)) penalty + distance else distance
+    if(!f(x, y)) {
+      println(penalty + " + " + distance + " = " + penalty + distance)
+      penalty + distance
+    } else distance
+
   }
 
 }
