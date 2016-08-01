@@ -45,6 +45,15 @@ function getConstraint(element) {
     return getUnaryConstraint(element)
 }
 
+function getUnaryConstraint(element) {
+    // validate name to be a String,
+    // attributes to be an Array of Strings
+    var obj = {};
+    obj.name = getName(element);
+    obj.attribute = getAttribute(element);
+    return obj
+}
+
 function getAttribute(element) {
     var attribute = {};
     attribute.name = element.getAttribute("attribute-name");
@@ -54,15 +63,6 @@ function getAttribute(element) {
 
 function getName(element) {
     return element.getAttribute("constraint-name")
-}
-
-function getUnaryConstraint(element) {
-    // validate name to be a String,
-    // attributes to be an Array of Strings
-    var obj = {};
-    obj.name = getName(element);
-    obj.attribute = getAttribute(element);
-    return obj
 }
 
 function getIndexedConstraint(element) {

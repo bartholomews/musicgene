@@ -39,22 +39,25 @@
                 </div>
                     <!-- Dropdown button Constraints modal -->
                 <div class="btn-group">
+                    <!-- First Constraint type -->
                     <button type="button" class="btn btn-primary dropdown-toggle" id="constraints-toggle"
                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        ADD CONSTRAINT</button>
+                        GLOBAL CONSTRAINTS</button>
                     <div class="dropdown-menu">
-                        <button type="button" class="btn" data-toggle="modal"
+                        <button type="button" class="btn btn-primary" data-toggle="modal"
                         data-target="#modal-duration">Duration</button>
-                        <div class="dropdown-divider"></div>
-                        <button type="button" class="btn" data-toggle="modal"
+                        <button type="button" class="btn btn-primary" data-toggle="modal"
                         data-target="#modal-tempo">Tempo</button>
-                        <div class="dropdown-divider"></div>
-                        <button type="button" class="btn" data-toggle="modal"
+                        <button type="button" class="btn btn-primary" data-toggle="modal"
                         data-target="#modal-loudness">Loudness</button>
-                        <div class="dropdown-divider"></div>
-                        <button type="button" class="btn" data-toggle="modal"
+                        <button type="button" class="btn btn-primary" data-toggle="modal"
                         data-target="#modal-acousticness">Acousticness</button>
+                        <div class="dropdown-divider"></div>
                     </div>
+                        <!-- UnaryConstraint -->
+                    <button type="button" class="btn btn-primary" id="unary-constraints-button"
+                    data-toggle="modal" data-target="#modal-unary">
+                        UNARY CONSTRAINT</button>
                 </div>
                 <br/><br/>
                 <button type="button" class="btn btn-primary" id="reset-constraints"
@@ -114,6 +117,7 @@
             <div class="new-playlist" id="new-playlist">
                 <table class="table table-hover" id="new-playlist-table">
                     <thead>
+                        @* Should copy from main table to avoid duplicated code and change twice *@
                         <tr>
                             <th>#</th>
                             <th>Title</th>
@@ -123,6 +127,9 @@
                             <th>Loudness</th>
                             <th>Tempo</th>
                             <th>Acousticness</th>
+                            <th>Danceability</th>
+                            <th>Liveness</th>
+                            <th>Speechiness</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -160,6 +167,63 @@
                 </div>
             </div>
 
+                <!-- #Unary modal -->
+            <div class="modal fade" id="modal-unary" tabindex="-1"
+            role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <a class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                <span class="sr-only">Close</span>
+                            </a>
+                            <h4 class="modal-title" id="modal-label">Unary Constraint</h4>
+                        </div>
+
+                        <div class="modal-body">
+                            <form class="form-inline">
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="form-group col-xs-2">
+                                        <label for="unary-input-track"><strong>TRACK#</strong></label>
+                                            <input type="number" class="form-control" id="unary-input-track">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group col-lg-1">
+                                      <label for="attr-select">HAVING</label>
+                                            <select class="form-control" id="attr-select">
+                                        <option id="unary-tempo" value="Tempo">Tempo</option>
+                                        <option id="unary-loudness" value="Loudness">Loudness</option>
+                                        <option id="unary-duration" value="Duration">Duration</option>
+                                        <option id="unary-acousticness" value="Acousticness">Acousticness</option>
+                                        <option id="unary-liveness" value="Liveness">Liveness</option>
+                                    </select> <br/>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group col-lg-2">
+                                    <label class="radio-inline"><input type="radio" id="radio-IncludeLarger" name="unary-include" value="IncludeLarger">no less than</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-IncludeSmaller" name="unary-include" value="IncludeSmaller">no more than</label>
+                                    <label class="radio-inline"><input type="radio" id="radio-IncludeEquals" name="unary-include" value="IncludeEquals" checked="checked">about</label>
+                                    <label for="unary-input">
+                                    <input type="number" class="form-control" id="unary-input"
+                                    onkeypress="return isEnterKeyPressed(event, 'unary')">
+                                    </label>
+                                            </div>
+                                        </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
+                            <button type="button" class="btn btn-primary" id="unary"
+                            onclick="saveModal('unary')">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
                 <!-- #Duration modal -->
             <div class="modal fade" id="modal-duration" tabindex="-1"
             role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -179,7 +243,7 @@
                                     <label class="radio-inline"><input type="radio" id="radio-duration-any" name="radio-duration" value="Any" checked="checked">ANY</label>
                                     <label class="radio-inline"><input type="radio" id="radio-duration-all" name="radio-duration" value="All">ALL</label>
                                     <label class="radio-inline"><input type="radio" id="radio-duration-none" name="radio-duration" value="None">NONE</label>
-                                    <label class="input-attr"> having <strong>DURATION</strong> </label>
+                                    <br/><label class="input-attr"> HAVING <strong>DURATION</strong> </label>
                                     <label class="radio-inline"><input type="radio" id="radio-duration-lt" name="duration-ltgt" value="UnarySmaller">LT</label>
                                     <label class="radio-inline"><input type="radio" id="radio-duration-gt" name="duration-ltgt" value="UnaryLarger" checked="checked">GT</label>
                                     <label for="duration-input"></label>
@@ -215,7 +279,7 @@
                                     <label class="radio-inline"><input type="radio" id="radio-tempo-any" name="radio-tempo" value="Any" checked="checked">ANY</label>
                                     <label class="radio-inline"><input type="radio" id="radio-tempo-all" name="radio-tempo" value="All">ALL</label>
                                     <label class="radio-inline"><input type="radio" id="radio-tempo-none" name="radio-tempo" value="None">NONE</label>
-                                    <label class="input-attr"> having <strong>TEMPO</strong> </label>
+                                    <br/><label class="input-attr"> HAVING <strong>TEMPO</strong> </label>
                                     <label class="radio-inline"><input type="radio" id="radio-tempo-lt" name="tempo-ltgt" value="UnarySmaller">LT</label>
                                     <label class="radio-inline"><input type="radio" id="radio-tempo-gt" name="tempo-ltgt" value="UnaryLarger" checked="checked">GT</label>
                                     <label for="tempo-input"></label>
@@ -251,7 +315,7 @@
                                     <label class="radio-inline"><input type="radio" id="radio-tempo-any" name="radio-loudness" value="Any" checked="checked">ANY</label>
                                     <label class="radio-inline"><input type="radio" id="radio-tempo-all" name="radio-loudness" value="All">ALL</label>
                                     <label class="radio-inline"><input type="radio" id="radio-tempo-none" name="radio-loudness" value="None">NONE</label>
-                                    <label class="input-attr"> having <strong>LOUDNESS</strong> </label>
+                                    <br/><label class="input-attr"> HAVING <strong>LOUDNESS</strong> </label>
                                     <label class="radio-inline"><input type="radio" id="radio-loudness-lt" name="loudness-ltgt" value="UnarySmaller">LT</label>
                                     <label class="radio-inline"><input type="radio" id="radio-loudness-gt" name="loudness-ltgt" value="UnaryLarger" checked="checked">GT</label>
                                     <label for="loudness-input"></label>
@@ -287,7 +351,7 @@
                                     <label class="radio-inline"><input type="radio" id="radio-acousticness-any" name="radio-acousticness" value="Any" checked="checked">ANY</label>
                                     <label class="radio-inline"><input type="radio" id="radio-acousticness-all" name="radio-acousticness" value="All">ALL</label>
                                     <label class="radio-inline"><input type="radio" id="radio-acousticness-none" name="radio-acousticness" value="None">NONE</label>
-                                    <label class="input-attr"> having <strong>ACOUSTICNESS</strong> </label>
+                                    <br/><label class="input-attr"> HAVING <strong>ACOUSTICNESS</strong> </label>
                                     <label class="radio-inline"><input type="radio" id="radio-acousticness-lt" name="acousticness-ltgt" value="UnarySmaller">LT</label>
                                     <label class="radio-inline"><input type="radio" id="radio-acousticness-gt" name="acousticness-ltgt" value="UnaryLarger" checked="checked">GT</label>
                                     <label for="acousticness-input"></label>

@@ -127,6 +127,9 @@ function generateFloatChart(obj) {
                 max: 1.0,
                 min: 0.0,
                 show: true
+            },
+            y2: {
+                show: false
             }
         },
         tooltip: {

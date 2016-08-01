@@ -8,13 +8,55 @@ function convertDuration(ms) {
     return minutes + ":" + seconds
 }
 
+function parseConstraints(name, input) {
+    if(name == 'unary') {
+        parseUnaryConstraints(input)
+    } else {
+        parseGlobalConstraints(name, input);
+    }
+}
+
+function parseUnaryConstraints(input) {
+    var selection = document.getElementById("attr-select");
+    var attributeName = selection.options[selection.selectedIndex].value;
+
+    var trackNumber = document.getElementById(name + "unary-input-track").value;
+    var para = document.createElement('p');
+    para.setAttribute("track-number", trackNumber);
+    var constraintName = getRadioVal('unary-include');
+    para.setAttribute("constraint-name", constraintName);
+    para.setAttribute("attribute-name", attributeName);
+    para.setAttribute("attribute-value", input);
+    var text = "#" + trackNumber + " having " + attributeName + " " + getCName(constraintName) + input;
+
+    var node = document.createTextNode(text);
+    para.appendChild(node);
+    setNumberOfTracks(20, para);
+
+}
+
+// NO NEED TO SWITCH, YOU CAN USE THE TEXT PARA IN THIS CASE
+function getCName(text) {
+    switch(text) {
+        case "IncludeLarger":
+            return "no less than ";
+            break;
+        case "IncludeSmaller":
+            return "no more than ";
+            break;
+        case "IncludeEquals":
+            return "around ";
+            break;
+    }
+}
+
 /**
  * build a Constraint String and add append a <p> element to the jumbotron
  *
  * @param name the name of a Constraint
  * @param input the input value of a Constraint
  */
-function parseConstraints(name, input) {
+function parseGlobalConstraints(name, input) {
     // make the first char uppercase to parse it as Class instance
     var attrName = name.charAt(0).toUpperCase() + name.substring(1, name.length);
     // get the value of radio input "[name]-ltgt" ('UnarySmaller', 'UnaryLarger')
