@@ -118,7 +118,8 @@ function generateFloatChart(obj) {
         axis: {
             x: {
                 tick: {
-                    culling: false
+                    culling: false,
+                    format: function(x) { return x+1; }
                 }
             },
             y: {
@@ -161,7 +162,10 @@ function generateChart(obj) {
         axis: {
             x: {
                 tick: {
-                    culling: false
+                    // tick all indexes without skips
+                    culling: false,
+                    // start from index 1
+                    format: function(x) { return x+1; }
                 }
             },
             y: {
