@@ -44,8 +44,19 @@ class ConstraintsSpec extends FlatSpec with Matchers {
       new Song("song2", "_", Set(Title("Title2"), Loudness(- 0.4))),
       new Song("song2", "_", Set(Title("Title2"), Loudness(- 0.2)))
     ))
-    val c1 = ConstantRange(Loudness(10), 0, 1)
+    val c1 = ConstantRange(Loudness(10), 0, 4)
     c1.distance(p1) shouldBe 1.0
+  }
+
+  "it" should "ignore songs not in index range" in {
+    val p1 = new Playlist(Vector(
+      new Song("song1", "_", Set(Title("Title1"), Loudness(- 0.2))),
+      new Song("song2", "_", Set(Title("Title2"), Loudness(0.1))),
+      new Song("song2", "_", Set(Title("Title2"), Loudness(- 0.4))),
+      new Song("song2", "_", Set(Title("Title2"), Loudness(- 0.2)))
+    ))
+    val c1 = ConstantRange(Loudness(10), 0, 1)
+    c1.distance(p1) shouldBe 0.3
   }
 
   "it" should "be able to produce a negative distance" in {
@@ -70,7 +81,7 @@ class ConstraintsSpec extends FlatSpec with Matchers {
     c1.distance(p1) shouldBe 0.1
   }
 
-  "it" should "add penalty value for a non-increasing range" in {
+  "it" should "add penalty value for a non-increasing range, ignoring index over max length" in {
     val p1 = new Playlist(Vector(
       new Song("song1", "_", Set(Title("Title1"), Loudness(0.2))),
       // distance = 0.1
@@ -80,7 +91,7 @@ class ConstraintsSpec extends FlatSpec with Matchers {
       // distance = 0.0 + 10
       new Song("song2", "_", Set(Title("Title2"), Loudness(0.5)))
     ))
-    val c1 = IncreasingRange(Loudness(10), 0, 1)
+    val c1 = IncreasingRange(Loudness(10), 0, 10)
     c1.distance(p1) shouldBe 10.3
   }
 
@@ -94,7 +105,7 @@ class ConstraintsSpec extends FlatSpec with Matchers {
       // distance = 0.2
       new Song("song2", "_", Set(Title("Title2"), Loudness(1.2)))
     ))
-    val c1 = IncreasingRange(Loudness(10), 0, 1)
+    val c1 = IncreasingRange(Loudness(10), 0, 10)
     c1.distance(p1) shouldBe 1.6
   }
 
@@ -108,9 +119,76 @@ class ConstraintsSpec extends FlatSpec with Matchers {
       // distance = 10.2
       new Song("song2", "_", Set(Title("Title2"), Loudness(0.8)))
     ))
-    val c1 = IncreasingRange(Loudness(10), 0, 1)
+    val c1 = IncreasingRange(Loudness(10), 0, p1.size)
     c1.distance(p1) shouldBe 21.8
   }
+
+  //====================================================================================================================
+
+  "IncludeSmaller" should "have 0 cost for values smaller than that" in {
+    val p1 = new Playlist(Vector(
+      new Song("song1", "_", Set(Title("Title1"), Loudness(-0.4)))
+    ))
+    val c1 = IncludeSmaller(0, Loudness(10), penalty = 100)
+    c1.distance(p1) shouldBe 0.0
+  }
+
+  "it" should "have 'penalty + distance' cost for values larger than that " in {
+    val p1 = new Playlist(Vector(
+      new Song("song1", "_", Set(Title("Title1"), Loudness(0.4)))
+    ))
+    val c1 = IncludeSmaller(0, Loudness(0.2), penalty = 100)
+    c1.distance(p1) shouldBe 100.2
+  }
+
+  "IncludeEquals" should "have 0 cost for values within tolerance" in {
+    val p1 = new Playlist(Vector(
+      new Song("song1", "_", Set(Title("Title1"), Loudness(-0.4)))
+    ))
+    val c1 = IncludeEquals(0, Loudness(0.1), tolerance = 0.5, penalty = 100)
+    c1.distance(p1) shouldBe 0.0
+  }
+
+  "it" should "have 'penalty + distance' cost for values smaller than tolerance" in {
+    val p1 = new Playlist(Vector(
+      new Song("song1", "_", Set(Title("Title1"), Loudness(-0.4)))
+    ))
+    val c1 = IncludeEquals(0, Loudness(0.2), tolerance = 0.5, penalty = 100)
+    c1.distance(p1) shouldBe 100.6
+  }
+
+  "it" should "have 'penalty + distance' cost for values larger than tolerance" in {
+    val p1 = new Playlist(Vector(
+      new Song("song1", "_", Set(Title("Title1"), Loudness(0.4)))
+    ))
+    val c1 = IncludeEquals(0, Loudness(0.1), tolerance = 0.2, penalty = 100)
+    c1.distance(p1) shouldBe 100.3
+  }
+
+
+  /*
+
+  "it" should "" in {
+
+  }
+
+  "it" should "" in {
+
+  }
+
+  "it" should "" in {
+
+  }
+
+  "it" should "" in {
+
+  }
+
+  "it" should "" in {
+
+  }
+
+  */
 
 }
 
