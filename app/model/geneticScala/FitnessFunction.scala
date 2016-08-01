@@ -8,6 +8,7 @@ import model.constraints.{Constraint, ScoreConstraint, UnaryConstraint}
   * Each Playlist can be assigned a different kind of FitnessCalc
   */
 trait FitnessFunction {
+  def getConstraints: Set[Constraint]
   def getFitness(playlist: Playlist): Double
 }
 
@@ -16,6 +17,8 @@ trait FitnessFunction {
 * Created by mba13 on 24/07/2016.
 */
 case class StandardFitness(constraints: Set[UnaryConstraint]) extends FitnessFunction {
+
+  override def getConstraints: Set[Constraint] = constraints.asInstanceOf[Set[Constraint]]
 
   /**
     * Fitness function defined as the number of matched constraints in a Playlist,
@@ -35,12 +38,15 @@ case class StandardFitness(constraints: Set[UnaryConstraint]) extends FitnessFun
 }
 
 case class CostBasedFitness(constraints: Set[ScoreConstraint]) extends FitnessFunction {
+  override def getConstraints: Set[Constraint] = constraints.asInstanceOf[Set[Constraint]]
   override def getFitness(playlist: Playlist): Double = {
     constraints.map(c => c.distance(playlist)).sum
   }
 }
 
 // ???
+  /*
 case class NoFitness() extends FitnessFunction {
   override def getFitness(p: Playlist) = throw new Exception("NoFitness.getFitness")
 }
+*/

@@ -41,8 +41,19 @@ function pushConstraint(js) {
 }
 
 function getConstraint(element) {
-    // check if it is to get Unary or Indexed or other
-    return getUnaryConstraint(element)
+    switch (element.getAttribute("type")) {
+        case "indexed":
+            console.log("indexed constraint");
+            var c = getIndexedConstraint(element);
+            break;
+        case "simple":
+            console.log("simple constraint");
+            c = getUnaryConstraint(element);
+            break;
+    }
+    console.log("name: " + c.name);
+    console.log("attr: " + c.attribute);
+    return c;
 }
 
 function getUnaryConstraint(element) {
@@ -54,6 +65,15 @@ function getUnaryConstraint(element) {
     return obj
 }
 
+function getIndexedConstraint(element) {
+    var obj = {};
+    obj.name = getName(element);
+    obj.index = element.getAttribute("track-number");
+    console.log("track: " + obj.index);
+    obj.attribute = getAttribute(element);
+    return obj;
+}
+
 function getAttribute(element) {
     var attribute = {};
     attribute.name = element.getAttribute("attribute-name");
@@ -63,14 +83,6 @@ function getAttribute(element) {
 
 function getName(element) {
     return element.getAttribute("constraint-name")
-}
-
-function getIndexedConstraint(element) {
-    var obj = {};
-    obj.name = getName(element);
-    obj.index = element.getAttribute("constraint-index");
-    obj.attribute = getAttribute(element);
-    return obj;
 }
 
 function pushAttribute(js) {

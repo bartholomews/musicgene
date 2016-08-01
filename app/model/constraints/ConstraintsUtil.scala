@@ -82,7 +82,7 @@ object ConstraintsUtil {
       case None => penalty
       case Some(x) => {
         val distance = scala.math.abs(x - that.value)
-        if(distance <= tolerance) 0 else penalty + distance
+        if(distance <= tolerance) 0.0 else penalty + distance
       }
     }
   }
@@ -90,7 +90,7 @@ object ConstraintsUtil {
   def compareDistance(s: Song, that: AudioAttribute, f: Double => Boolean, penalty: Double): Double = {
     extractValue(s, that) match {
       case None => penalty
-      case Some(x) => if(f(x)) 0 else monotonicDistance(x, that.value, penalty, x => f(x))
+      case Some(x) => if(f(x)) 0.0 else monotonicDistance(x, that.value, penalty, x => f(x))
     }
   }
 

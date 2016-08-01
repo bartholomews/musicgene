@@ -2,9 +2,9 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 
-import model.constraints.Constraint
+import model.constraints.{Constraint, ScoreConstraint, UnaryConstraint}
 import model.music.{Cache, MusicCollection, MusicUtil, Song}
-import model.geneticScala.{GA, Playlist, StandardFitness}
+import model.geneticScala.{CostBasedFitness, GA, Playlist, StandardFitness}
 import play.api.libs.json.{JsSuccess, JsValue, Json}
 import play.api.mvc.{Action, Controller}
 
@@ -32,18 +32,21 @@ class PlaylistController @Inject() extends Controller {
     println("CONSTR =====> " + constraints.toString())
 
     val ids = MusicUtil.parseIDS(request.body)
-    println("IDS ========> " + ids.foreach(s => println(s)))
+    println("IDS ========> " + ids.toString())
 
     // if a constraint with track number is selected, otherwise 20
     // ALL THIS STUFF SHOULD BE MOVED TO ITS OWN CLASS
     val n = 20
 
+    // how to determine specific kind of constraint?
+    val unary = constraints.asInstanceOf[Set[ScoreConstraint]]
+
     def getPlaylist: Playlist = {
-      if (ids.isEmpty) GA.generatePlaylist(constraints, 20)
+      if (ids.isEmpty) GA.generatePlaylist(CostBasedFitness(unary), 20)
       else {
         val songs = Cache.extractSongs(ids)
         songs.foreach(s => println(s.title))
-        GA.generatePlaylist(new MusicCollection(songs), constraints, 20)
+        GA.generatePlaylist(new MusicCollection(songs), CostBasedFitness(unary), 20)
       }
     }
     val playlist = getPlaylist.songs

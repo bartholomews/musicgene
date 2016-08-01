@@ -21,7 +21,9 @@ function parseUnaryConstraints(input) {
     var attributeName = selection.options[selection.selectedIndex].value;
 
     var trackNumber = document.getElementById(name + "unary-input-track").value;
+
     var para = document.createElement('p');
+    para.setAttribute("type", "indexed");
     para.setAttribute("track-number", trackNumber);
     var constraintName = getRadioVal('unary-include');
     para.setAttribute("constraint-name", constraintName);
@@ -66,6 +68,7 @@ function parseGlobalConstraints(name, input) {
     var anyAllNone = getRadioVal("radio-" + name);
     var text = getRadioToText(anyAllNone);
     var para = document.createElement("p");
+    para.setAttribute("type", "simple");
     para.setAttribute("constraint-name", ltgt + anyAllNone);
     para.setAttribute("attribute-name", attrName);
     para.setAttribute("attribute-value", input);
