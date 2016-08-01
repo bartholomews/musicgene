@@ -10,6 +10,10 @@ import play.api.libs.json.{JsLookupResult, JsUndefined, JsValue}
   */
 object MusicUtil {
 
+  // SETTINGS
+  val penalty: Double = 100.00  // TODO it should be constraint-specific
+  val tolerance: Double = 100.00  // TODO it should be constraint-specific
+
   def toSongs(songs: Vector[(Track, AudioFeature)]): Vector[Song] = {
     songs.map(t => new Song(t._1.getId, t._1.getPreviewUrl,
       Set[Attribute](
@@ -70,9 +74,9 @@ object MusicUtil {
           case "Include" => Include((c \ "index").as[Int], parseJsonAttribute((c \ "attribute").get))
           case "Exclude" => Exclude((c \ "index").as[Int], parseJsonAttribute((c \ "attribute").get))
           case "IncludeSmaller" => IncludeSmaller((c \ "index").as[Int],
-            parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute])
+            parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute], penalty)
           case "IncludeLarger" => IncludeLarger((c \ "index").as[Int],
-            parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute])
+            parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute], penalty)
 
           //     case "ExcludeAll" => ExcludeAll(parseJsonAttribute((c \ "attribute").get))
 
