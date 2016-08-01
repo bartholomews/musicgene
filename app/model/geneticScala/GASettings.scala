@@ -5,13 +5,14 @@ package model.geneticScala
   */
 object GASettings {
 
-  val maxFitness = 1.0
+  // TODO with ScoreConstraint is probably impossible to estimate maxFitness
+  val maxFitness = 10000
 
   // number of candidate playlists
-  val popSize = 1000
+  val popSize = 48
 
   // Maximum number of generations
-  val maxGen = 256
+  val maxGen = 1024
 
   // The probability of crossover for any member of the population,
   // where 0.0 <= crossoverRatio <= 1.0

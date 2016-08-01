@@ -18,7 +18,7 @@ object PopFactory {
     */
   def generatePopulation(db: MusicCollection, f: FitnessFunction, size: Int) = {
     new Population(PlaylistsFactory.generatePlaylists(db, GASettings.popSize, size)
-      .sortWith((p1, p2) => f.getFitness(p1) > f.getFitness(p2)), f)
+      .sortWith((p1, p2) => f.getFitness(p1) < f.getFitness(p2)), f)
   }
 
   /**
@@ -31,8 +31,8 @@ object PopFactory {
     */
   def generatePopulation(db: MusicCollection, f: FitnessFunction) = {
     new Population(
-      PlaylistsFactory.generatePlaylists(db, GASettings.popSize, f), f
-    )
+      PlaylistsFactory.generatePlaylists(db, GASettings.popSize, f)
+        .sortWith((p1, p2) => f.getFitness(p1) < f.getFitness(p2)), f)
   }
 
 }

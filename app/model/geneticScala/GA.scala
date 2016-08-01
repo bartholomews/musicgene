@@ -1,6 +1,6 @@
 package model.geneticScala
 
-import model.constraints.{IncludeSmaller, _}
+import model.constraints.{IncludeSmaller, IncreasingRange, _}
 import model.music._
 
 import scala.annotation.tailrec
@@ -15,7 +15,23 @@ object GA extends App {
   // ============================================================================
 
   val startTime = System.currentTimeMillis
-  val constraints: Set[Constraint] = Set(
+
+  val constraints: Set[ScoreConstraint] = Set(
+    IncludeSmaller(0, Tempo(90), 10),
+    IncludeSmaller(1, Tempo(90), 10),
+    IncludeSmaller(2, Tempo(90), 10),
+    IncludeSmaller(3, Tempo(90), 10),
+    IncludeSmaller(4, Tempo(90), 10),
+    IncludeSmaller(5, Tempo(90), 10),
+    IncludeSmaller(6, Tempo(90), 10),
+    IncludeSmaller(7, Tempo(90), 10),
+    IncreasingRange(Tempo(100), 0, 10),
+    DecreasingRange(Tempo(100), 10, 20)
+  )
+
+  /*
+
+  val constraints2: Set[Constraint] = Set(
     /*
     UnaryEqualAny(Title("Tha")),
     Include(0, Artist("Aphex Twin")),
@@ -51,43 +67,45 @@ object GA extends App {
  //   Include(10, Title("Come As You Are"))
   )
 
+  */
+
   // with few songs get stuck, whole database length eventually gets a good score
-  val p = generatePlaylist(constraints, 100)
+  val p = generatePlaylist(CostBasedFitness(constraints), 50)
   println("GENERATED PLAYLIST: ")
   p.prettyPrint()
 
-  def generatePlaylist(db: MusicCollection, constraints: Set[Constraint], length: Int): Playlist = {
+  def generatePlaylist(db: MusicCollection, f: FitnessFunction, length: Int): Playlist = {
     if (constraints.isEmpty) {
       println("NO CONSTRAINTS!")
       generateRandomPlaylist(db, length)
     } else {
-      val pop = PopFactory.generatePopulation(db, StandardFitness(constraints), length)
+      val pop = PopFactory.generatePopulation(db, f, length)
       evolve(pop, 1)
     }
   }
 
-  def generatePlaylist(constraints: Set[Constraint], length: Int): Playlist = {
+  def generatePlaylist(f: FitnessFunction, length: Int): Playlist = {
     if (constraints.isEmpty) generateRandomPlaylist(length)
     else {
       val db = new MusicCollection(Cache.extractSongs)
-      val pop = PopFactory.generatePopulation(db, StandardFitness(constraints), length)
+      val pop = PopFactory.generatePopulation(db, f, length)
       evolve(pop, 1)
     }
   }
 
-  def generatePlaylist(db: MusicCollection, constraints: Set[Constraint]): Playlist = {
+  def generatePlaylist(db: MusicCollection, f: FitnessFunction): Playlist = {
     if (constraints.isEmpty) generateRandomPlaylist(db)
     else {
-      val pop = PopFactory.generatePopulation(db, StandardFitness(constraints))
+      val pop = PopFactory.generatePopulation(db, f)
       evolve(pop, 1)
     }
   }
 
-  def generatePlaylist(constraints: Set[Constraint]): Playlist = {
+  def generatePlaylist(f: FitnessFunction): Playlist = {
     if (constraints.isEmpty) generateRandomPlaylist()
     else {
       val db = new MusicCollection(Cache.extractSongs)
-      val pop = PopFactory.generatePopulation(db, StandardFitness(constraints))
+      val pop = PopFactory.generatePopulation(db, f)
       evolve(pop, 1)
     }
   }
@@ -120,8 +138,8 @@ object GA extends App {
   private def printGAResults(pop: Population, generation: Int): Unit = {
     println("=" * 20 + "GEN-" + generation + "=" * 20)
     println("GENERATION " + generation + ", max fitness: " + pop.maxFitness)
-  //  println("FITTEST:")
-  //  pop.getFittest.prettyPrint()
+ //   println("FITTEST:")
+ //   pop.getFittest.prettyPrint()
   }
 
 }

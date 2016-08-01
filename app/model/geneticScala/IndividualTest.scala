@@ -1,6 +1,6 @@
 package model.geneticScala
 
-import model.constraints.{Constraint, Include, UnaryEqualAny}
+import model.constraints._
 import model.music._
 
 /**
@@ -24,7 +24,11 @@ object IndividualTest extends App {
   //  UnaryEqualAny(Year(1960))
   )
 
-  val pop = PopFactory.generatePopulation(db, new StandardFitness(constraints))
+  val scoreConstraint: Set[ScoreConstraint] = Set(
+    IncreasingRange(Loudness(10), 0, 1)
+  )
+
+  val pop = PopFactory.generatePopulation(db, CostBasedFitness(scoreConstraint))
 
   pop.prettyPrint()
 

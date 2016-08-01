@@ -1,5 +1,7 @@
 package model.geneticScala
 
+import model.music.MusicCollection
+
 import scala.util.Random
 
 /**
@@ -20,9 +22,9 @@ class Population(val playlists: Vector[Playlist], f: FitnessFunction) {
   def get(i: Int) = playlists(i)
   def apply(c: Playlist) = playlists.find(x => x == c)
 
-  def getFitness(p: Playlist): Float = f.getFitness(p)
-  def getFittest: Playlist = playlists.sortWith((p1, p2) => getFitness(p1) > getFitness(p2)).head // playlists.reduce(fittest)
-  def fittest(x: Playlist, y: Playlist): Playlist = if(getFitness(x) > getFitness(y)) x else y
+  def getFitness(p: Playlist): Double = f.getFitness(p)
+  def getFittest: Playlist = playlists.head //playlists.sortWith((p1, p2) => getFitness(p1) < getFitness(p2)).head // playlists.reduce(fittest)
+  def fittest(x: Playlist, y: Playlist): Playlist = if(getFitness(x) < getFitness(y)) x else y
   val maxFitness = getFitness(getFittest)
 
   /*
@@ -50,7 +52,7 @@ class Population(val playlists: Vector[Playlist], f: FitnessFunction) {
   def evolve: Population = {
     // https://github.com/jsvazic/GAHelloWorld/blob/master/scala/src/main/scala/net/auxesia/Population.scala
     val elites = scala.math.round(popSize * GASettings.elitismRatio)
-    val eliteBuffer: Vector[Playlist] = playlists.takeRight(elites) // what for?
+    val eliteBuffer: Vector[Playlist] = playlists.take(elites) // what for?
 
     /*
     println("ELITES:")
@@ -68,9 +70,9 @@ class Population(val playlists: Vector[Playlist], f: FitnessFunction) {
       else mutate(darwinian)
     }).toArray
 
-  //  val p = new Population((eliteBuffer ++ inferiors).sortWith((p1, p2) => f.getFitness(p1) < f.getFitness(p2)), f)
-    val p = new Population((eliteBuffer ++ inferiors).sortBy(p => getFitness(p)), f)
-
+    val p = new Population((eliteBuffer ++ inferiors).sortWith((p1, p2) => f.getFitness(p1) < f.getFitness(p2)), f)
+    //.sortBy(p => getFitness(p)), f)
+    // why not use PopFactory?
 
     //println("NEW POP:")
     //p.prettyPrint()

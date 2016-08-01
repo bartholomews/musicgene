@@ -1,6 +1,6 @@
 package model.geneticScala
 
-import model.constraints.Constraint
+import model.constraints.{Constraint, ScoreConstraint, UnaryConstraint}
 
 
 /**
@@ -8,14 +8,14 @@ import model.constraints.Constraint
   * Each Playlist can be assigned a different kind of FitnessCalc
   */
 trait FitnessFunction {
-  def getFitness(playlist: Playlist): Float
+  def getFitness(playlist: Playlist): Double
 }
 
 
 /**
 * Created by mba13 on 24/07/2016.
 */
-case class StandardFitness(constraints: Set[Constraint]) extends FitnessFunction {
+case class StandardFitness(constraints: Set[UnaryConstraint]) extends FitnessFunction {
 
   /**
     * Fitness function defined as the number of matched constraints in a Playlist,
@@ -28,9 +28,15 @@ case class StandardFitness(constraints: Set[Constraint]) extends FitnessFunction
     * @return
     * NaN for 0.0/0.0
     */
-  override def getFitness(playlist: Playlist): Float = {
-    val f = constraints.count(constraint => constraint.calc(playlist)) / constraints.size.toFloat
-    BigDecimal.decimal(f).setScale(2, BigDecimal.RoundingMode.HALF_UP).toFloat
+  override def getFitness(playlist: Playlist): Double = {
+    val f = constraints.count(constraint => constraint.calc(playlist)) / constraints.size.toDouble
+    BigDecimal.decimal(f).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+  }
+}
+
+case class CostBasedFitness(constraints: Set[ScoreConstraint]) extends FitnessFunction {
+  override def getFitness(playlist: Playlist): Double = {
+    constraints.map(c => c.distance(playlist)).sum
   }
 }
 
