@@ -4,7 +4,7 @@ import javax.inject._
 
 import com.wrapper.spotify.exceptions.BadRequestException
 import com.wrapper.spotify.models.{AudioFeature, SimplePlaylist, Track}
-import model.music.{Attribute, MusicCollection, MusicUtil, Song}
+import model.music._
 //import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.mvc._
 
@@ -16,6 +16,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
  * This controller creates an `Action` to handle HTTP requests to the
  * application's home page.
+  *
+  * TODO should retrieve all IDs single call,
+  * if not in the cache then retrieve the audioAnalysis
  */
 @Singleton
 class HomeController @Inject() extends Controller {
@@ -42,28 +45,33 @@ class HomeController @Inject() extends Controller {
 
       // vector might be better than list in this case, see odersky
       val simplePlaylists: Vector[SimplePlaylist] = spotify.getSavedPlaylists.toVector
-      val collection: Vector[(SimplePlaylist, Vector[(Track, AudioFeature)])] = getPlaylistsCollection(simplePlaylists)
-
+      System.out.println("Playlists retrieved")
+      val playlists: Vector[(SimplePlaylist, Vector[Song])] = getPlaylistsCollection(simplePlaylists)
+      System.out.println("Collection retrieved")
       // TODO refactor to be a List or Vector of Playlist(string name as val inside)
-      val playlists: Vector[(String, Vector[Song])] = collection.map {
-        c => (c._1.getName, MusicUtil.toSongs(c._2))
-      }
 
-      writeSongsToJSON(new MusicCollection(MusicUtil.toSongs(collection.flatMap(p => p._2))))
+      playlists.foreach(v => writeSongsToJSON(v._2))
 
+      System.out.println("Ready to view playlists...")
 
-      Ok(views.html.tracks("PLAYLISTS", playlists))
+      Ok(views.html.tracks("PLAYLISTS", playlists.map(v => (v._1.getName, v._2))))
 
     } catch {
-      case _:BadRequestException => BadRequest("That was a bad request.") // TODO implement Button BACK to index
+      // @see https://developer.spotify.com/web-api/user-guide/
+      case _:BadRequestException => {
+        BadRequest("That was a bad request.")
+      } // TODO implement Button BACK to index
       case _:NullPointerException => BadRequest("Something went wrong.") // should return something else not badreq>
       // case _  => // some other exception handling
     }
   }
 
-  def getPlaylistsCollection(list: Vector[SimplePlaylist]): Vector[(SimplePlaylist, Vector[(Track, AudioFeature)])] = {
+  def getPlaylistsCollection(list: Vector[SimplePlaylist]): Vector[(SimplePlaylist, Vector[Song])] = {
+    list.map(p => getPlaylistCollection(p))
+    /*
     val tuple: Vector[(SimplePlaylist, Vector[Track])] = getPlaylistTuple(list)
     tuple.map(t => (t._1, getTracksFeatures(t._2)))
+  */
   }
 
   /*
@@ -73,21 +81,28 @@ class HomeController @Inject() extends Controller {
   }
   */
 
-  def getPlaylistCollection(playlist: SimplePlaylist): (SimplePlaylist, Seq[Song]) = {
-    val trackList = spotify.getPlaylistTracks(playlist).map(t => t.getTrack).toVector
-    val songs = MusicUtil.toSongs(trackList.map(t => (t, spotify.getAnalysis(t.getId))))
-    (playlist, songs)
+  // TODO rate limits...
+  def getPlaylistCollection(playlist: SimplePlaylist): (SimplePlaylist, Vector[Song]) = {
+    println("creating playlist collection..")
+    val trackList: Vector[Track] = spotify.getPlaylistTracks(playlist).map(t => t.getTrack).toVector
+    val (inCache, outCache) = Cache.getFromCache(trackList.map(t => t.getId))
+    (playlist, inCache ++ MusicUtil.toSongs(
+      trackList.filter(t => outCache.contains(t.getId))
+                .map { t => (t, spotify.getAnalysis(t.getId)) }
+    ))
   }
 
   /*
-  TODO
+  //TODO
   def writePlaylistsToJSON(db: List[(SimplePlaylist, List[Song])]) = {
-    db.foreach(p => JsonController.writeJSON(p._1, p._2.map(s => s.)))
+    db.foreach(p => {
+      p._2.foreach(s => JsonController.writeJSON(s.id, s.preview_url, s.attributes))
+    })
   }
   */
 
-  def writeSongsToJSON(db: MusicCollection) = {
-    db.songs.foreach(s => JsonController.writeJSON(s.id, s.preview_url, s.attributes.asJava))
+  def writeSongsToJSON(songs: Vector[Song]) = {
+    songs.foreach(s => JsonController.writeJSON(s.id, s.preview_url, s.attributes.asJava))
   }
 
   def getTracksFeatures(list: Vector[Track]): Vector[(Track, AudioFeature)] = {

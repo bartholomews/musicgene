@@ -8,6 +8,7 @@ import model.music.Song;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import scala.Option;
 import scala.Tuple1;
 import scala.Tuple2;
 import scala.concurrent.java8.FuturesConvertersImpl;
@@ -21,6 +22,7 @@ import java.util.*;
 public class JsonController {
 
     private final static String PATH = "/Users/bartholomews/Google_Drive/dev/Genetic-playlists/app/resources/";
+    private final static String JSON = ".json";
 
     @SuppressWarnings("unchecked")
     public static void writeJSON(String id, String preview, Set<Attribute> attributes) throws IOException {
@@ -69,9 +71,11 @@ public class JsonController {
                 String id = (String) jsonObject.get("ID");
                 String preview = (String) jsonObject.get("preview_url");
                 JSONArray audioFeatures = (JSONArray) jsonObject.get("attributes");
+                /*
                 System.out.println("ID: " + id);
                 System.out.println("preview_url: " + preview);
                 System.out.println("\nAttributes:");
+                */
                 for (String audioFeature : (Iterable<String>) audioFeatures) {
                     System.out.println(audioFeature);
                 }
@@ -92,12 +96,11 @@ public class JsonController {
     }
     */
 
-    @SuppressWarnings("unchecked")
     public static List<String> readJSON(String file) {
         JSONParser parser = new JSONParser();
         List<String> result = new LinkedList<>();
         try {
-            Object obj = parser.parse(new FileReader(PATH + file));
+            Object obj = parser.parse(new FileReader(PATH + file + JSON));
             JSONObject jsonObject = (JSONObject) obj;
             result.add((String)jsonObject.get("ID"));
             result.add((String)jsonObject.get("preview_url"));
@@ -107,6 +110,7 @@ public class JsonController {
             }
             return result;
         }
+        // FileNotFound
         catch (Exception ex) {
             ex.printStackTrace();
             return null;
@@ -116,8 +120,6 @@ public class JsonController {
     public static List<String> getFiles() {
         return getFiles(new File(PATH));
     }
-
-    public static String getFile(String id) { return getFile(id, new File(PATH)); }
 
     private static List<String> getFiles(File folder) {
         List<String> result = new LinkedList<>();
@@ -131,16 +133,25 @@ public class JsonController {
         return result;
     }
 
-    private static String getFile(String id, File folder) {
+    public static boolean isInCache(String id) { return isInCache(id, new File(PATH)); }
+
+    /**
+     * TODO make it nice and 'functional' instead
+     *
+     * @param id
+     * @param folder
+     * @return
+     */
+    private static boolean isInCache(String id, File folder) {
         File[] files = folder.listFiles();
         assert files != null;
         for(File f : files) {
-            if(f.isFile() && f.getName().equals(id + ".json")) {
+            if(f.isFile() && f.getName().equals(id + JSON)) {
                 // TODO ugly
-                return f.getName();
+                return true;
             }
         }
-        return null;
+        return false;
     }
 
 }

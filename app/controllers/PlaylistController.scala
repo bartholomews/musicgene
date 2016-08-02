@@ -44,7 +44,7 @@ class PlaylistController @Inject() extends Controller {
     def getPlaylist: Playlist = {
       if (ids.isEmpty) GA.generatePlaylist(CostBasedFitness(unary), 20)
       else {
-        val songs = Cache.extractSongs(ids)
+        val songs = Cache.getFromCache(ids)._1
         songs.foreach(s => println(s.title))
         GA.generatePlaylist(new MusicCollection(songs), CostBasedFitness(unary), 20)
       }

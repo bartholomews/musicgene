@@ -17,7 +17,8 @@ import java.util.List;
 /**
  * {@see https://github.com/thelinmichael/spotify-web-api-java}
  *
- * TODO DETAILED ANALYSIS?
+ * TODO DETAILED ANALYSIS? ALSO, SHOULD GET SEVERALTRACKS (see https://developer.spotify.com/web-api/get-several-tracks/)
+ * FOR BETTER RATE LIMITS
  */
 public class SpotifyController {
     private static volatile SpotifyController instance;
@@ -213,19 +214,27 @@ public class SpotifyController {
 
     // again check with getAsync and Java8
     public List<SimplePlaylist> getSavedPlaylists() throws IOException, WebApiException {
-        List<SimplePlaylist> list = api.getPlaylistsForUser(getID()).build().get().getItems();
-        for (SimplePlaylist p : list) {
-            System.out.println(p.getName());
-            // find a nice way to get ALL playlists, goddamit.
-            // again, too many requests.
+        try {
+            List<SimplePlaylist> list = api.getPlaylistsForUser(getID()).build().get().getItems();
+            for (SimplePlaylist p : list) {
+                System.out.println(p.getName());
+                // find a nice way to get ALL playlists, goddamit.
+                // again, too many requests.
             /*
             List<PlaylistTrack> page1 = api.getPlaylistTracks(id, p.getId()).build().get().getItems();
             for(PlaylistTrack t : page1) {
                 System.out.println(t.getTrack().getName());
             }
             */
+            }
+            return list;
+        } catch(IOException io) {
+            System.out.println(io.getMessage() + ": IOException");
+            throw io;
+        } catch(WebApiException ex) {
+            System.out.println("getSavedPlaylists error code: " + ex.getMessage());
+            throw ex;
         }
-        return list;
     }
 
     // TODO it should work with "current user" get playlist, try with multiple (i.e. no need to getID)
@@ -233,6 +242,7 @@ public class SpotifyController {
         try {
             return api.getPlaylistTracks(playlist.getOwner().getId(), playlist.getId()).build().get().getItems();
         } catch (WebApiException ex) {
+            // 401 = "Unauthorized" (should have a button or straight redirect to index and log in again)
             System.out.println("getPlaylistTracks error code: " + ex.getMessage());
             throw ex;
         }
