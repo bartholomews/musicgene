@@ -203,15 +203,20 @@
                             </a>
                             <h4 class="modal-title" id="modal-label">Unary Constraint</h4>
                         </div>
+
                         <div class="modal-body">
-                            <form class="form-inline">
-                                <div class="form-group">
-                                    <div>
+                            @* <form class="form-inline"> *@
+
+                            @*
+                                <div class="form-inline">
+                                    <div class="col-sm-3">
+                                *@
                                     @* http://seiyria.com/bootstrap-slider/ *@
-                                            <strong>TRACK#:</strong>&nbsp;&nbsp;&nbsp;
-                                        <label for="slider-range"></label><input id="slider-range" type="text">
-                                        <input type="hidden" id="slider-from" name="slider-from" value="1">
-                                        <input type="hidden" id="slider-to" name="slider-to" value="1">
+                            <strong>TRACK#:</strong>&nbsp;&nbsp;&nbsp;
+                            <label for="slider-range"></label><input id="slider-range" type="text">
+                            <input type="hidden" id="slider-from" name="slider-from" value="1">
+                            <input type="hidden" id="slider-to" name="slider-to" value="1">
+
                                         @*
                                     <div class="row">
                                         <div class="form-group col-xs-2">
@@ -221,35 +226,28 @@
                                         </div>
                                     </div>
                                     *@
-                                    </div>
 
-                                    <div class="row">
-                                        <div class="form-group col-lg-1">
-                                      <label for="attr-select">HAVING</label>
-                                            <select class="form-control" id="attr-select">
-                                        <option id="unary-tempo" class="submitModal" value="Tempo">Tempo</option>
-                                        <option id="unary-loudness" value="Loudness">Loudness</option>
-                                        <option id="unary-duration" value="Duration">Duration</option>
-                                        <option id="unary-acousticness" value="Acousticness">Acousticness</option>
-                                        <option id="unary-liveness" value="Liveness">Liveness</option>
-                                            </select> <br/>
-                                        </div>
-                                    </div>
+                            <label for="attr-select">@*HAVING*@</label>
+                            <select class="form-control" id="attr-select">
+                                <option id="unary-tempo" class="submitModal" value="Tempo">Tempo</option>
+                                <option id="unary-loudness" value="Loudness">Loudness</option>
+                                <option id="unary-duration" value="Duration">Duration</option>
+                                <option id="unary-acousticness" value="Acousticness">Acousticness</option>
+                                <option id="unary-liveness" value="Liveness">Liveness</option>
+                            </select> <br/>
 
-                                    <div class="row">
-                                        <div class="form-group col-lg-2">
-                                    <label class="radio-inline"><input type="radio" id="radio-IncludeLarger" name="unary-include" value="IncludeLarger">no less than</label>
-                                    <label class="radio-inline"><input type="radio" id="radio-IncludeSmaller" name="unary-include" value="IncludeSmaller">no more than</label>
-                                    <label class="radio-inline"><input type="radio" id="radio-IncludeEquals" name="unary-include" value="IncludeEquals" checked="checked">about</label>
-                                    <label for="unary-input">
-                                    <input type="number" class="form-control" id="unary-input"
-                                    onkeypress="return isEnterKeyPressed(event, 'unary')">
-                                    </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
+                            <label for="radio-IncludeLarger" class="radio-inline"><input type="radio" id="radio-IncludeLarger" name="unary-include" value="IncludeLarger">no less than</label>
+                            <label for="radio-IncludeSmaller" class="radio-inline"><input type="radio" id="radio-IncludeSmaller" name="unary-include" value="IncludeSmaller">no more than</label>
+                            <label for="radio-IncludeEquals" class="radio-inline"><input type="radio" id="radio-IncludeEquals" name="unary-include" value="IncludeEquals" checked="checked">about</label>
+                            <label class="inline" for="unary-input">
+                                        @* class="form-control" *@
+                                        <input type="number" class="inline" id="unary-input"
+                                        onkeypress="return isEnterKeyPressed(event, 'unary')">
+                            </label>
                         </div>
+
+                           @* </form> *@
+
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
                             <button type="button" class="btn btn-primary" id="unary"
@@ -258,7 +256,6 @@
                     </div>
                 </div>
             </div>
-
         </body>
 </html>
 
