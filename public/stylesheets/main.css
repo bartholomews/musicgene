@@ -1,0 +1,38 @@
+
+div.bar {
+    display: inline-block;
+    width: 20px;
+    height: 75px;
+    background-color: teal;
+    margin-right: 2px;
+}
+
+div.topright {
+    position: absolute;
+    top: 10px;;
+    right: 15px;
+}
+
+div.wrapper-attr-slider {
+    visibility: hidden;
+}
+
+label {
+    font-weight: normal !important;
+}
+
+.constraints {
+    font-style: italic;
+}
+
+caption {
+    font-size: 130%;
+}
+
+#new-playlist {
+    display: none;
+}
+
+.inline {
+    display: inline;
+}
