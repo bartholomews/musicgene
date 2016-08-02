@@ -69,7 +69,7 @@ function getUnaryConstraint(element) {
 function getIndexedConstraint(element) {
     var obj = {};
     obj.name = getName(element);
-    obj.index = element.getAttribute("track-number");
+    obj.index = element.getAttribute("index");
     console.log("track: " + obj.index);
     obj.attribute = getAttribute(element);
     return obj;
@@ -102,6 +102,7 @@ function sendConstraints(obj) {
             getNewPlaylist(json);
             //alert(json)
         },
+        // TODO http://stackoverflow.com/a/450540
         error: function (xhr, ajaxOptions, thrownError) {
             console.log("Error");
             alert("There was a problem generating you playlist. xhr status: " + xhr.status);

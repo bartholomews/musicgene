@@ -36,7 +36,7 @@ function parseUnaryConstraints(input) {
 
     var para = document.createElement('p');
     para.setAttribute("type", "indexed");
-    para.setAttribute("track-number", trackNumber);
+    para.setAttribute("index", (trackNumber - 1) + "");
     var constraintName = getRadioVal('unary-include');
     para.setAttribute("constraint-name", constraintName);
     para.setAttribute("attribute-name", attributeName);
