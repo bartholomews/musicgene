@@ -5,6 +5,7 @@ $(document).ready(function () {
     playPreviewTable();  // listen for mouse click on track rows
     resetModal(); // listen for a closed modal
     //checkSubmitModal();
+    initSlider();
 });
 
 /**
@@ -58,6 +59,9 @@ function resetModal() {
  * @returns {boolean}
  */
 function saveModal(name) {
+    var trackSlider = $('#slider-range').slider();
+    $('#slider-from').val(trackSlider.slider('getValue')[0]);
+    $('#slider-to').val(trackSlider.slider('getValue')[1]);
     var attrVal = document.getElementById(name + "-input").value;
     // check if value is empty
     if (attrVal == "") {
@@ -106,3 +110,37 @@ function checkAttributeFireSlider() {
         }
     });
 }
+
+/**
+ * see http://stackoverflow.com/a/13415189
+ *
+ * @returns {boolean}
+ */
+function initSlider() {
+    $('#slider-range').slider({
+        min: 1, max: 20, value: [1, 1], focus: true, step: 1,
+        start: function (event, ui) {
+            event.stopPropagation();
+        },
+        formatter: function (value) {
+            return "range: " + value;
+        }
+    });
+}
+
+/*
+ slide: function (event, ui) {
+ console.log("SLIDE");
+ $('#slider-from').val(ui.values[0]);
+ $('#slider-to').val(ui.values[1]);
+ console.log("[0]: " + ui.values[0]);
+ console.log('[1]: ' + ui.values[1]);
+ },
+ change: function (event, ui) {
+ console.log("CHANGE");
+ console.log("[0]: " + ui.values[0]);
+ console.log('[1]: ' + ui.values[1]);
+ $('#slider-from').val(ui.values[0]);
+ $('#slider-to').val(ui.values[1]);
+ }
+ */

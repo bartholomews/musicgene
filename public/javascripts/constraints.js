@@ -32,16 +32,24 @@ function parseUnaryConstraints(input) {
     var selection = document.getElementById("attr-select");
     var attributeName = selection.options[selection.selectedIndex].value;
 
-    var trackNumber = document.getElementById(name + "unary-input-track").value;
+    var from = $('#slider-from').val();
+    var to = $('#slider-to').val();
+    console.log(from + " to " + to);
+    // if from == to Unary else Range(from, to)
 
     var para = document.createElement('p');
     para.setAttribute("type", "indexed");
-    para.setAttribute("index", (trackNumber - 1) + "");
+    para.setAttribute("from-index", (from - 1) + "");
+    para.setAttribute("to-index", (to - 1) + "");
     var constraintName = getRadioVal('unary-include');
     para.setAttribute("constraint-name", constraintName);
     para.setAttribute("attribute-name", attributeName);
     para.setAttribute("attribute-value", input);
-    var text = "#" + trackNumber + " having " + attributeName + " " + getCName(constraintName) + input;
+
+    var trackN;
+    if(from == to) trackN = '#' + from;
+    else trackN = '#' + from + " to #" + to;
+    var text = trackN + " having " + attributeName + " " + getCName(constraintName) + input;
 
     var node = document.createTextNode(text);
     para.appendChild(node);
