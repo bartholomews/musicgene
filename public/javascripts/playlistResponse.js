@@ -108,10 +108,10 @@ function generateFloatChart(obj) {
                 obj.speechiness
             ],
             colors: {
-                acousticness: '8b4513',
-                danceability: '9933FF',
-                liveness: '000066',
-                speechiness: 'CCFFFF'
+                acousticness: '#8b4513',
+                danceability: '#9933FF',
+                liveness: '#000066',
+                speechiness: '#CCFFFF'
             },
             onclick: function(d) { playPreviewGraph(d.index) }
         },
