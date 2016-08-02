@@ -8,23 +8,27 @@ import scala.collection.JavaConversions._
   */
 object Cache {
 
-    def extractSong(id: String): Option[Song] = JsonController.getFile(id) match {
-        case null => None
-        case str => Some(parseSong(str))
+    def getFromCache(ids: Vector[String]): (Vector[Song], Vector[String]) = {
+        val (inCache, outCache) = ids.partition(id => JsonController.isInCache(id))
+        (inCache.map(s => parseSong(s)), outCache)
     }
 
+    /*
     // do pattern matching with Option and flatmap to get only the not null ones,
     // or better query the external API for the nulls
     // well in this case you should have for sure, you're retrieving all of them in Json
+    */
     def extractSongs: Vector[Song] = JsonController.getFiles.toVector.map(f => parseSong(f))
 
     /*
     If an empty parameter is given, it will retrieve ALL songs from the db
     (but it should instead retrieve only the USER's songs)
      */
+    /*
     def extractSongs(ids: Vector[String]): Vector[Song] = {
         if(ids.isEmpty) extractSongs else ids.flatMap(s => extractSong(s))
     }
+    */
 
     private def parseSong(file: String): Song = {
         val list = controllers.JsonController.readJSON(file).toVector
