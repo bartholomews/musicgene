@@ -6,7 +6,18 @@ $(document).ready(function () {
     resetModal(); // listen for a closed modal
     //checkSubmitModal();
     initSlider();
+    focusInputOnOpenModal();
 });
+
+/**
+ * http://stackoverflow.com/a/23571595
+ */
+function focusInputOnOpenModal() {
+    $('.modal').on('shown.bs.modal', function () {
+        $(this).find('input:text:visible:first').focus();
+    })
+}
+
 
 /**
  * When an 'equals' or 'contains' button is clicked, its input text box is enabled
