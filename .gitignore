@@ -50,3 +50,5 @@ server.pid
 /public/bootstrap-3.3.6-dist/
 /public/javascripts/d3.min.js
 /public/javascripts/c3.min.js
+/public/stylesheets/c3.css
+/public/stylesheets/c3.min.css
