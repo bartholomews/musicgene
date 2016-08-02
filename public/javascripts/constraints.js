@@ -8,14 +8,26 @@ function convertDuration(ms) {
     return minutes + ":" + seconds
 }
 
+/**
+ * build a Constraint String and add append a <p> element to the jumbotron
+ */
 function parseConstraints(name, input) {
+    var para;
     if(name == 'unary') {
-        parseUnaryConstraints(input)
+        para = parseUnaryConstraints(input)
     } else {
-        parseGlobalConstraints(name, input);
+        para = parseGlobalConstraints(name, input);
     }
+    // number of tracks => setNumberOfTracks(n) TODO
+    setNumberOfTracks(20, para);
 }
 
+/**
+ * create a new <p> element parsing values to form its attributes
+ *
+ * @param input
+ * @returns {Element}
+ */
 function parseUnaryConstraints(input) {
     var selection = document.getElementById("attr-select");
     var attributeName = selection.options[selection.selectedIndex].value;
@@ -33,7 +45,7 @@ function parseUnaryConstraints(input) {
 
     var node = document.createTextNode(text);
     para.appendChild(node);
-    setNumberOfTracks(20, para);
+    return para;
 
 }
 
@@ -53,7 +65,6 @@ function getCName(text) {
 }
 
 /**
- * build a Constraint String and add append a <p> element to the jumbotron
  *
  * @param name the name of a Constraint
  * @param input the input value of a Constraint
@@ -75,8 +86,7 @@ function parseGlobalConstraints(name, input) {
     text += "having " + attrName + symbol + input;
     var node = document.createTextNode(text);
     para.appendChild(node);
-    // number of tracks => setNumberOfTracks(n) TODO
-    setNumberOfTracks(20, para);
+    return para;
 }
 
 /**
@@ -87,10 +97,12 @@ function parseGlobalConstraints(name, input) {
  * @param newConstraint the <p> element holding the new Constraint String
  */
 function setNumberOfTracks(numberOfTracks, newConstraint) {
-    var div = document.getElementById('query');
+    var div = document.getElementById('input-constraints');
+    // first constraint to append:
+    // change 'a [n] playlist with no constraints'
+    // into 'a [n] playlist with the following constraints:'
     if (isDataClean(div)) {
-        var firstLine = document.getElementById("constraints-first");
-        firstLine.innerHTML = "A " + numberOfTracks + " tracks playlist with the following constraints:";
+        document.getElementById("constraints-firstLine-2").innerHTML = "playlist with the following constraints:";
     }
     div.appendChild(newConstraint);
 }
@@ -150,4 +162,16 @@ function getRadioToText(name) {
             return " == ";
             break;
     }
+}
+
+/**
+ *
+ */
+function resetConstraints() {
+    // create fresh firstLine
+    document.getElementById('constraints-firstLine-2').innerHTML = "playlist with no constraints";
+    // clean 'input-constraints' div and set 'data-clean' to true
+    var constraints = document.getElementById('input-constraints');
+    constraints.innerHTML = "";
+    constraints.setAttribute('data-clean', 'true');
 }

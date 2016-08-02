@@ -19,20 +19,21 @@ function createNewPlaylist() {
 // TODO multiple tick or something like that
 function pushTrackIds(js) {
     // for now get the whole playlists
-//    var db = document.getElementsByClassName('music-collection-tbody');
-    var tds = document.querySelectorAll('#music-collection-table tbody tr'), i;
-    for(i = 0; i < tds.length; i++) {
+    var db = document.querySelectorAll('#music-collection-table tbody tr'), i;
+    for(i = 0; i < db.length; i++) {
         var obj = {};
-        obj.id = tds[i].getAttribute('id');
+        obj.id = db[i].getAttribute('id');
         js.ids.push(obj);
     }
 }
 
+// TODO parse numberOfTracks/Duration
 function pushConstraint(js) {
-    var array = document.getElementById("query").getElementsByTagName("*");
-    // skip the first <p>
-    for (var i = 1; i < array.length; i++) {
-        var c = getConstraint(array[i]);
+    // var array = document.getElementById("query").getElementsByTagName("*");
+    // get all <p> elements in div <input-constraints>
+    var constraints = document.getElementById('input-constraints').getElementsByTagName('p');
+    for (var i = 0; i < constraints.length; i++) {
+        var c = getConstraint(constraints[i]);
         console.log("parsed " + c);
         var obj = {};
         obj.constraint = c;

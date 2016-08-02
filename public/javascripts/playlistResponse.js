@@ -217,19 +217,3 @@ function clearNewPlaylist() {
  else return input.value;
  }
  */
-
-function resetConstraints() {
-    // create fresh FirstLine
-    var para = document.createElement('p');
-    para.setAttribute('id', 'constraints-first');
-    var text = "A 20 tracks playlist with no constraints";
-    var node = document.createTextNode(text);
-    para.appendChild(node);
-
-    var div = document.getElementById('query');
-    div.innerHTML = "";
-    div.appendChild(para);
-    div.setAttribute('class', 'constraints');
-    div.setAttribute('id', 'query');
-    div.setAttribute('data-clean', 'true');
-}
