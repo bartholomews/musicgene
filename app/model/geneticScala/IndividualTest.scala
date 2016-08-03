@@ -20,8 +20,8 @@ object IndividualTest extends App {
     IncludeSmaller(5, Tempo(90), 10),
     IncludeSmaller(6, Tempo(90), 10),
     IncludeSmaller(7, Tempo(90), 10),
-    IncreasingRange(Tempo(100), 0, 10),
-    DecreasingRange(Tempo(100), 10, 20)
+    IncreasingRange(0, 10, Tempo(100)),
+    DecreasingRange(10, 20, Tempo(100))
   )
 
   /*
@@ -92,7 +92,7 @@ object IndividualTest extends App {
   */
 
   val scoreConstraint: Set[ScoreConstraint] = Set(
-    IncreasingRange(Loudness(10), 0, 1)
+    IncreasingRange(0, 1, Loudness(10))
   )
 
   val pop = PopFactory.generatePopulation(db, CostBasedFitness(scoreConstraint))

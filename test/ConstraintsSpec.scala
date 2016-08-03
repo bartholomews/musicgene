@@ -9,7 +9,7 @@ import org.scalatest.{FlatSpec, Matchers}
 class ConstraintsSpec extends FlatSpec with Matchers {
 
   "A Range Constraint with indexes out of bounds" should "throw exception or do something else" in {
-    val c1 = ConstantRange(Loudness(10), 0, 2)
+    val c1 = ConstantRange(0, 2, Loudness(10))
 // TODO   c1.distance(new Playlist(Vector())) shouldBe 0.0
   }
 
@@ -22,7 +22,7 @@ class ConstraintsSpec extends FlatSpec with Matchers {
       new Song("song1", "_", Set(Title("Title1"), Loudness(0.2))),
       new Song("song2", "_", Set(Title("Title2"), Loudness(0.3)))
     ))
-    val c1 = ConstantRange(Loudness(10), 0, 1)
+    val c1 = ConstantRange(0, 1, Loudness(10))
     c1.distance(p1) shouldBe 0.1
   }
 
@@ -33,7 +33,7 @@ class ConstraintsSpec extends FlatSpec with Matchers {
       new Song("song2", "_", Set(Title("Title2"), Loudness(0.1))),
       new Song("song2", "_", Set(Title("Title2"), Loudness(0.5)))
     ))
-    val c1 = ConstantRange(Loudness(100), 0, 4)
+    val c1 = ConstantRange(0, 4, Loudness(100))
     c1.distance(p1) shouldBe 0.5
   }
 
@@ -44,7 +44,7 @@ class ConstraintsSpec extends FlatSpec with Matchers {
       new Song("song2", "_", Set(Title("Title2"), Loudness(- 0.4))),
       new Song("song2", "_", Set(Title("Title2"), Loudness(- 0.2)))
     ))
-    val c1 = ConstantRange(Loudness(10), 0, 4)
+    val c1 = ConstantRange(0, 4, Loudness(10))
     c1.distance(p1) shouldBe 1.0
   }
 
@@ -55,7 +55,7 @@ class ConstraintsSpec extends FlatSpec with Matchers {
       new Song("song2", "_", Set(Title("Title2"), Loudness(- 0.4))),
       new Song("song2", "_", Set(Title("Title2"), Loudness(- 0.2)))
     ))
-    val c1 = ConstantRange(Loudness(10), 0, 1)
+    val c1 = ConstantRange(0, 1, Loudness(10))
     c1.distance(p1) shouldBe 0.3
   }
 
@@ -66,7 +66,7 @@ class ConstraintsSpec extends FlatSpec with Matchers {
       new Song("song2", "_", Set(Title("Title2"), Loudness(0.3))),
       new Song("song2", "_", Set(Title("Title2"), Loudness(0.3)))
     ))
-    val c1 = ConstantRange(Loudness(10), 0, 1)
+    val c1 = ConstantRange(0, 1, Loudness(10))
     c1.distance(p1) shouldBe 0.1
   }
 
@@ -77,7 +77,7 @@ class ConstraintsSpec extends FlatSpec with Matchers {
       new Song("song1", "_", Set(Title("Title1"), Loudness(0.2))),
       new Song("song2", "_", Set(Title("Title2"), Loudness(0.3)))
     ))
-    val c1 = IncreasingRange(Loudness(10), 0, 1)
+    val c1 = IncreasingRange(0, 1, Loudness(10))
     c1.distance(p1) shouldBe 0.1
   }
 
@@ -91,7 +91,7 @@ class ConstraintsSpec extends FlatSpec with Matchers {
       // distance = 0.0 + 10
       new Song("song2", "_", Set(Title("Title2"), Loudness(0.5)))
     ))
-    val c1 = IncreasingRange(Loudness(10), 0, 10)
+    val c1 = IncreasingRange(0, 10, Loudness(10))
     c1.distance(p1) shouldBe 10.3
   }
 
@@ -105,7 +105,7 @@ class ConstraintsSpec extends FlatSpec with Matchers {
       // distance = 0.2
       new Song("song2", "_", Set(Title("Title2"), Loudness(1.2)))
     ))
-    val c1 = IncreasingRange(Loudness(10), 0, 10)
+    val c1 = IncreasingRange(0, 10, Loudness(10))
     c1.distance(p1) shouldBe 1.6
   }
 
@@ -119,7 +119,7 @@ class ConstraintsSpec extends FlatSpec with Matchers {
       // distance = 10.2
       new Song("song2", "_", Set(Title("Title2"), Loudness(0.8)))
     ))
-    val c1 = IncreasingRange(Loudness(10), 0, p1.size)
+    val c1 = IncreasingRange(0, p1.size, Loudness(10))
     c1.distance(p1) shouldBe 21.8
   }
 

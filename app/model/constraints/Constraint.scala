@@ -134,6 +134,9 @@ case class CompareAdjacent(index: Int, that: AudioAttribute, f: Double => Boolea
 
 trait ScoreConstraint extends Constraint {
   def distance(p: Playlist): Double
+  def isInRange(i: Int, j: Int, p: Playlist): Boolean = {
+    i >= 0 && j >= 0 && i < p.size && j < p.size && i <= j
+  }
 }
 
 /**
@@ -167,7 +170,7 @@ case class IncludeLarger(index: Int, that: AudioAttribute, penalty: Double) exte
 // song at index 'i' need to have attribute == a.value +- tolerance
 case class IncludeEquals(index: Int, that: AudioAttribute, tolerance: Double, penalty: Double) extends ScoreConstraint {
   override def distance(p: Playlist) = {
-    if (index < 0 || index > p.size) throw new Exception("Cannot get index " + index + " of Playlist")
+    if (index < 0 || index > p.size) throw new IndexOutOfBoundsException("Cannot get index " + index + " of Playlist")
     else ConstraintsUtil.compareEquals(p.songs(index), that, tolerance, penalty)
   }
 }
@@ -179,7 +182,7 @@ case class IncludeEquals(index: Int, that: AudioAttribute, tolerance: Double, pe
     * @param i
     * @param j
     */
-  case class ConstantRange(that: AudioAttribute, i: Int, j: Int) extends ScoreConstraint {
+  case class ConstantRange(i: Int, j: Int, that: AudioAttribute) extends ScoreConstraint {
     override def distance(p: Playlist) = {
       val db = p.songs.slice(i, j + 1).sliding(2).toList
       val result = db.map(l => {
@@ -199,7 +202,7 @@ case class IncludeEquals(index: Int, that: AudioAttribute, tolerance: Double, pe
     * @param i
     * @param j
     */
-  case class IncreasingRange(that: AudioAttribute, i: Int, j: Int) extends ScoreConstraint {
+  case class IncreasingRange(i: Int, j: Int, that: AudioAttribute) extends ScoreConstraint {
     override def distance(p: Playlist) = {
       val db = p.songs.slice(i, j + 1).sliding(2).toList
       val result = db.map(v => {
@@ -219,7 +222,7 @@ case class IncludeEquals(index: Int, that: AudioAttribute, tolerance: Double, pe
     * @param i
     * @param j
     */
-  case class DecreasingRange(that: AudioAttribute, i: Int, j: Int) extends ScoreConstraint {
+  case class DecreasingRange(i: Int, j: Int, that: AudioAttribute) extends ScoreConstraint {
     override def distance(p: Playlist) = {
       p.songs.take(j).sliding(2).map(v => {
         ConstraintsUtil.extractValues(v.head, v.tail.head, that) match {
