@@ -33,12 +33,10 @@ function pushConstraint(js) {
     // get all <p> elements in div <input-constraints>
     var constraints = document.getElementById('input-constraints').getElementsByTagName('p');
     for (var i = 0; i < constraints.length; i++) {
-        var constraintsArray = getIndexedConstraints(constraints[i]);
-        for(var j = 0; j < constraintsArray.length; j++) {
-            var obj = {};
-            obj.constraint = constraintsArray[j];
-            js.constraints.push(obj);
-        }
+        var c = getIndexedConstraint(constraints[i]);
+        var obj = {};
+        obj.constraint = c;
+        js.constraints.push(obj);
     }
 }
 
@@ -67,19 +65,13 @@ function getUnaryConstraint(element) {
     return obj
 }
 
-function getIndexedConstraints(element) {
-    var from = element.getAttribute("from-index");
-    var to = element.getAttribute("to-index");
-    var array = [];
-    for(var i=from; i<=to; i++) {
-        var obj = {};
-        obj.name = getName(element);
-        obj.attribute = getAttribute(element);
-        obj.index = "" + i;
-        array.push(obj);
-    }
-    //console.log("track: " + obj.index);
-    return array;
+function getIndexedConstraint(element) {
+    var constraint = {};
+    constraint.name = getName(element);
+    constraint.from = element.getAttribute("from-index");
+    constraint.to = element.getAttribute("to-index");
+    constraint.attribute = getAttribute(element);
+    return constraint;
 }
 
 function getAttribute(element) {

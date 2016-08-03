@@ -14,8 +14,8 @@ object MusicUtil {
   val penalty: Double = 100.00  // TODO it should be constraint-specific
   val tolerance: Double = 5.00  // TODO it should be constraint-specific
 
-  def toSongs(songs: Vector[(Track, AudioFeature)]): Vector[Song] = {
-    songs.map(t => new Song(t._1.getId, t._1.getPreviewUrl,
+  def toSong(t: (Track, AudioFeature)): Song = {
+    new Song(t._1.getId, t._1.getPreviewUrl,
       Set[Attribute](
         Title(t._1.getName),
         Album(t._1.getAlbum.getName),
@@ -34,8 +34,10 @@ object MusicUtil {
         Mode(t._2.getMode),
         Key(t._2.getKey)
       )
-    ))
+    )
   }
+
+  def toSongs(songs: Vector[(Track, AudioFeature)]): Vector[Song] = songs.map(t => toSong(t))
 
   def parseIDS(js: JsValue): Vector[String] = {
     // checking ids(TODO move to its own method)
@@ -73,18 +75,46 @@ object MusicUtil {
     else {
       (name,
         (js \ "constraints" \\ "constraint").map(c => (c \ "name").as[String] match {
-          case "IncludeSmaller" => IncludeSmaller((c \ "index").as[String].toInt,
-              parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute], penalty)
-          case "IncludeLarger" => IncludeLarger((c \ "index").as[String].toInt,
-            parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute], penalty)
-          case "IncludeEquals" => IncludeEquals((c \ "index").as[String].toInt,
-            parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute], tolerance, penalty)
+
+          case "IncludeSmaller" => IncludeSmaller(
+            from = getIndexes(c)._1,
+            to = getIndexes(c)._2,
+            that = parseJsonAttribute(c).asInstanceOf[AudioAttribute],
+            penalty
+          )
+          case "IncludeLarger" => IncludeLarger(
+            from = getIndexes(c)._1,
+            to = getIndexes(c)._2,
+            that = parseJsonAttribute(c).asInstanceOf[AudioAttribute],
+            penalty
+          )
+          case "IncludeEquals" => IncludeEquals(
+            from = getIndexes(c)._1,
+            to = getIndexes(c)._2,
+            that = parseJsonAttribute(c).asInstanceOf[AudioAttribute],
+            tolerance, penalty
+          )
+          case "ConstantRange" => ConstantRange(
+            from = getIndexes(c)._1,
+            to = getIndexes(c)._2,
+            that = parseJsonAttribute(c).asInstanceOf[AudioAttribute]
+          )
+          case "IncreasingRange" => ConstantRange(
+            from = getIndexes(c)._1,
+            to = getIndexes(c)._2,
+            that = parseJsonAttribute(c).asInstanceOf[AudioAttribute]
+          )
+          case "DecreasingRange" => ConstantRange(
+            from = getIndexes(c)._1,
+            to = getIndexes(c)._2,
+            that = parseJsonAttribute(c).asInstanceOf[AudioAttribute]
+          )
 
           //    case "Include" => Include((c \ "index").as[Int], parseJsonAttribute((c \ "attribute").get))
           //    case "Exclude" => Exclude((c \ "index").as[Int], parseJsonAttribute((c \ "attribute").get))
           //     case "ExcludeAll" => ExcludeAll(parseJsonAttribute((c \ "attribute").get))
 
-          case "UnaryLargerAll" => UnaryLargerAll(parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute])
+          case "UnaryLargerAll" => UnaryLargerAll(parseJsonAttribute(c).asInstanceOf[AudioAttribute])
           case "UnaryLargerAny" => UnaryLargerAny(parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute])
           case "UnaryLargerNone" => UnaryLargerNone(parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute])
           case "UnarySmallerAll" => UnarySmallerAll(parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute])
@@ -92,8 +122,13 @@ object MusicUtil {
           case "UnarySmallerNone" => UnarySmallerNone(parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute])
 
           case unknown => throw new Exception(unknown + ": constraint not found")
+
         }).toSet)
     }
+  }
+
+  def getIndexes(js: JsValue): (Int, Int) = {
+    ((js \ "from").as[String].toInt, (js \ "to").as[String].toInt)
   }
 
   def parseIndexedConstraint(constraint: (String, Int, List[String])): Constraint = constraint match {
@@ -104,8 +139,8 @@ object MusicUtil {
 
   // TODO: REFLECTION, or at least intercept TimeAttribute to assign Double etc.
   def parseJsonAttribute(js: JsValue): Attribute = {
-    val value = (js \ "value").as[String]
-    (js \ "name").as[String] match {
+    val value = (js \ "attribute" \ "value").as[String]
+    (js \ "attribute" \ "name").as[String] match {
       case "Acousticness" => Acousticness(value.toDouble)
       case "Duration" =>
         val tuple = value.split(":")
