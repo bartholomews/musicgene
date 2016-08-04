@@ -37,7 +37,8 @@
                 <div class="constraints">
                         <div id="constraints-firstLine" class="inline">
                             <p class="inline" id="constraints-firstLine-1">A</p>
-                            <button type="button" class="btn btn-secondary btn-lg">20 tracks</button>
+                            <button type="button" class="btn btn-secondary btn-lg" id="numberOfTracks" value="40"
+                            data-toggle="modal" data-target="#modal-tracks">40 tracks</button>
                             <p class="inline" id="constraints-firstLine-2">playlist with no constraints</p>
                         </div>
                     <div id="input-constraints" data-clean="true">
@@ -53,7 +54,6 @@
                                 '#[n] having {indexed-constraint-name} {<|=|>} {attribute-value}'
                                 '#[n] having {simple-constraint-name}'
                             -->
-
                     </div>
                 </div>
                 <br/>
@@ -81,7 +81,11 @@
                         <!-- UnaryConstraint -->
                     <button type="button" class="btn btn-primary" id="unary-constraints-button"
                     data-toggle="modal" data-target="#modal-unary">
-                        ADD CONSTRAINT</button>
+                        VALUE CONSTRAINT</button>
+                        <!-- Monotonic Constraint -->
+                    <button type="button" class="btn btn-primary" id="monotonic-constraints-button"
+                    data-toggle="modal" data-target="#modal-monotonic">
+                        SORT CONSTRAINT</button>
                 </div>
                 <br/><br/>
                 <button type="button" class="btn btn-primary" id="reset-constraints"
@@ -162,6 +166,35 @@
                 </table>
             </div>
 
+                <!-- Number of tracks modal -->
+            <div class="modal fade" id="modal-tracks" tabindex="-1"
+            role="dialog" aria-labelledby="myModalLabel">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <a class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                    <span class="sr-only">Close</span>
+                                </a>
+                                <h4 class="modal-title" id="modal-label">Select number of tracks</h4>
+                            </div>
+                            <div class="modal-body">
+                                <label>
+                                    <input type="number" id="input-numberOfTracks"
+                                    onkeypress="return isEnterKeyPressed(event, 'submit-numberOfTracks')">
+                                </label>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
+                                <button type="button" id="submit-numberOfTracks" class="btn btn-success"
+                                onclick="selectNumberOfTracks()">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
                 <!-- PlaylistName modal -->
             <div class="modal fade" id="modal-playlistName" tabindex="-1"
             role="dialog" aria-labelledby="myModalLabel">
@@ -213,9 +246,11 @@
                                 *@
                                     @* http://seiyria.com/bootstrap-slider/ *@
                             <strong>TRACK#:</strong>&nbsp;&nbsp;&nbsp;
-                            <label for="slider-range"></label><input id="slider-range" type="text">
-                            <input type="hidden" id="slider-from" name="slider-from" value="1">
-                            <input type="hidden" id="slider-to" name="slider-to" value="1">
+                            <div id="slider-unary-div">
+                            <label for="slider-unary"></label><input id="slider-unary" type="text">
+                            <input type="hidden" id="slider-unary-from" name="slider-from" value="1">
+                            <input type="hidden" id="slider-unary-to" name="slider-to" value="1">
+                            </div>
 
                                         @*
                                     <div class="row">
@@ -253,6 +288,49 @@
                             <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
                             <button type="button" class="btn btn-primary" id="unary"
                             onclick="saveModal('unary')">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <!-- #Monotonic modal -->
+            <div class="modal fade" id="modal-monotonic" tabindex="-1"
+            role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <a class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                <span class="sr-only">Close</span>
+                            </a>
+                            <h4 class="modal-title" id="modal-label">Sort a range of tracks</h4>
+                        </div>
+
+                        <div class="modal-body">
+                            <strong>TRACK#:</strong>&nbsp;&nbsp;&nbsp;
+                            <div id="slider-monotonic-div">
+                            <label for="slider-monotonic"></label><input id="slider-monotonic" type="text">
+                            <input type="hidden" id="slider-monotonic-from" name="slider-monotonic-from" value="1">
+                            <input type="hidden" id="slider-monotonic-to" name="slider-monotonic-to" value="1">
+                            </div>
+                                <br/>
+                            <label for="radio-ConstantRange" class="radio-inline"><input type="radio" id="radio-ConstantRange" name="monotonic" value="ConstantRange" checked="checked">constant</label>
+                            <label for="radio-IncreasingRange" class="radio-inline"><input type="radio" id="radio-IncreasingRange" name="monotonic" value="IncreasingRange">increasing</label>
+                            <label for="radio-DecreasingRange" class="radio-inline"><input type="radio" id="radio-DecreasingRange" name="monotonic" value="DecreasingRange">decreasing</label>
+                            <label for="monotonic-attr-select">@*HAVING*@</label>
+                            <select class="form-control" id="monotonic-attr-select">
+                                <option id="monotonic-tempo" class="submitModal" value="Tempo">Tempo</option>
+                                <option id="monotonic-loudness" value="Loudness">Loudness</option>
+                                <option id="monotonic-duration" value="Duration">Duration</option>
+                                <option id="monotonic-acousticness" value="Acousticness">Acousticness</option>
+                                <option id="monotonic-liveness" value="Liveness">Liveness</option>
+                                <option id="monotonic-speechiness" value="Speechiness">Speechiness</option>
+                            </select> <br/>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
+                            <button type="button" class="btn btn-primary" id="unary"
+                            onclick="saveModal('monotonic')">Save</button>
                         </div>
                     </div>
                 </div>

@@ -5,7 +5,7 @@ $(document).ready(function () {
     playPreviewTable();  // listen for mouse click on track rows
     resetModal(); // listen for a closed modal
     //checkSubmitModal();
-    initSlider();
+    initSliders(1, 40);
     focusInputOnOpenModal();
 });
 
@@ -31,7 +31,7 @@ function enableInput(inputID) {
 
 /**
  * On each input box in a modal,
- * if 'Enter' is pressed the 'Save' button will be triggered.
+ * if 'Enter' is pressed the 'Save' button will be triggered.2
  * ----------
  * reference:
  * {@link http://stackoverflow.com/a/155265}
@@ -62,6 +62,20 @@ function resetModal() {
     });
 }
 
+
+/*
+/**
+ * Triggered when a modal is closed: TODO empty text input field
+ */
+/*
+function initSlider() {
+    $('body').on('shown.bs.modal', '.modal', function(){
+        console.log("Modal opened");
+        $("#slider-monotonic").slider("option", "max", 50);
+    });
+}
+*/
+
 /**
  * When a modal is saved, parse the Constraints in input;
  * alert the user if modal input is empty
@@ -70,19 +84,24 @@ function resetModal() {
  * @returns {boolean}
  */
 function saveModal(name) {
-    var trackSlider = $('#slider-range').slider();
-    $('#slider-from').val(trackSlider.slider('getValue')[0]);
-    $('#slider-to').val(trackSlider.slider('getValue')[1]);
-    var attrVal = document.getElementById(name + "-input").value;
-    // check if value is empty
-    if (attrVal == "") {
-        alert("Enter a valid value");
-        return false;
+    var trackSlider = $('#slider-' + name).slider();
+    $('#slider-' + name + '-from').val(trackSlider.slider('getValue')[0]);
+    $('#slider-' + name + '-to').val(trackSlider.slider('getValue')[1]);
+
+    if(name == 'unary') {
+        var attrVal = document.getElementById(name + "-input").value;
+        // check if value is empty
+        if (attrVal == "") {
+            alert("Enter a valid value");
+            return false;
+        } else {
+            parseConstraints(name, attrVal);
+        }
     } else {
-        parseConstraints(name, attrVal);
-        $('#modal-' + name).modal('hide');
-        return true;
+        parseConstraints(name);
     }
+    $('#modal-' + name).modal('hide');
+    return true;
 }
 
 /*
@@ -127,9 +146,20 @@ function checkAttributeFireSlider() {
  *
  * @returns {boolean}
  */
-function initSlider() {
-    $('#slider-range').slider({
-        min: 1, max: 20, value: [1, 1], focus: true, step: 1,
+function initSliders(minRange, maxRange) {
+
+    $('#slider-unary').slider({
+        min: minRange, max: maxRange, value: [1, maxRange], focus: true, step: 1,
+        start: function (event, ui) {
+            event.stopPropagation();
+        },
+        formatter: function (value) {
+            return "range: " + value;
+        }
+    });
+    // TODO should enforce two values NOT to be same: it has to be a range of min step 1
+    $('#slider-monotonic').slider({
+        min: minRange, max: maxRange, value: [1, maxRange], focus: true, step: 1,
         start: function (event, ui) {
             event.stopPropagation();
         },
@@ -138,6 +168,32 @@ function initSlider() {
         }
     });
 }
+
+function changeSlidersMaxValue(maxValue) {
+    changeSliderMaxValue('slider-monotonic', maxValue);
+    changeSliderMaxValue('slider-unary', maxValue);
+}
+
+function changeSliderMaxValue(name, maxValue) {
+  //  $('#' + 'slider-monotonic').slider("remove");
+    $('#' + name + "-div").after("<input id="+name + "type='text' style='display: none'/>");
+    initSliders(1, maxValue);
+}
+//}
+        /*
+        $slider = $('#slider-monotonic');
+        var value = $slider.data('slider').getValue();
+        $slider.data('slider').max = 500;
+        $slider.slider('setValue', value);
+        $slider.slider('refresh');
+        console.log("slider set?");
+    });
+    */
+    /*
+    $('#slider-value).html(
+    $('#slider).slider('value');
+    )
+     */
 
 /*
  slide: function (event, ui) {

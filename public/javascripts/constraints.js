@@ -8,18 +8,30 @@ function convertDuration(ms) {
     return minutes + ":" + seconds
 }
 
+function selectNumberOfTracks() {
+    var numberOfTracks = document.getElementById('input-numberOfTracks').value;
+    var n = document.getElementById('numberOfTracks');
+    n.setAttribute('value', numberOfTracks);
+    changeSlidersMaxValue(parseInt(numberOfTracks));
+    // should check also paragraphs out of range and modify/delete them accordingly
+    n.innerHTML = numberOfTracks + " tracks";
+    $('#modal-tracks').modal('hide');
+    return true;
+}
+
 /**
  * build a Constraint String and add append a <p> element to the jumbotron
+ * // TODO make just one generified method!
  */
 function parseConstraints(name, input) {
     var para;
     if(name == 'unary') {
         para = parseUnaryConstraints(input)
     } else {
-        para = parseGlobalConstraints(name, input);
+        para = parseMonotonicConstraints(name);
     }
     // number of tracks => setNumberOfTracks(n) TODO
-    setNumberOfTracks(20, para);
+    setNumberOfTracks(40, para);
 }
 
 /**
@@ -32,8 +44,8 @@ function parseUnaryConstraints(input) {
     var selection = document.getElementById("attr-select");
     var attributeName = selection.options[selection.selectedIndex].value;
 
-    var from = $('#slider-from').val();
-    var to = $('#slider-to').val();
+    var from = $('#slider-unary-from').val();
+    var to = $('#slider-unary-to').val();
     console.log(from + " to " + to);
     // if from == to Unary else Range(from, to)
 
@@ -41,7 +53,8 @@ function parseUnaryConstraints(input) {
     para.setAttribute("type", "indexed");
     para.setAttribute("from-index", (from - 1) + "");
     para.setAttribute("to-index", (to - 1) + "");
-    var constraintName = getRadioVal('unary-include');
+
+    var constraintName = getRadioElementValue('unary-include');
     para.setAttribute("constraint-name", constraintName);
     para.setAttribute("attribute-name", attributeName);
     para.setAttribute("attribute-value", input);
@@ -49,25 +62,33 @@ function parseUnaryConstraints(input) {
     var trackN;
     if(from == to) trackN = '#' + from;
     else trackN = '#' + from + " to #" + to;
-    var text = trackN + " having " + attributeName + " " + getCName(constraintName) + input;
+    var text = trackN + " having " + attributeName + " " + getTextFromRadioValue(constraintName) + " " + input;
 
     var node = document.createTextNode(text);
     para.appendChild(node);
     return para;
-
 }
 
 // NO NEED TO SWITCH, YOU CAN USE THE TEXT PARA IN THIS CASE
-function getCName(text) {
+function getTextFromRadioValue(text) {
     switch(text) {
         case "IncludeLarger":
-            return "no less than ";
+            return "no less than";
             break;
         case "IncludeSmaller":
-            return "no more than ";
+            return "no more than";
             break;
         case "IncludeEquals":
-            return "around ";
+            return "around";
+            break;
+        case "ConstantRange":
+            return "constant";
+            break;
+        case "IncreasingRange":
+            return "increasing";
+            break;
+        case "DecreasingRange":
+            return "decreasing";
             break;
     }
 }
@@ -77,21 +98,27 @@ function getCName(text) {
  * @param name the name of a Constraint
  * @param input the input value of a Constraint
  */
-function parseGlobalConstraints(name, input) {
-    // make the first char uppercase to parse it as Class instance
-    var attrName = name.charAt(0).toUpperCase() + name.substring(1, name.length);
-    // get the value of radio input "[name]-ltgt" ('UnarySmaller', 'UnaryLarger')
-    var ltgt = getRadioVal(name + "-ltgt");
-    var symbol = getRadioToText(ltgt);
-    // get the value of radio input "radio-[name]" ('Any', 'All', 'None')
-    var anyAllNone = getRadioVal("radio-" + name);
-    var text = getRadioToText(anyAllNone);
-    var para = document.createElement("p");
-    para.setAttribute("type", "simple");
-    para.setAttribute("constraint-name", ltgt + anyAllNone);
-    para.setAttribute("attribute-name", attrName);
-    para.setAttribute("attribute-value", input);
-    text += "having " + attrName + symbol + input;
+function parseMonotonicConstraints(name) {
+    var selection = document.getElementById("monotonic-attr-select");
+    var attributeName = selection.options[selection.selectedIndex].value;
+    var from = $('#slider-monotonic-from').val();
+    var to = $('#slider-monotonic-to').val();
+    console.log(from + " to " + to);
+
+    var para = document.createElement('p');
+    para.setAttribute("type", "indexed");
+    para.setAttribute("from-index", (from - 1) + "");
+    para.setAttribute("to-index", (to - 1) + "");
+
+    var constraintName = getRadioElementValue('monotonic');
+    para.setAttribute("constraint-name", constraintName);
+    para.setAttribute("attribute-name", attributeName);
+    var trackN;
+    if(from == to) trackN = '#' + from;
+    else trackN = '#' + from + " to #" + to;
+    var text = trackN + " having " + getTextFromRadioValue(constraintName) + " " + attributeName;
+    console.log("==> " + text);
+
     var node = document.createTextNode(text);
     para.appendChild(node);
     return para;
@@ -135,41 +162,14 @@ function isDataClean(div) {
  *
  * undefined if nothing is checked
  */
-function getRadioVal(name) {
-    var result;
+function getRadioElementValue(name) {
     var radios = document.getElementsByName(name);
     for (var i = 0; i < radios.length; i++) {
         if (radios[i].checked) {
-            result = radios[i].value;
-            break;
+            return radios[i].value;
         }
     }
-    return result;
-}
-
-function getRadioToText(name) {
-    switch (name) {
-        // 'AnyAllNone' radio
-        case "Any":
-            return "any song ";
-            break;
-        case  "All":
-            return "all songs ";
-            break;
-        case "None":
-            return "no songs ";
-            break;
-        // 'ltgt' radio
-        case "UnaryLarger":
-            return " > ";
-            break;
-        case "UnarySmaller":
-            return " < ";
-            break;
-        case "UnaryEquals":
-            return " == ";
-            break;
-    }
+    return false;
 }
 
 /**
