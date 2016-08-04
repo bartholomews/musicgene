@@ -6,6 +6,7 @@ function createNewPlaylist() {
     console.log('Preparing JSON...');
     var nm = document.getElementById("generate-playlist").value;
     var js = {
+        numberOfTracks: parseInt(document.getElementById('numberOfTracks').value),
         name: nm,
         ids: [],
         constraints: []

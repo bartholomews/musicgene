@@ -10,13 +10,19 @@ function convertDuration(ms) {
 
 function selectNumberOfTracks() {
     var numberOfTracks = document.getElementById('input-numberOfTracks').value;
-    var n = document.getElementById('numberOfTracks');
-    n.setAttribute('value', numberOfTracks);
-    changeSlidersMaxValue(parseInt(numberOfTracks));
-    // should check also paragraphs out of range and modify/delete them accordingly
-    n.innerHTML = numberOfTracks + " tracks";
-    $('#modal-tracks').modal('hide');
-    return true;
+    if(numberOfTracks < 5 || numberOfTracks > 50) {
+        alert("A new playlist can have between 5 and 50 tracks;");
+        return false;
+    } else {
+        var n = document.getElementById('numberOfTracks');
+        n.setAttribute('value', numberOfTracks);
+        resetConstraints();
+        changeSlidersMaxValue(parseInt(numberOfTracks));
+        // should check also paragraphs out of range and modify/delete them accordingly
+        n.innerHTML = numberOfTracks + " tracks";
+        $('#modal-tracks').modal('hide');
+        return true;
+    }
 }
 
 /**
