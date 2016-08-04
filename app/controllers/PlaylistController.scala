@@ -21,7 +21,7 @@ class PlaylistController @Inject() extends Controller {
   The reason why it’s not an Option is because the json body parser
   will validate that the request has a Content-Type of application/json,
   and send back a 415 Unsupported Media Type response if the request
-  doesn’t meet that expectation. Hence we don’t need to check again
+  doesn't meet that expectation. Hence we don’t need to check again
   in our action code.
    */
   def generatePlaylist =  Action(parse.json) { implicit request =>
@@ -29,24 +29,23 @@ class PlaylistController @Inject() extends Controller {
     println("received POST request for " + request.body.toString())
 
     val (name, constraints) = MusicUtil.parseRequest(request.body)
-    println("CONSTR =====> " + constraints.toString())
+    println("PARSED CONSTRAINTS: =====> " + constraints.toString())
 
     val ids = MusicUtil.parseIDS(request.body)
-    println("IDS ========> " + ids.toString())
+ //   println("PARSED IDS ========> " + ids.toString())
 
     // if a constraint with track number is selected, otherwise 20
     // ALL THIS STUFF SHOULD BE MOVED TO ITS OWN CLASS
-    val n = 20
+    val n = MusicUtil.parseNumberOfTracks(request.body)
 
     // how to determine specific kind of constraint?
     val unary = constraints.asInstanceOf[Set[ScoreConstraint]]
 
     def getPlaylist: Playlist = {
-      if (ids.isEmpty) GA.generatePlaylist(CostBasedFitness(unary), 20)
+      if (ids.isEmpty) GA.generatePlaylist(CostBasedFitness(unary), n)
       else {
         val songs = Cache.getFromCache(ids)._1
-        songs.foreach(s => println(s.title))
-        GA.generatePlaylist(new MusicCollection(songs), CostBasedFitness(unary), 20)
+        GA.generatePlaylist(new MusicCollection(songs), CostBasedFitness(unary), n)
       }
     }
     val playlist = getPlaylist.songs
@@ -56,10 +55,6 @@ class PlaylistController @Inject() extends Controller {
       "name" -> name,
       "ids" -> tracksID
     )
-
-    println("READY TO SEND:")
-    println(playlist.foreach(s => println(s.artist + " - " + s.title)))
-
     Ok(js)
   }
 
@@ -72,14 +67,5 @@ class PlaylistController @Inject() extends Controller {
     }
     */
  //   playlist.prettyPrint()
-
-  /*
-  def generatePlaylist(ids: List[String], constraints: List[(String, List[String])]) = Action {
-    val cons: Set[Constraint] = constraints.map(c => MusicUtil.parseRequest(c)).toSet
-    ids.foreach(song => println(song))
-    cons.foreach(c => println(c))
-    Ok(views.html.index("GEN"))
-  }
-  */
 
 }
