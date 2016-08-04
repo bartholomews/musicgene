@@ -46,7 +46,7 @@ object ConstraintsUtil {
     }
   }
 
-  private def isWithinDistance(x: Double, y: Double, tolerance: Double): Boolean = {
+  def isWithinDistance(x: Double, y: Double, tolerance: Double): Boolean = {
     val distance = scala.math.abs(x - y)
     tolerance - distance >= 0
   }
@@ -105,7 +105,9 @@ object ConstraintsUtil {
     val distance = scala.math.abs(x - y)
     // if y is <= of x for Increasing and vice-versa for Decreasing,
     // the distance is added to a penalty value to impact a negative score
-    if(!f(x)) penalty + distance else distance
+    if(!f(x)) {
+      penalty + distance
+    } else distance
   }
 
 }

@@ -31,6 +31,7 @@ trait RangeConstraint {
 trait UnaryConstraint extends Constraint {
   def calc(p: Playlist): Boolean
 }
+
 trait GlobalConstraint extends Constraint
 
 /*
@@ -42,93 +43,6 @@ abstract class OverallConstraint {
 */
 
 // ================================================================================================
-
-case class UnaryEqualAll(a: Attribute) extends UnaryConstraint {
-  override def calc(p: Playlist): Boolean = {
-    p.songs.forall(s => s.attributes.contains(a))
-  }
-}
-
-case class UnaryEqualAny(a: Attribute) extends UnaryConstraint {
-  override def calc(p: Playlist): Boolean = {
-    p.songs.exists(s => s.attributes.contains(a))
-  }
-}
-
-case class UnaryEqualNone(a: Attribute) extends UnaryConstraint {
-  override def calc(p: Playlist): Boolean = {
-    !p.songs.exists(s => s.attributes.contains(a))
-  }
-}
-
-// all songs in the playlist have Attribute value x > a.value
-case class UnaryLargerAll(a: AudioAttribute) extends UnaryConstraint {
-  override def calc(p: Playlist): Boolean = p.songs.forall(s => calc(s))
-  def calc(s: Song): Boolean = ConstraintsUtil.compare(s, a, x => x > a.value)
-}
-
-case class UnaryLargerAny(a: AudioAttribute) extends UnaryConstraint {
-  override def calc(p: Playlist): Boolean = p.songs.exists(s => calc(s))
-  def calc(s: Song): Boolean = ConstraintsUtil.compare(s, a, x => x > a.value)
-}
-
-case class UnaryLargerNone(a: AudioAttribute) extends UnaryConstraint {
-  override def calc(p: Playlist): Boolean = !p.songs.exists(s => calc(s))
-  def calc(s: Song): Boolean = ConstraintsUtil.compareNone(s, a, x => x > a.value)
-}
-
-case class UnarySmallerAll(a: AudioAttribute) extends UnaryConstraint {
-  override def calc(p: Playlist): Boolean = p.songs.forall(s => calc(s))
-  def calc(s: Song): Boolean = ConstraintsUtil.compare(s, a, x => x < a.value)
-}
-
-case class UnarySmallerAny(a: AudioAttribute) extends UnaryConstraint {
-  override def calc(p: Playlist): Boolean = p.songs.exists(s => calc(s))
-  def calc(s: Song): Boolean = ConstraintsUtil.compare(s, a, x => x < a.value)
-}
-
-// no songs have attribute a with value < that.value
-case class UnarySmallerNone(a: AudioAttribute) extends UnaryConstraint {
-  override def calc(p: Playlist): Boolean = !p.songs.exists(s => calc(s))
-  def calc(s: Song): Boolean = ConstraintsUtil.compareNone(s, a, x => x < a.value)
-}
-
-/**
-  * Song at position `i` must include Attribute `y`
-  *
-  * @param index the index of the song in the playlist
-  * @param attribute the attribute the song needs to match
-  * @return true if the attribute x of the song matches y, false otherwise
-  */
-case class Include(index: Int, attribute: Attribute) extends UnaryConstraint {
-  override def calc(p: Playlist) = {
-    if (index < 0 || index > p.size) false
-    else p.songs(index).attributes.contains(attribute)
-  }
-}
-
-
-/**
-  * Song at position `index` must exclude `that` Attribute value
-  *
-  * @param attribute
-  * @param index
-  */
-case class Exclude(index: Int, attribute: Attribute) extends UnaryConstraint {
-  override def calc(p: Playlist): Boolean = {
-    if (index < 0 || index > p.size) false
-    else !p.songs(index).attributes.contains(attribute)
-  }
-}
-
-case class CompareAdjacent(index: Int, that: AudioAttribute, f: Double => Boolean) extends UnaryConstraint {
-  override def calc(p: Playlist): Boolean =
-    ConstraintsUtil.compare(p.songs(index), that, x => f(x))
-}
-
-
-
-
 
 // ================================================================================================
 
@@ -202,6 +116,7 @@ case class IncludeEquals(from: Int, to: Int, that: AudioAttribute, tolerance: Do
     */
   case class ConstantRange(from: Int, to: Int, that: AudioAttribute) extends ScoreConstraint {
     override def distance(p: Playlist) = {
+      if(from == to) throw new Exception("Invalid indexes for Range constraint")
       val result = p.songs.slice(from, to + 1).sliding(2).map(l => {
         ConstraintsUtil.extractValues(l.head, l.tail.head, that) match {
           case None => that.value
@@ -221,6 +136,7 @@ case class IncludeEquals(from: Int, to: Int, that: AudioAttribute, tolerance: Do
     */
   case class IncreasingRange(from: Int, to: Int, that: AudioAttribute) extends ScoreConstraint {
     override def distance(p: Playlist) = {
+      if(from == to) throw new Exception("Invalid indexes for Range constraint")
       val result = p.songs.slice(from, to + 1).sliding(2).map(v => {
         ConstraintsUtil.extractValues(v.head, v.tail.head, that) match {
           case None => that.value
@@ -240,6 +156,7 @@ case class IncludeEquals(from: Int, to: Int, that: AudioAttribute, tolerance: Do
     */
   case class DecreasingRange(from: Int, to: Int, that: AudioAttribute) extends ScoreConstraint {
     override def distance(p: Playlist) = {
+      if(from == to) throw new Exception("Invalid indexes for Range constraint")
       val result = p.songs.slice(from, to + 1).sliding(2).map(v => {
         ConstraintsUtil.extractValues(v.head, v.tail.head, that) match {
           case None => that.value
