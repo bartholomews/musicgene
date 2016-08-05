@@ -58,6 +58,7 @@ function checkSubmitModal() {
  */
 function resetModal() {
     $('body').on('hidden.bs.modal', '.modal', function(){
+        $(this).removeData();
         console.log("Modal hidden");
     });
 }
@@ -85,9 +86,16 @@ function initSlider() {
  */
 function saveModal(name) {
     var trackSlider = $('#slider-' + name).slider();
+    var from = trackSlider.slider('getValue')[0];
+    var to = trackSlider.slider('getValue')[1];
+    if(name == 'monotonic') {
+        if(from == to) {
+            alert("Please enter a range with 1 as minimum step");
+            return false;
+        }
+    }
     $('#slider-' + name + '-from').val(trackSlider.slider('getValue')[0]);
     $('#slider-' + name + '-to').val(trackSlider.slider('getValue')[1]);
-
     if(name == 'unary') {
         var attrVal = document.getElementById(name + "-input").value;
         // check if value is empty
@@ -178,6 +186,8 @@ function changeSliderMaxValue(name, maxValue) {
   //  $('#' + 'slider-monotonic').slider("remove");
     $('#' + name + "-div").after("<input id="+name + "type='text' style='display: none'/>");
     initSliders(1, maxValue);
+    $slider = $('#' + name);
+    $slider.slider('refresh');
 }
 //}
         /*
