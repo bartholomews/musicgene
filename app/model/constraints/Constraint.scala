@@ -28,10 +28,6 @@ trait RangeConstraint {
   def calc(p: Playlist): List[Boolean]
 }
 
-trait UnaryConstraint extends Constraint {
-  def calc(p: Playlist): Boolean
-}
-
 trait GlobalConstraint extends Constraint
 
 /*
