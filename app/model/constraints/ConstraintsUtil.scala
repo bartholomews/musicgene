@@ -10,28 +10,14 @@ object ConstraintsUtil {
   /**
     *
     * @see http://stackoverflow.com/a/16751674
-    * @param s
-    * @param that
-    * @param f
-    * @return
     */
-  def compare(s: Song, that: AudioAttribute, f: Double => Boolean): Boolean =
-  s.attributes.find(a => a.getClass == that.getClass) match {
-    case None => false
-    case Some(attr) => attr.value match {
-      case x: Number => f(x.asInstanceOf[Double])
-      case z => throw new Exception(z + ": " + z.getClass + " is not a java.lang.Number")
-    }
+  def compare(x: Double, that: AudioAttribute, tolerance: Double): Boolean = {
+    val distance = scala.math.abs(x - that.value)
+    tolerance - distance >= 0
   }
 
-  def compareNone(s: Song, that: AudioAttribute, f: Double => Boolean): Boolean = {
-    s.attributes.find(a => a.getClass == that.getClass) match {
-      case None => true
-      case Some(attr) => attr.value match {
-        case x: Number => f(x.asInstanceOf[Double])
-        case z => throw new Exception(z + ": " + z.getClass + " is not a java.lang.Number")
-      }
-    }
+  def compare(x: Double, that: AudioAttribute, f: Double => Boolean): Boolean = {
+    f(x)
   }
 
   def compareWithTolerance(s: Song, that: AudioAttribute, tolerance: Double, f: Double => Boolean): Boolean = {
@@ -90,7 +76,8 @@ object ConstraintsUtil {
   def compareDistance(s: Song, that: AudioAttribute, f: Double => Boolean, penalty: Double): Double = {
     extractValue(s, that) match {
       case None => penalty
-      case Some(x) => if(f(x)) 0.0 else monotonicDistance(x, that.value, penalty, x => f(x))
+      case Some(x) => // if(f(x)) 0.0 else
+      monotonicDistance(x, that.value, penalty, x => f(x))
     }
   }
 
