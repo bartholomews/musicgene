@@ -146,6 +146,7 @@
                 <table class="table table-hover" id="new-playlist-table">
                     <thead>
                         @* Should copy from main table to avoid duplicated code and change twice *@
+                        @* TODO dynamically copy <tr> from main table above to avoid code repetition*@
                         <tr>
                             <th>#</th>
                             <th>Title</th>
@@ -238,30 +239,12 @@
                         </div>
 
                         <div class="modal-body">
-                            @* <form class="form-inline"> *@
-
-                            @*
-                                <div class="form-inline">
-                                    <div class="col-sm-3">
-                                *@
-                                    @* http://seiyria.com/bootstrap-slider/ *@
                             <strong>TRACK#:</strong>&nbsp;&nbsp;&nbsp;
                             <div id="slider-unary-div">
                             <label for="slider-unary"></label><input id="slider-unary" type="text">
                             <input type="hidden" id="slider-unary-from" name="slider-from" value="1">
                             <input type="hidden" id="slider-unary-to" name="slider-to" value="1">
                             </div>
-
-                                        @*
-                                    <div class="row">
-                                        <div class="form-group col-xs-2">
-                                        <label for="unary-input-track"><strong>TRACK#</strong></label>
-                                            <input type="number" class="form-control" id="unary-input-track"
-                                            onkeypress="return isEnterKeyPressed(event, 'unary')">
-                                        </div>
-                                    </div>
-                                    *@
-
                             <br/>
                             <label for="attr-select">@*HAVING*@</label>
                             <select class="form-control" id="attr-select">
@@ -270,20 +253,18 @@
                                 <option id="unary-duration" value="Duration">Duration</option>
                                 <option id="unary-acousticness" value="Acousticness">Acousticness</option>
                                 <option id="unary-liveness" value="Liveness">Liveness</option>
-                            </select> <br/>
-
-                            <label for="radio-IncludeLarger" class="radio-inline"><input type="radio" id="radio-IncludeLarger" name="unary-include" value="IncludeLarger">no less than</label>
-                            <label for="radio-IncludeSmaller" class="radio-inline"><input type="radio" id="radio-IncludeSmaller" name="unary-include" value="IncludeSmaller">no more than</label>
+                            </select>
+                            <br/>
+                            <label for="radio-IncludeLarger" class="radio-inline"><input type="radio" id="radio-IncludeLarger" name="unary-include" value="IncludeLarger">no less than (HIGHEST?)</label>
+                            <label for="radio-IncludeSmaller" class="radio-inline"><input type="radio" id="radio-IncludeSmaller" name="unary-include" value="IncludeSmaller">no more than(LOWEST?)</label>
                             <label for="radio-IncludeEquals" class="radio-inline"><input type="radio" id="radio-IncludeEquals" name="unary-include" value="IncludeEquals" checked="checked">about</label>
                             <label class="inline" for="unary-input">
-                                        @* class="form-control" *@
-                                        <input type="number" class="inline" id="unary-input"
-                                        onkeypress="return isEnterKeyPressed(event, 'unary')">
+                                @* class="form-control" *@
+                                <input type="number" class="inline" id="unary-input"
+                                onkeypress="return isEnterKeyPressed(event, 'unary')">
                             </label>
                         </div>
-
                            @* </form> *@
-
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
                             <button type="button" class="btn btn-primary" id="unary"
