@@ -43,7 +43,7 @@ abstract class OverallConstraint {
 // ================================================================================================
 
 trait ScoreConstraint extends Constraint {
-  def distance(p: Playlist): Double
+  def score(p: Playlist): Set[Score]
   def inRange(i: Int, j: Int, p: Playlist): Boolean = {
     if(i >= 0 && j >= 0 && i < p.size && j < p.size && i <= j) true
     else throw new IndexOutOfBoundsException("Cannot get index range " + i + "-" + j + " of Playlist")
@@ -59,11 +59,12 @@ trait ScoreConstraint extends Constraint {
   * @return true if the attribute x of the song matches y, false otherwise
   */
 case class IncludeSmaller(from: Int, to: Int, that: AudioAttribute, penalty: Double) extends ScoreConstraint {
-  override def distance(p: Playlist) = {
+  override def score(p: Playlist) = {
     assert(inRange(from, to, p))
     (for (index <- from to to) yield {
-      ConstraintsUtil.compareDistance(p.songs(index), that, x => x < that.value, penalty)
-    }).sum
+      val t = ConstraintsUtil.compareDistance(p.songs(index), that, x => x < that.value, penalty)
+      Score(t._1, t._2, index)
+    }).toSet
   }
 }
 
@@ -76,11 +77,12 @@ case class IncludeSmaller(from: Int, to: Int, that: AudioAttribute, penalty: Dou
   * @return true if the attribute x of the song matches y, false otherwise
   */
 case class IncludeLarger(from: Int, to: Int, that: AudioAttribute, penalty: Double) extends ScoreConstraint {
-  override def distance(p: Playlist) = {
+  override def score(p: Playlist): Set[Score] = {
     assert(inRange(from, to, p))
     (for (index <- from to to) yield {
-      ConstraintsUtil.compareDistance(p.songs(index), that, x => x > that.value, penalty)
-    }).sum
+      val t = ConstraintsUtil.compareDistance(p.songs(index), that, x => x > that.value, penalty)
+      Score(t._1, t._2, index)
+    }).toSet
   }
 }
 
@@ -95,11 +97,12 @@ case class IncludeLarger(from: Int, to: Int, that: AudioAttribute, penalty: Doub
   * @return true if the attribute x of the song matches y, false otherwise
   */
 case class IncludeEquals(from: Int, to: Int, that: AudioAttribute, tolerance: Double, penalty: Double) extends ScoreConstraint {
-  override def distance(p: Playlist) = {
+  override def score(p: Playlist) = {
     assert(inRange(from, to, p))
     (for (index <- from to to) yield {
-      ConstraintsUtil.compareEquals(p.songs(index), that, tolerance, penalty)
-    }).sum
+      val t = ConstraintsUtil.compareEquals(p.songs(index), that, tolerance, penalty)
+      Score(t._1, t._2, index)
+    }).toSet
   }
 }
 
@@ -111,58 +114,94 @@ case class IncludeEquals(from: Int, to: Int, that: AudioAttribute, tolerance: Do
     * @param to
     */
   case class ConstantRange(from: Int, to: Int, that: AudioAttribute) extends ScoreConstraint {
-    override def distance(p: Playlist) = {
-      if(from == to) throw new Exception("Invalid indexes for Range constraint")
-      val result = p.songs.slice(from, to + 1).sliding(2).map(l => {
+    override def score(p: Playlist) = {
+      if (from == to) throw new Exception("Invalid indexes for Range constraint")
+
+      (for (index <- from until to) yield {
+        ConstraintsUtil.extractValues(p.songs(index), p.songs(index + 1), that) match {
+          case None => Score(matched = false, that.value, index)
+          case Some((x, y)) =>
+            val t = ConstraintsUtil.constantDistance(x, y)
+            Score(t._1, t._2, index)
+        }
+      }).toSet
+
+      /*
+      p.songs.slice(from, to + 1).sliding(2).map(l => {
         ConstraintsUtil.extractValues(l.head, l.tail.head, that) match {
-          case None => that.value
+          case None => Score(matched = false, that.value)
           case Some((x, y)) => ConstraintsUtil.constantDistance(x, y)
         }
-      }).sum
-      BigDecimal(result).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+      }).toSet
+    }
+    */
     }
   }
 
-  /**
-    * Songs from index i to index j should have that Attribute value as close as possible to f(x, y)
-    *
-    * @param that its value contains the penalty value: should be higher than any possible distance?
-    * @param from
-    * @param to
-    */
-  case class IncreasingRange(from: Int, to: Int, that: AudioAttribute) extends ScoreConstraint {
-    override def distance(p: Playlist) = {
-      if(from == to) throw new Exception("Invalid indexes for Range constraint")
-      val result = p.songs.slice(from, to + 1).sliding(2).map(v => {
+    /**
+      * Songs from index i to index j should have that Attribute value as close as possible to f(x, y)
+      *
+      * @param that its value contains the penalty value: should be higher than any possible distance?
+      * @param from
+      * @param to
+      */
+    case class IncreasingRange(from: Int, to: Int, that: AudioAttribute) extends ScoreConstraint {
+      override def score(p: Playlist) = {
+        if (from == to) throw new Exception("Invalid indexes for Range constraint")
+
+        (for (index <- from until to) yield {
+       //   println(index + " => " + p.size)
+          ConstraintsUtil.extractValues(p.songs(index), p.songs(index + 1), that) match {
+            case None => Score(matched = false, that.value, index)
+            case Some((x, y)) =>
+              val t = ConstraintsUtil.monotonicDistance(x, y, that.value, x => x < y)
+              Score(t._1, t._2, index)
+          }
+        }).toSet
+
+        /*
+      p.songs.slice(from, to + 1).sliding(2).map(v => {
         ConstraintsUtil.extractValues(v.head, v.tail.head, that) match {
-          case None => that.value
+          case None => Score(matched = false, that.value, 0)
           case Some((x, y)) => ConstraintsUtil.monotonicDistance(x, y, that.value, x => x < y)
         }
-      }).sum
-      BigDecimal(result).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+      }).toSet
     }
-  }
-
-  /** TODO AVOID CODE REPETITION
-    * Songs from index i to index j should have that Attribute value as close as possible to f(x, y)
-    *
-    * @param that its value contains the penalty value: should be higher than any possible distance?
-    * @param from
-    * @param to
     */
-  case class DecreasingRange(from: Int, to: Int, that: AudioAttribute) extends ScoreConstraint {
-    override def distance(p: Playlist) = {
-      if(from == to) throw new Exception("Invalid indexes for Range constraint")
-      val result = p.songs.slice(from, to + 1).sliding(2).map(v => {
+      }
+    }
+
+    /** TODO AVOID CODE REPETITION
+      * Songs from index i to index j should have that Attribute value as close as possible to f(x, y)
+      *
+      * @param that its value contains the penalty value: should be higher than any possible distance?
+      * @param from
+      * @param to
+      */
+    case class DecreasingRange(from: Int, to: Int, that: AudioAttribute) extends ScoreConstraint {
+      override def score(p: Playlist) = {
+        if (from == to) throw new Exception("Invalid indexes for Range constraint")
+
+        (for (index <- from until to) yield {
+          ConstraintsUtil.extractValues(p.songs(index), p.songs(index + 1), that) match {
+            case None => Score(matched = false, that.value, index)
+            case Some((x, y)) =>
+              val t = ConstraintsUtil.monotonicDistance(x, y, that.value, x => x > y)
+              Score(t._1, t._2, index)
+          }
+        }).toSet
+
+        /*
+      p.songs.slice(from, to + 1).sliding(2).map(v => {
         ConstraintsUtil.extractValues(v.head, v.tail.head, that) match {
-          case None => that.value
+          case None => Score(matched = false, that.value, 0)
           case Some((x, y)) => ConstraintsUtil.monotonicDistance(x, y, that.value, x => x > y)
         }
-      }).sum
-      BigDecimal(result).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+      }).toSet
     }
-  }
-
+    */
+      }
+    }
 
 /*
 trait ScoreConstraint {

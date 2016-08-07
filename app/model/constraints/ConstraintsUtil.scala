@@ -63,38 +63,36 @@ object ConstraintsUtil {
     }
   }
 
-  def compareEquals(s: Song, that: AudioAttribute, tolerance: Double, penalty: Double): Double = {
+  def compareEquals(s: Song, that: AudioAttribute, tolerance: Double, penalty: Double): (Boolean, Double) = {
     extractValue(s, that) match {
-      case None => penalty
-      case Some(x) => {
+      case None => (false, penalty)
+      case Some(x) =>
         val distance = scala.math.abs(x - that.value)
-        if(distance <= tolerance) 0.0 else penalty + distance
-      }
+        if(distance <= tolerance) (true, 0.0) else (false, distance)// + penalty)
     }
   }
 
-  def compareDistance(s: Song, that: AudioAttribute, f: Double => Boolean, penalty: Double): Double = {
+  def compareDistance(s: Song, that: AudioAttribute, f: Double => Boolean, penalty: Double): (Boolean, Double) = {
     extractValue(s, that) match {
-      case None => penalty
+      case None => (false, penalty)
       case Some(x) => // if(f(x)) 0.0 else
       monotonicDistance(x, that.value, penalty, x => f(x))
     }
   }
 
-  def calculateDistance(f: (Double, Double) => Boolean) = ???
+  // def calculateDistance(f: (Double, Double) => Boolean) = ???
 
   // as equals as possible, TODO penalty?
   def constantDistance(x: Double, y: Double) = monotonicDistance(x, y, 0.0, x => x == y)
 
   // either increasing or decreasing
-  def monotonicDistance(x: Double, y: Double, penalty: Double, f: Double => Boolean) = {
+  def monotonicDistance(x: Double, y: Double, penalty: Double, f: Double => Boolean): (Boolean, Double) = {
     // distance rounded to the nearest hundredth: TODO some features might need higher precision
     val distance = scala.math.abs(x - y)
     // if y is <= of x for Increasing and vice-versa for Decreasing,
     // the distance is added to a penalty value to impact a negative score
-    if(!f(x)) {
-      penalty + distance
-    } else distance
+    if(!f(x)) (false, distance) // + penalty)
+    else (true, 0.0) // distance)
   }
 
 }
