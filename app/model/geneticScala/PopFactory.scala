@@ -7,6 +7,13 @@ import model.music.MusicCollection
   */
 object PopFactory {
 
+  def sortByFitness(p: Population) = {
+    val byFitness = p.playlists.sortWith((p1, p2) => p1.fitness > p2.fitness)
+    val maxFitness = byFitness.head.fitness
+    val (elites, inferiors) = byFitness.partition(p => p.fitness != maxFitness)
+    new Population(elites.sortWith((p1, p2) => p1.distance < p2.distance) ++ inferiors, p.f)
+  }
+
   /**
     * Generate a Population of `popSize` playlists each containing `size` songs from the db collection
     * in random order
@@ -14,11 +21,12 @@ object PopFactory {
     * @param db
     * @param f
     * @param size
-    * @return
+    * @return TODO remove f from Pop, is ok in Pl
     */
   def generatePopulation(db: MusicCollection, f: FitnessFunction, size: Int) = {
-    new Population(PlaylistsFactory.generatePlaylists(db, GASettings.popSize, size)
-      .sortWith((p1, p2) => f.getFitness(p1) < f.getFitness(p2)), f)
+    sortByFitness(
+      new Population(PlaylistsFactory.generatePlaylists(db, GASettings.popSize, size, f), f)
+    )
   }
 
   /**
@@ -30,9 +38,13 @@ object PopFactory {
     * @return
     */
   def generatePopulation(db: MusicCollection, f: FitnessFunction) = {
-    new Population(
-      PlaylistsFactory.generatePlaylists(db, GASettings.popSize, f)
-        .sortWith((p1, p2) => f.getFitness(p1) < f.getFitness(p2)), f)
+    sortByFitness(new Population(
+      PlaylistsFactory.generatePlaylists(db, GASettings.popSize, f), f))
+  }
+
+  def generateUniquePopulation(db: MusicCollection, f: FitnessFunction, size: Int) = {
+    sortByFitness(new Population(
+      PlaylistsFactory.generateUniquePlaylists(db, GASettings.popSize, size, f), f))
   }
 
 }

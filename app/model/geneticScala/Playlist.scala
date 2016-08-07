@@ -7,12 +7,22 @@ import scala.util.Random
 /**
   *
   */
-class Playlist(val songs: Vector[Song]) {
+class Playlist(val songs: Vector[Song], f: FitnessFunction) {
 
   def get(index: Int) = songs(index)
+
+  val fitness = f.getFitness(this)
+  val distance = f.getDistance(this)
+
   def size = songs.length
 
-  // ok now really i want to get rid of f here, should really go into pop
+  val matched: Set[Int] = {
+    f.score(this).partition(s => s.matched)._1.map(s => s.index)
+  }
+  val unmatched: Set[Int] = {
+    f.score(this).partition(s => s.matched)._2.map(s => s.index)
+  }
+
   //def fitness: Float = f.getFitness(this)
 
   def prettyPrint() = {
@@ -26,6 +36,21 @@ class Playlist(val songs: Vector[Song]) {
   // and move the mutationRatio check in the Population method caller
   def mutate: Playlist = {
     val arr = songs.toArray
+    val weakBucket = Random.shuffle(unmatched)
+    for (weakIndex <- weakBucket) {
+      if (Random.nextFloat() < GASettings.mutationRatio) {
+        val randomIndex = Random.nextInt(songs.length)
+        val aux = arr(weakIndex)
+        arr(weakIndex) = arr(randomIndex)
+        arr(randomIndex) = aux
+      }
+    }
+    val newP = new Playlist(arr.toVector, f)
+  //  println("MT => new playlist with size " + newP.size)
+    newP // new Playlist(arr.toVector, f)
+
+    /*
+    val arr = songs.toArray
     for(i <- songs.indices) {
       if (Random.nextFloat() < GASettings.mutationRatio) {
         val j = Random.nextInt(songs.length)
@@ -34,7 +59,8 @@ class Playlist(val songs: Vector[Song]) {
         arr(j) = aux
       }
     }
-    new Playlist(arr.toVector)
+    new Playlist(arr.toVector, f)
+    */
   }
 
   // single point crossover:
@@ -47,9 +73,28 @@ class Playlist(val songs: Vector[Song]) {
   def crossover(that: Playlist) = {
     val pivot = Random.nextInt(songs.length)
     val v1 = this.songs.take(pivot)
-    // some songs are dropped randomly. Need to improve that.
     val v2 = that.songs.filter(s => !v1.contains(s)).take(that.songs.length - pivot)
-    new Playlist(v1 ++ v2)
+    new Playlist(v1 ++ v2, f)
   }
+
+  /*
+  Take the indexes matched of inferior playlist
+  add the indexes matched of superior playlist if not already there
+  add the indexes unmatched of inferior playlist if not already there
+  add the indexes unmatched of superior playlist if not already there
+ */
+  /*
+  def crossover(that: Playlist) = {
+    val v1 = that.matched.map(i => that.songs(i)).toVector
+    val v2 = this.matched.map(i => this.songs(i)).toVector.filter(s => !v1.contains(s))
+    val v3 = v1 ++ v2
+    val v4 = that.unmatched.map(i => that.songs(i)).toVector.filter(s => !v3.contains(s))
+    val v5 = v3 ++ v4
+    val v6 = this.unmatched.map(i => this.songs(i)).toVector.filter(s => !v5.contains(s))
+    val newP = new Playlist(v5 ++ v6, f)
+    println("XO => new playlist with size " + newP.size)
+    newP
+  }
+  */
 
 }

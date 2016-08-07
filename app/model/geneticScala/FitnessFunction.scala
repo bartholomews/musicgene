@@ -1,6 +1,6 @@
 package model.geneticScala
 
-import model.constraints.{Constraint, ScoreConstraint, UnaryConstraint}
+import model.constraints.{Constraint, Score, ScoreConstraint, UnaryConstraint}
 
 
 /**
@@ -10,6 +10,8 @@ import model.constraints.{Constraint, ScoreConstraint, UnaryConstraint}
 trait FitnessFunction {
   def getConstraints: Set[Constraint]
   def getFitness(playlist: Playlist): Double
+  def getDistance(playlist: Playlist): Double
+  def score(playlist: Playlist): Set[Score]
 }
 
 
@@ -19,6 +21,9 @@ trait FitnessFunction {
 case class StandardFitness(constraints: Set[UnaryConstraint]) extends FitnessFunction {
 
   override def getConstraints: Set[Constraint] = constraints.asInstanceOf[Set[Constraint]]
+
+  override def getDistance(playlist: Playlist): Double = throw new Exception("CANNOT GET DISTANCE!")
+  override def score(p: Playlist) = throw new Exception("CANNOT GET SCORE!")
 
   /**
     * Fitness function defined as the number of matched constraints in a Playlist,
@@ -39,8 +44,15 @@ case class StandardFitness(constraints: Set[UnaryConstraint]) extends FitnessFun
 
 case class CostBasedFitness(constraints: Set[ScoreConstraint]) extends FitnessFunction {
   override def getConstraints: Set[Constraint] = constraints.asInstanceOf[Set[Constraint]]
-  override def getFitness(playlist: Playlist): Double = {
-    constraints.map(c => c.distance(playlist)).sum
+
+  override def score(p: Playlist): Set[Score] = constraints.flatMap(c => c.score(p))
+
+  override def getFitness(p: Playlist): Double = {
+    val f = score(p).count(s => s.matched) / score(p).size.toDouble
+    BigDecimal.decimal(f).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+  }
+  override def getDistance(p: Playlist): Double = {
+    score(p).map(s => s.distance).sum
   }
 }
 

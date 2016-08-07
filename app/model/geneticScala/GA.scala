@@ -10,74 +10,15 @@ import scala.annotation.tailrec
   *      https://github.com/jsvazic/GAHelloWorld/blob/master/scala/src/main/scala/net/auxesia/Population.scala
   * Actually, evolve() could be an asynchronous message, so that also the server can do other stuff.
   */
-object GA extends App {
+object GA {
 
   // ============================================================================
 
   val startTime = System.currentTimeMillis
 
-  val constraints: Set[ScoreConstraint] = Set(
-    IncludeSmaller(0, Tempo(90), 10),
-    IncludeSmaller(1, Tempo(90), 10),
-    IncludeSmaller(2, Tempo(90), 10),
-    IncludeSmaller(3, Tempo(90), 10),
-    IncludeSmaller(4, Tempo(90), 10),
-    IncludeSmaller(5, Tempo(90), 10),
-    IncludeSmaller(6, Tempo(90), 10),
-    IncludeSmaller(7, Tempo(90), 10),
-    IncreasingRange(Tempo(100), 0, 10),
-    DecreasingRange(Tempo(100), 10, 20)
-  )
-
-  /*
-
-  val constraints2: Set[Constraint] = Set(
-    /*
-    UnaryEqualAny(Title("Tha")),
-    Include(0, Artist("Aphex Twin")),
-    Include(1, Artist("Aphex Twin")),
-    Include(2, Artist("Aphex Twin")),
-    Include(3, Title("Brooklyn Zoo")),
-    Include(4, Title("Method Man")),
-    */
-    // no song with tempo 102.397
-    //   UnaryEqualNone(Artist("Aphex Twin"))
-    // this BinaryLarger will get 0 of course even if it finds 99% of it.
-    // maybe if you translate this kinds of attribute into a set of constraints foreach indices it works better
-    // e.g.
-    //    UnarySmallerNone(Tempo(120))
-    // ==, that's right
-    IncludeSmaller(0, Tempo(120)),
-    IncludeLarger(1, Tempo(120)),
-    IncludeEquals(2, Tempo(120), 10),
-    IncludeSmaller(3, Tempo(120)),
-    IncludeLarger(4, Tempo(120)),
-    IncludeSmaller(5, Tempo(120)),
-    IncludeLarger(5, Tempo(120)),
-    IncludeSmaller(6, Tempo(120)),
-    IncludeLarger(5, Tempo(120)),
-    IncludeSmaller(5, Tempo(120)),
-    IncludeLarger(5, Tempo(120)),
-    //  careful with IndexOutOfBounds
-    Include(5, Artist("Aphex Twin")),
-    Include(6, Artist("Aphex Twin")),
-    Include(7, Artist("Aphex Twin"))
-   //   Include(8, Title("A Drifting Up")),
- //   Include(9, Title("#1"))
- //   Include(10, Title("Come As You Are"))
-  )
-
-  */
-
-  // with few songs get stuck, whole database length eventually gets a good score
-  val p = generatePlaylist(CostBasedFitness(constraints), 50)
-  println("GENERATED PLAYLIST: ")
-  p.prettyPrint()
-
   def generatePlaylist(db: MusicCollection, f: FitnessFunction, length: Int): Playlist = {
-    if (constraints.isEmpty) {
-      println("NO CONSTRAINTS!")
-      generateRandomPlaylist(db, length)
+    if (f.getConstraints.isEmpty) {
+      generateRandomPlaylist(db, length, f)
     } else {
       val pop = PopFactory.generatePopulation(db, f, length)
       evolve(pop, 1)
@@ -85,7 +26,7 @@ object GA extends App {
   }
 
   def generatePlaylist(f: FitnessFunction, length: Int): Playlist = {
-    if (constraints.isEmpty) generateRandomPlaylist(length)
+    if (f.getConstraints.isEmpty) generateRandomPlaylist(length, f)
     else {
       val db = new MusicCollection(Cache.extractSongs)
       val pop = PopFactory.generatePopulation(db, f, length)
@@ -94,7 +35,7 @@ object GA extends App {
   }
 
   def generatePlaylist(db: MusicCollection, f: FitnessFunction): Playlist = {
-    if (constraints.isEmpty) generateRandomPlaylist(db)
+    if (f.getConstraints.isEmpty) generateRandomPlaylist(db, f)
     else {
       val pop = PopFactory.generatePopulation(db, f)
       evolve(pop, 1)
@@ -102,7 +43,7 @@ object GA extends App {
   }
 
   def generatePlaylist(f: FitnessFunction): Playlist = {
-    if (constraints.isEmpty) generateRandomPlaylist()
+    if (f.getConstraints.isEmpty) generateRandomPlaylist(f)
     else {
       val db = new MusicCollection(Cache.extractSongs)
       val pop = PopFactory.generatePopulation(db, f)
@@ -111,21 +52,22 @@ object GA extends App {
   }
 
   // i still feel playlists shouldnt have a fitnessfunc
-  def generateRandomPlaylist(length: Int) = {
-    new Playlist(util.Random.shuffle(Cache.extractSongs).take(length))
+  def generateRandomPlaylist(length: Int, f: FitnessFunction) = {
+    new Playlist(util.Random.shuffle(Cache.extractSongs).take(length), f)
   }
 
-  def generateRandomPlaylist(db: MusicCollection) = {
-    new Playlist(util.Random.shuffle(db.songs).take(20))
+  def generateRandomPlaylist(db: MusicCollection, f: FitnessFunction) = {
+    new Playlist(util.Random.shuffle(db.songs).take(20), f)
   }
 
-  def generateRandomPlaylist(db: MusicCollection, length: Int) = {
+  def generateRandomPlaylist(db: MusicCollection, length: Int, f: FitnessFunction) = {
     println("OK, JUST A RANDOM P-LIST THEM")
-    new Playlist(util.Random.shuffle(db.songs).take(length))
+    val p = new Playlist(util.Random.shuffle(db.songs).take(length), f)
+    p
   }
 
-  def generateRandomPlaylist() = {
-    new Playlist(util.Random.shuffle(Cache.extractSongs).take(20))
+  def generateRandomPlaylist(f: FitnessFunction) = {
+    new Playlist(util.Random.shuffle(Cache.extractSongs).take(20), f)
   }
 
   @tailrec
@@ -137,9 +79,10 @@ object GA extends App {
 
   private def printGAResults(pop: Population, generation: Int): Unit = {
     println("=" * 20 + "GEN-" + generation + "=" * 20)
-    println("GENERATION " + generation + ", max fitness: " + pop.maxFitness)
- //   println("FITTEST:")
- //   pop.getFittest.prettyPrint()
+    println("GENERATION " + generation + ", max fitness: " + pop.maxFitness + ", distance: " + pop.minDistance +
+              ", unmatched: " + pop.getFittest.unmatched.map(i => i + 1).toString())
+    println("FITTEST:")
+    pop.getFittest.prettyPrint()
   }
 
 }

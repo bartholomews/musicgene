@@ -12,14 +12,14 @@ object IndividualTest extends App {
   //===========
 
   val constraints: Set[ScoreConstraint] = Set(
-    IncludeSmaller(0, Tempo(90), 10),
-    IncludeSmaller(1, Tempo(90), 10),
-    IncludeSmaller(2, Tempo(90), 10),
-    IncludeSmaller(3, Tempo(90), 10),
-    IncludeSmaller(4, Tempo(90), 10),
-    IncludeSmaller(5, Tempo(90), 10),
-    IncludeSmaller(6, Tempo(90), 10),
-    IncludeSmaller(7, Tempo(90), 10),
+    IncludeSmaller(0, 0, Tempo(90), 10),
+    IncludeSmaller(1, 1, Tempo(90), 10),
+    IncludeSmaller(2, 2, Tempo(90), 10),
+    IncludeSmaller(3, 3, Tempo(90), 10),
+    IncludeSmaller(4, 4, Tempo(90), 10),
+    IncludeSmaller(5, 5, Tempo(90), 10),
+    IncludeSmaller(6, 6, Tempo(90), 10),
+    IncludeSmaller(7, 7, Tempo(90), 10),
     IncreasingRange(0, 10, Tempo(100)),
     DecreasingRange(10, 20, Tempo(100))
   )
@@ -78,7 +78,7 @@ object IndividualTest extends App {
   println(db.prettyPrintTitleArtist())
 //  println("====" * 20)
 
-  val firstAphex = Include(1, Artist("Aphex Twin"))
+//  val firstAphex = Include(1, Artist("Aphex Twin"))
 
   /*
   val constraints: Set[Constraint] = Set (
@@ -103,6 +103,6 @@ object IndividualTest extends App {
 
   println("FITTEST: " + pop.getFittest.prettyPrint())
   println("FITNESS: ")
-  pop.playlists.foreach(p => println(pop.playlists.indexOf(p) + ": " + pop.getFitness(p)))
+  pop.playlists.foreach(p => println(pop.playlists.indexOf(p) + ": " + p.fitness))
 
 }

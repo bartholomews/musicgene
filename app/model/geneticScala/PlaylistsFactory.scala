@@ -10,22 +10,28 @@ import model.music.MusicCollection
   */
 object PlaylistsFactory {
 
+  def generateUniquePlaylists(db: MusicCollection, poolSize: Int, size: Int, f: FitnessFunction) = {
+    println("UNIQUE SHOULD BE")
+    val p = new MusicCollection(generatePlaylist(db, size, f).songs)
+    (for(n <- 1 to poolSize) yield { generatePlaylist(p, size, f) }).toVector
+  }
+
   // Generate 'poolSize` playlists each containing `size` songs from the db collection in random order
-  def generatePlaylists(db: MusicCollection, poolSize: Int, size: Int): Vector[Playlist] = {
-    (for(n <- 1 to poolSize) yield { generatePlaylist(db, size) }).toVector
+  def generatePlaylists(db: MusicCollection, poolSize: Int, size: Int, f: FitnessFunction): Vector[Playlist] = {
+    (for(n <- 1 to poolSize) yield { generatePlaylist(db, size, f) }).toVector
   }
 
   // Generate `poolSize` playlists each containing the whole database collection in random order
   def generatePlaylists(db: MusicCollection, poolSize: Int, f: FitnessFunction): Vector[Playlist] = {
-    (for (n <- 1 to poolSize) yield { generatePlaylist(db) }).toVector
+    (for (n <- 1 to poolSize) yield { generatePlaylist(db, f) }).toVector
   }
 
-  def generatePlaylist(db: MusicCollection, size: Int): Playlist = {
-    new Playlist(util.Random.shuffle(db.songs).take(size))
+  def generatePlaylist(db: MusicCollection, size: Int, f: FitnessFunction): Playlist = {
+    new Playlist(util.Random.shuffle(db.songs).take(size), f)
   }
 
-  def generatePlaylist(db: MusicCollection): Playlist = {
-    new Playlist(util.Random.shuffle(db.songs))
+  def generatePlaylist(db: MusicCollection, f: FitnessFunction): Playlist = {
+    new Playlist(util.Random.shuffle(db.songs), f)
   }
 
   /*  ====================================================================================================
