@@ -5,7 +5,7 @@ $(document).ready(function () {
     playPreviewTable();  // listen for mouse click on track rows
     resetModal(); // listen for a closed modal
     //checkSubmitModal();
-    initSliders(1, 40);
+    initSliders(1, 20);
     focusInputOnOpenModal();
 });
 
