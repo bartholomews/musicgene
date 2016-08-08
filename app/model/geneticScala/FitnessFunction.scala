@@ -48,8 +48,11 @@ case class CostBasedFitness(constraints: Set[ScoreConstraint]) extends FitnessFu
   override def score(p: Playlist): Set[Score] = constraints.flatMap(c => c.score(p))
 
   override def getFitness(p: Playlist): Double = {
-    val f = score(p).count(s => s.matched) / score(p).size.toDouble
-    BigDecimal.decimal(f).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+    if(constraints.isEmpty) 0.0
+    else {
+      val f = score(p).count(s => s.matched) / score(p).size.toDouble
+      BigDecimal.decimal(f).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+    }
   }
   override def getDistance(p: Playlist): Double = {
     score(p).map(s => s.distance).sum
