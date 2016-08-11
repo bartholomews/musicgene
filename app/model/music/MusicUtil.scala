@@ -11,8 +11,8 @@ import play.api.libs.json.{JsLookupResult, JsUndefined, JsValue}
 object MusicUtil {
 
   // SETTINGS
-  val penalty: Double = 100.00  // TODO it should be constraint-specific
-  val tolerance: Double = 5.00  // TODO it should be constraint-specific
+  val penalty: Double = 10000.00  // TODO it should be constraint-specific
+  val tolerance: Double = 10.00  // TODO it should be constraint-specific
 
   def toSong(t: (Track, AudioFeature)): Song = {
     new Song(t._1.getId, t._1.getPreviewUrl,
@@ -39,6 +39,8 @@ object MusicUtil {
 
   def toSongs(songs: Vector[(Track, AudioFeature)]): Vector[Song] = songs.map(t => toSong(t))
 
+  def parseNumberOfTracks(js: JsValue): Int = (js \ "numberOfTracks").as[Int]
+
   def parseIDS(js: JsValue): Vector[String] = {
     // checking ids(TODO move to its own method)
     val ids = js \ "ids"
@@ -48,7 +50,7 @@ object MusicUtil {
       println("======> NO SONGS SELECTED")
       Vector()
     } else {
-      (ids \\ "id").map(js => js.as[String]).toVector
+      ids.as[Array[String]].toVector
     }
   }
 
@@ -56,8 +58,8 @@ object MusicUtil {
   // again reflection todo
   /**
     * parse json of the form
-    * { "name": 'playlistName', "ids": [{"id": 'id1'}, {"id": 'id2'}],
-    *   "constraints": [{"constraint": [{"name": 'c_name', "attribute": 'c_attribute'}]}]
+    * { "name": 'playlistName', "ids": ['id1', 'id2', 'id3'],
+    *   "constraints": [{"constraint": [{"name": 'c_name', "attribute": {"name" : 'a_name', "value" : 'a_value'}]}]
     * TODO do later
     *
     * @param js
@@ -80,46 +82,77 @@ object MusicUtil {
             from = getIndexes(c)._1,
             to = getIndexes(c)._2,
             that = parseJsonAttribute(c).asInstanceOf[AudioAttribute],
-            penalty
+            penalty * 2
           )
           case "IncludeLarger" => IncludeLarger(
             from = getIndexes(c)._1,
             to = getIndexes(c)._2,
             that = parseJsonAttribute(c).asInstanceOf[AudioAttribute],
-            penalty
+            penalty * 2
           )
           case "IncludeEquals" => IncludeEquals(
             from = getIndexes(c)._1,
             to = getIndexes(c)._2,
             that = parseJsonAttribute(c).asInstanceOf[AudioAttribute],
-            tolerance, penalty
+            tolerance, penalty * 2
           )
+
           case "ConstantRange" => ConstantRange(
             from = getIndexes(c)._1,
             to = getIndexes(c)._2,
-            that = parseJsonAttribute(c).asInstanceOf[AudioAttribute]
+            that = parseJsonAttributeName(c, penalty.toString).asInstanceOf[AudioAttribute]
           )
-          case "IncreasingRange" => ConstantRange(
+          case "IncreasingRange" => IncreasingRange(
             from = getIndexes(c)._1,
             to = getIndexes(c)._2,
-            that = parseJsonAttribute(c).asInstanceOf[AudioAttribute]
+            that = parseJsonAttributeName(c, penalty.toString).asInstanceOf[AudioAttribute]
           )
-          case "DecreasingRange" => ConstantRange(
+          case "DecreasingRange" => DecreasingRange(
             from = getIndexes(c)._1,
             to = getIndexes(c)._2,
-            that = parseJsonAttribute(c).asInstanceOf[AudioAttribute]
+            that = parseJsonAttributeName(c, penalty.toString).asInstanceOf[AudioAttribute]
           )
 
-          //    case "Include" => Include((c \ "index").as[Int], parseJsonAttribute((c \ "attribute").get))
-          //    case "Exclude" => Exclude((c \ "index").as[Int], parseJsonAttribute((c \ "attribute").get))
-          //     case "ExcludeAll" => ExcludeAll(parseJsonAttribute((c \ "attribute").get))
+          /*
+          case "IncludeEquals" => {
+            val that = parseJsonAttribute(c).asInstanceOf[AudioAttribute]
+            val i = getIndexes(c)._1; val j = getIndexes(c)._2
+            for(index <- i to j) yield { CompareWithTolerance(index, that, tolerance) }
+          }
 
-          case "UnaryLargerAll" => UnaryLargerAll(parseJsonAttribute(c).asInstanceOf[AudioAttribute])
-          case "UnaryLargerAny" => UnaryLargerAny(parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute])
-          case "UnaryLargerNone" => UnaryLargerNone(parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute])
-          case "UnarySmallerAll" => UnarySmallerAll(parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute])
-          case "UnarySmallerAny" => UnarySmallerAny(parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute])
-          case "UnarySmallerNone" => UnarySmallerNone(parseJsonAttribute((c \ "attribute").get).asInstanceOf[AudioAttribute])
+          case "IncludeLarger" => {
+            val that = parseJsonAttribute(c).asInstanceOf[AudioAttribute]
+            val i = getIndexes(c)._1; val j = getIndexes(c)._2
+            for(index <- i to j) yield { Compare(index, that, (x, y) => x > y) }
+          }
+
+          case "IncludeSmaller" => {
+            val that = parseJsonAttribute(c).asInstanceOf[AudioAttribute]
+            val i = getIndexes(c)._1; val j = getIndexes(c)._2
+            for(index <- i to j) yield { Compare(index, that, (x, y) => x < y) }
+          }
+
+          case "IncreasingRange" => {
+            val that = parseJsonAttributeName(c, "0.0").asInstanceOf[AudioAttribute]
+            val i = getIndexes(c)._1; val j = getIndexes(c)._2
+            (i to j).sliding(2).map(v => CompareRange(v.head, v.tail.head, that, (x: Double, y: Double) => x < y)
+            )
+          }
+          case "DecreasingRange" => {
+            val that = parseJsonAttributeName(c, "0.0").asInstanceOf[AudioAttribute]
+            val i = getIndexes(c)._1; val j = getIndexes(c)._2
+            (i to j).sliding(2).map(v => CompareRange(v.head, v.tail.head, that, (x: Double, y: Double) => x > y)
+            )
+          }
+          case "ConstantRange" => {
+            val i = getIndexes(c)._1; val j = getIndexes(c)._2
+            (i to j).sliding(2).map(v => {
+              val that = parseJsonAttributeName(c, v.tail.head.toString).asInstanceOf[AudioAttribute]
+              CompareWithTolerance(v.head, that, tolerance)
+            }
+            )
+          }
+          */
 
           case unknown => throw new Exception(unknown + ": constraint not found")
 
@@ -140,14 +173,21 @@ object MusicUtil {
   // TODO: REFLECTION, or at least intercept TimeAttribute to assign Double etc.
   def parseJsonAttribute(js: JsValue): Attribute = {
     val value = (js \ "attribute" \ "value").as[String]
+    parseJsonAttributeName(js, value)
+  }
+
+  def parseJsonAttributeName(js: JsValue, value: String): Attribute = {
     (js \ "attribute" \ "name").as[String] match {
       case "Acousticness" => Acousticness(value.toDouble)
+      case "Danceability" => Danceability(value.toDouble)
       case "Duration" =>
         val tuple = value.split(":")
         val result = (tuple(0).toDouble * 60000) + (tuple(1).toDouble * 1000)
         println("PARSED " + value + " as " + result)
         Duration(result)
+      case "Liveness" => Liveness(value.toDouble)
       case "Loudness" => Loudness(value.toDouble)
+      case "Speechiness" => Speechiness(value.toDouble)
       case "Tempo" => Tempo(value.toDouble)
       case "Year" => Year(value.toInt)
       case unknown => throw new Exception(unknown + ": attribute not found")
