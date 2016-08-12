@@ -9,7 +9,7 @@ import play.api.mvc._
   */
 @Singleton
 class AuthController @Inject() extends Controller {
-  val spotify = SpotifyController.getInstance
+  val spotify = SpotifyJavaController.getInstance
 
   def auth = Action { Redirect(spotify.getAuthorizeURL) }
 
