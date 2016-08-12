@@ -22,47 +22,82 @@ import model.music._
   */
 // db = MusicCollection? Array/Seq[Song]? Something else?
 
-trait Constraint
-
-trait RangeConstraint {
-  def calc(p: Playlist): List[Boolean]
-}
-
-trait GlobalConstraint extends Constraint
-
-/*
-abstract class IndexConstraint(val index: Int) {}
-
-abstract class OverallConstraint {
-  def calc(p: Playlist): Boolean
-}
-*/
-
-// ================================================================================================
-
-// ================================================================================================
-
-trait ScoreConstraint extends Constraint {
+trait Constraint {
   def score(p: Playlist): Set[Score]
-  def inRange(i: Int, j: Int, p: Playlist): Boolean = {
-    if(i >= 0 && j >= 0 && i < p.size && j < p.size && i <= j) true
-    else throw new IndexOutOfBoundsException("Cannot get index range " + i + "-" + j + " of Playlist")
+}
+
+abstract class RangeConstraint extends Constraint {
+  val lo: Int; val hi: Int
+  def inRange(p: Playlist): Boolean = {
+    if (lo >= 0 && hi >= 0 && lo < p.size && hi < p.size && lo <= hi) true
+    else throw new IndexOutOfBoundsException("Cannot get index range " + lo + "-" + hi + " of Playlist")
   }
+}
+
+// ================================================================================================
+// UNARY CONSTRAINT: Can accept `Any` Attribute value
+// ================================================================================================
+
+abstract class UnaryConstraint() extends RangeConstraint {
+  val that: Attribute
+  // TODO should include penalty in Score to influence GA?
+}
+
+/**
+  * Songs from `lo` to `hi` should include `that` Attribute with that.value
+  *
+  * @param lo
+  * @param hi
+  * @param that
+  */
+case class Include(lo: Int, hi: Int, that: Attribute) extends UnaryConstraint {
+  override def score(p: Playlist) = {
+    for (i <- lo until hi) yield {
+      Score(matched = p.songs(i).attributes.contains(that), index = i)
+    }
+  }.toSet
+}
+
+/**
+  * Songs from `lo` to `hi` should exclude `that` Attribute with that.value
+  *
+  * @param lo
+  * @param hi
+  * @param that
+  */
+case class Exclude(lo: Int, hi: Int, that: Attribute) extends UnaryConstraint {
+  override def score(p: Playlist) = {
+    for (i <- lo until hi) yield {
+      Score(matched = !p.songs(i).attributes.contains(that), index = i)
+    }
+  }.toSet
+}
+
+// ================================================================================================
+// MONOTONIC CONSTRAINT
+// ================================================================================================
+
+abstract class MonotonicConstraint() extends RangeConstraint {
+  val that: AudioAttribute
+}
+
+abstract class MonotonicValue() extends MonotonicConstraint {
+  val penalty = Double.MaxValue // this is currently not used, should remove from ConstraintsUtil
 }
 
 /**
   * Song at position `from` to `to` must include Attribute `y` with value < `that`
   *
-  * @param from the lower bound index of the song in the playlist
-  * @param to the upper bound index of the song in the playlist
+  * @param lo the lower bound index of the song in the playlist
+  * @param hi the upper bound index of the song in the playlist
   * @param that the attribute the song needs to match
   * @return true if the attribute x of the song matches y, false otherwise
   */
-case class IncludeSmaller(from: Int, to: Int, that: AudioAttribute, penalty: Double) extends ScoreConstraint {
+case class IncludeSmaller(lo: Int, hi: Int, that: AudioAttribute) extends MonotonicValue {
   override def score(p: Playlist) = {
-    assert(inRange(from, to, p))
-    (for (index <- from to to) yield {
-      val t = ConstraintsUtil.compareDistance(p.songs(index), that, x => x < that.value, penalty)
+    assert(inRange(p))
+    (for (index <- lo to hi) yield {
+      val t = ConstraintsUtil.compareDistance(p.songs(index), that, (x, y) => x < y)
       Score(t._1, t._2, index)
     }).toSet
   }
@@ -71,37 +106,58 @@ case class IncludeSmaller(from: Int, to: Int, that: AudioAttribute, penalty: Dou
 /**
   * Song at position `from` to `to` must include Attribute `y` with value > `that`
   *
-  * @param from the lower bound index of the song in the playlist
-  * @param to the upper bound index of the song in the playlist
+  * @param lo the lower bound index of the song in the playlist
+  * @param hi the upper bound index of the song in the playlist
   * @param that the attribute the song needs to match
   * @return true if the attribute x of the song matches y, false otherwise
   */
-case class IncludeLarger(from: Int, to: Int, that: AudioAttribute, penalty: Double) extends ScoreConstraint {
+case class IncludeLarger(lo: Int, hi: Int, that: AudioAttribute) extends MonotonicValue {
   override def score(p: Playlist): Set[Score] = {
-    assert(inRange(from, to, p))
-    (for (index <- from to to) yield {
-      val t = ConstraintsUtil.compareDistance(p.songs(index), that, x => x > that.value, penalty)
+    assert(inRange(p))
+    (for (index <- lo to hi) yield {
+      val t = ConstraintsUtil.compareDistance(p.songs(index), that, (x, y) => x > y)
       Score(t._1, t._2, index)
     }).toSet
   }
 }
 
-// song at index 'i' need to have attribute == a.value +- tolerance
-
 /**
   * Song at position `from` to `to` must include Attribute `y` with value == `that` +- `tolerance`
   *
-  * @param from the lower bound index of the song in the playlist
-  * @param to the upper bound index of the song in the playlist
+  * @param lo the lower bound index of the song in the playlist
+  * @param hi the upper bound index of the song in the playlist
   * @param that the attribute the song needs to match
   * @return true if the attribute x of the song matches y, false otherwise
   */
-case class IncludeEquals(from: Int, to: Int, that: AudioAttribute, tolerance: Double, penalty: Double) extends ScoreConstraint {
+case class IncludeEquals(lo: Int, hi: Int, that: AudioAttribute/*tolerance: Double,*/) extends MonotonicValue {
   override def score(p: Playlist) = {
-    assert(inRange(from, to, p))
-    (for (index <- from to to) yield {
-      val t = ConstraintsUtil.compareEquals(p.songs(index), that, tolerance, penalty)
+    assert(inRange(p))
+    (for (index <- lo to hi) yield {
+   //   val t = ConstraintsUtil.compareEquals(p.songs(index), that, tolerance, penalty)
+      val t = ConstraintsUtil.compareDistance(p.songs(index), that, (x, y) => x == y)
       Score(t._1, t._2, index)
+    }).toSet
+  }
+}
+
+// ================================================================================================
+//  MONOTONIC_RANGE CONSTRAINTS
+// ================================================================================================
+
+/**
+  * Favours smoothness between tracks, as it compare each subsequent track value
+  */
+abstract class MonotonicRange extends MonotonicConstraint {
+  // calculate monotonic distance as per f(Double => Boolean)
+  def score(p: Playlist, f: (Double, Double) => Boolean) = {
+    assert(inRange(p))
+    (for (index <- lo until hi) yield {
+      ConstraintsUtil.extractValues(p.songs(index), p.songs(index + 1), that) match {
+        case None => Score(matched = false, that.value, index)
+        case Some((x, y)) =>
+          val t = ConstraintsUtil.monotonicDistance(x, y, f(x, y))
+          Score(t._1, t._2, index)
+      }
     }).toSet
   }
 }
@@ -110,21 +166,12 @@ case class IncludeEquals(from: Int, to: Int, that: AudioAttribute, tolerance: Do
     * Songs from index i to index j should have that Attribute value as close as possible
     *
     * @param that its value contains the penalty value: should be higher than any possible distance?
-    * @param from
-    * @param to
+    * @param lo
+    * @param hi
     */
-  case class ConstantRange(from: Int, to: Int, that: AudioAttribute) extends ScoreConstraint {
-    override def score(p: Playlist) = {
-      if (from == to) throw new Exception("Invalid indexes for Range constraint")
-
-      (for (index <- from until to) yield {
-        ConstraintsUtil.extractValues(p.songs(index), p.songs(index + 1), that) match {
-          case None => Score(matched = false, that.value, index)
-          case Some((x, y)) =>
-            val t = ConstraintsUtil.constantDistance(x, y)
-            Score(t._1, t._2, index)
-        }
-      }).toSet
+  case class ConstantRange(lo: Int, hi: Int, that: AudioAttribute) extends MonotonicRange {
+    override def score(p: Playlist) = score(p, (x, y) => x == y)
+  }
 
       /*
       p.songs.slice(from, to + 1).sliding(2).map(l => {
@@ -135,63 +182,29 @@ case class IncludeEquals(from: Int, to: Int, that: AudioAttribute, tolerance: Do
       }).toSet
     }
     */
-    }
-  }
 
     /**
       * Songs from index i to index j should have that Attribute value as close as possible to f(x, y)
       *
       * @param that its value contains the penalty value: should be higher than any possible distance?
-      * @param from
-      * @param to
+      * @param lo
+      * @param hi
       */
-    case class IncreasingRange(from: Int, to: Int, that: AudioAttribute) extends ScoreConstraint {
-      override def score(p: Playlist) = {
-        if (from == to) throw new Exception("Invalid indexes for Range constraint")
-
-        (for (index <- from until to) yield {
-       //   println(index + " => " + p.size)
-          ConstraintsUtil.extractValues(p.songs(index), p.songs(index + 1), that) match {
-            case None => Score(matched = false, that.value, index)
-            case Some((x, y)) =>
-              val t = ConstraintsUtil.monotonicDistance(x, y, that.value, x => x < y)
-              Score(t._1, t._2, index)
-          }
-        }).toSet
-
-        /*
-      p.songs.slice(from, to + 1).sliding(2).map(v => {
-        ConstraintsUtil.extractValues(v.head, v.tail.head, that) match {
-          case None => Score(matched = false, that.value, 0)
-          case Some((x, y)) => ConstraintsUtil.monotonicDistance(x, y, that.value, x => x < y)
-        }
-      }).toSet
-    }
-    */
-      }
+    case class IncreasingRange(lo: Int, hi: Int, that: AudioAttribute) extends MonotonicRange {
+      override def score(p: Playlist) = score(p, (x, y) => x < y)
     }
 
-    /** TODO AVOID CODE REPETITION
+    /**
       * Songs from index i to index j should have that Attribute value as close as possible to f(x, y)
       *
       * @param that its value contains the penalty value: should be higher than any possible distance?
-      * @param from
-      * @param to
+      * @param lo
+      * @param hi
       */
-    case class DecreasingRange(from: Int, to: Int, that: AudioAttribute) extends ScoreConstraint {
-      override def score(p: Playlist) = {
-        if (from == to) throw new Exception("Invalid indexes for Range constraint")
-
-        (for (index <- from until to) yield {
-          ConstraintsUtil.extractValues(p.songs(index), p.songs(index + 1), that) match {
-            case None => Score(matched = false, that.value, index)
-            case Some((x, y)) =>
-              val t = ConstraintsUtil.monotonicDistance(x, y, that.value, x => x > y)
-              Score(t._1, t._2, index)
-          }
-        }).toSet
-
-        /*
+    case class DecreasingRange(lo: Int, hi: Int, that: AudioAttribute) extends MonotonicRange {
+      override def score(p: Playlist) = score(p, (x, y) => x > y)
+    }
+      /*
       p.songs.slice(from, to + 1).sliding(2).map(v => {
         ConstraintsUtil.extractValues(v.head, v.tail.head, that) match {
           case None => Score(matched = false, that.value, 0)
@@ -200,8 +213,6 @@ case class IncludeEquals(from: Int, to: Int, that: AudioAttribute, tolerance: Do
       }).toSet
     }
     */
-      }
-    }
 
 /*
 trait ScoreConstraint {

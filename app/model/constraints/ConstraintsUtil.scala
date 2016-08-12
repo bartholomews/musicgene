@@ -9,7 +9,6 @@ object ConstraintsUtil {
 
   /**
     *
-    * @see http://stackoverflow.com/a/16751674
     */
   def compare(x: Double, that: AudioAttribute, tolerance: Double): Boolean = {
     val distance = scala.math.abs(x - that.value)
@@ -38,12 +37,11 @@ object ConstraintsUtil {
   }
 
 
-/*
-  // SCORE APPROACH FAIL
+  /*
   // ==============================================================================
 */
 
-  def extractValues(s1: Song, s2: Song, that: AudioAttribute): Option[(Double, Double)] = {
+  def extractValues(s1: Song, s2: Song, that: Attribute): Option[(Double, Double)] = {
     extractValue(s1, that) match {
       case None => None
       case Some(x) => extractValue(s2, that) match {
@@ -53,45 +51,47 @@ object ConstraintsUtil {
     }
   }
 
+  /**
+    * @see http://stackoverflow.com/a/16751674
+    * @param s
+    * @param that
+    * @return
+    */
   def extractValue(s: Song, that: Attribute): Option[Double] = {
     s.attributes.find(a => a.getClass == that.getClass) match {
       case None => None
       case Some(attr) => attr.value match {
         case x: Number => Some(x.asInstanceOf[Double])
-        case z => None
+        case _ => None
       }
     }
   }
 
-  def compareEquals(s: Song, that: AudioAttribute, tolerance: Double, penalty: Double): (Boolean, Double) = {
+  // NOT USED, CONSIDER TO REMOVE
+  def compareWithTolerance(s: Song, that: AudioAttribute, tolerance: Double, penalty: Double): (Boolean, Double) = {
     extractValue(s, that) match {
       case None => (false, penalty)
       case Some(x) =>
         val distance = scala.math.abs(x - that.value)
-        if(distance <= tolerance) (true, 0.0) else (false, distance)// + penalty)
+        if (distance <= tolerance) (true, 0.0) else (false, distance) // + penalty)
     }
   }
 
-  def compareDistance(s: Song, that: AudioAttribute, f: Double => Boolean, penalty: Double): (Boolean, Double) = {
+  def compareDistance(s: Song, that: AudioAttribute, f: (Double, Double) => Boolean): (Boolean, Double) = {
     extractValue(s, that) match {
-      case None => (false, penalty)
+      case None => (false, Double.MaxValue)
       case Some(x) => // if(f(x)) 0.0 else
-      monotonicDistance(x, that.value, penalty, x => f(x))
+        monotonicDistance(x, that.value, f(x, that.value))
     }
   }
-
-  // def calculateDistance(f: (Double, Double) => Boolean) = ???
-
-  // as equals as possible, TODO penalty?
-  def constantDistance(x: Double, y: Double) = monotonicDistance(x, y, 0.0, x => x == y)
 
   // either increasing or decreasing
-  def monotonicDistance(x: Double, y: Double, penalty: Double, f: Double => Boolean): (Boolean, Double) = {
+  def monotonicDistance(x: Double, y: Double, f: Boolean): (Boolean, Double) = {
     // distance rounded to the nearest hundredth: TODO some features might need higher precision
     val distance = scala.math.abs(x - y)
     // if y is <= of x for Increasing and vice-versa for Decreasing,
     // the distance is added to a penalty value to impact a negative score
-    if(!f(x)) (false, distance) // + penalty)
+    if (!f) (false, distance) // + penalty)
     else (true, 0.0) // distance)
   }
 
