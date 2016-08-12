@@ -171,6 +171,8 @@ function generateChart(obj) {
             y: {
                 label: 'BPM',
                 position: 'outer-middle',
+                max: 230,
+                min: 40,
                 show: true,
                 tick: {
                     format: d3.format("s")
