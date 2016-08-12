@@ -1,10 +1,11 @@
 package model.music
 
-import scala.reflect.runtime.{ universe => ru }
+import com.fasterxml.jackson.annotation.JsonValue
 
+import scala.reflect.runtime.{universe => ru}
 import com.wrapper.spotify.models.{AudioFeature, Track}
 import model.constraints._
-import play.api.libs.json.{JsLookupResult, JsUndefined, JsValue}
+import play.api.libs.json._
 /**
   *
   */
@@ -24,8 +25,8 @@ object MusicUtil {
   }
 
   // SETTINGS
-  val penalty: Double = 100.00  // TODO it should be constraint-specific
-  val tolerance: Double = 1.00  // TODO it should be constraint-specific
+  val penalty = Double.MaxValue  // TODO it should be constraint-specific
+ // val tolerance: Double = 1.00  // TODO it should be constraint-specific
 
   def toSong(t: (Track, AudioFeature)): Song = {
     println("P_URL: " + t._1.getPreviewUrl)
@@ -87,9 +88,13 @@ object MusicUtil {
     else {
       (name,
         (constraints \\ "constraint").map(c => {
-            val args = getBoxedArgs(c)
-            val cls = Class.forName("model.constraints." + (c \ "name").as[String])
-            instantiate(cls)(args._1, args._2, args._3, penalty.asInstanceOf[AnyRef]).asInstanceOf[Constraint]
+
+
+          val cls = Class.forName("model.constraints." + (c \ "name").as[String])
+          val args = getBoxedArgs(c)
+          val ok = instantiate(cls)(args._1, args._2, args._3 /*, penalty.asInstanceOf[AnyRef]*/).asInstanceOf[Constraint]
+          println(ok.toString)
+          ok
 
           /*
             val ctr = cls.getConstructors()(0)
@@ -210,14 +215,8 @@ object MusicUtil {
   }
 
   def parseAudioAttribute(js: JsValue): AudioAttribute = {
-    if ((js \ "attribute" \ "value").isInstanceOf[JsUndefined]) {
-      println("WTF!!!!!!!!")
-      parseAudioAttribute(js, penalty)
-    }
-    else {
-      val value = (js \ "attribute" \ "value").as[String].toDouble
-      parseAudioAttribute(js, value)
-    }
+    val value = (js \ "attribute" \ "value").asOpt[String].getOrElse(penalty.toString)
+    parseAudioAttribute(js, value.toDouble)
   }
 
   /**

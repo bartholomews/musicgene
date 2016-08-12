@@ -33,12 +33,11 @@ object Cache {
     private def parseSong(file: String): Song = {
         val list = controllers.JsonController.readJSON(file).toVector
         val id = list(0)
-        val preview = list(1)
-        val attributes = list.drop(2).map(a => {
+        val attributes = list.drop(1).map(a => {
             val tuple: Array[String] = a.split(": ")
             extractAttribute((tuple(0), tuple(1)))
         }).toSet
-        new Song(id, preview, attributes)
+        new SpotifySong(id, attributes)
     }
 
     def get(id: String): Option[Song] = {
@@ -49,6 +48,7 @@ object Cache {
     // TODO reflection or metaP could work here
     private def extractAttribute(tuple: (String, String)): Attribute =
         tuple match {
+            case ("Preview_URL", value) => Preview_URL(value)
             case ("Title", value) => Title(value)
             case ("Mode", value) => Mode(value.toInt)
             case ("Time_Signature", value) => Time_Signature(value.toInt)

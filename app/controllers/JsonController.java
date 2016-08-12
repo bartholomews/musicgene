@@ -25,7 +25,7 @@ public class JsonController {
     private final static String JSON = ".json";
 
     @SuppressWarnings("unchecked")
-    public static void writeJSON(String id, String preview, Set<Attribute> attributes) throws IOException {
+    public static void writeJSON(String id, Set<Attribute> attributes) throws IOException {
         File f = new File(PATH + id + ".json");
         if (!f.exists()) {
             String artist = "unknown_artist";
@@ -40,7 +40,6 @@ public class JsonController {
                 //      obj.put(a.getClass().toString(),);
             }
             obj.put("ID", id);
-            obj.put("preview_url", preview);
             obj.put("attributes", attr);
             /*
             JSONArray company = new JSONArray();
@@ -69,7 +68,6 @@ public class JsonController {
                 Object obj = parser.parse(new FileReader(PATH + f));
                 JSONObject jsonObject = (JSONObject) obj;
                 String id = (String) jsonObject.get("ID");
-                String preview = (String) jsonObject.get("preview_url");
                 JSONArray audioFeatures = (JSONArray) jsonObject.get("attributes");
                 /*
                 System.out.println("ID: " + id);
@@ -103,7 +101,6 @@ public class JsonController {
             Object obj = parser.parse(new FileReader(PATH + file + JSON));
             JSONObject jsonObject = (JSONObject) obj;
             result.add((String)jsonObject.get("ID"));
-            result.add((String)jsonObject.get("preview_url"));
             JSONArray features = (JSONArray) jsonObject.get("attributes");
             for(String f : (Iterable<String>) features) {
                 result.add(f);
