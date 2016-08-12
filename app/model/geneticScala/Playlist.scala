@@ -1,6 +1,6 @@
 package model.geneticScala
 
-import model.music.{Song, Title}
+import model.music.{Loudness, Song, Tempo, Title}
 
 import scala.util.Random
 
@@ -27,7 +27,7 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
 
   def prettyPrint() = {
     songs.foreach(s => {
-      println("- " + s.title + "(T: " + s.tempo + ", L: " + s.loudness + ")")
+      println("- " + s.find(Title("")) + "(T: " + s.find(Tempo(0.0)) + ", L: " + s.find(Loudness(0.0)) + ")")
     })
   }
 
@@ -45,9 +45,7 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
         arr(randomIndex) = aux
       }
     }
-    val newP = new Playlist(arr.toVector, f)
-  //  println("MT => new playlist with size " + newP.size)
-    newP // new Playlist(arr.toVector, f)
+    new Playlist(arr.toVector, f)
 
     /*
     val arr = songs.toArray
@@ -71,6 +69,7 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
   // Note: there are more ways how to produce the rest after crossover point,
   // maybe better to move the pivot to have the fittest playlist ???
   def crossover(that: Playlist) = {
+    // should Randomize pivot or takeRight or Left of pivot
     val pivot = Random.nextInt(songs.length)
     val v1 = this.songs.take(pivot)
     val v2 = that.songs.filter(s => !v1.contains(s)).take(that.songs.length - pivot)

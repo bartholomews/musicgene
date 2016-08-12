@@ -10,8 +10,20 @@ object PopFactory {
   def sortByFitness(p: Population) = {
     val byFitness = p.playlists.sortWith((p1, p2) => p1.fitness > p2.fitness)
     val maxFitness = byFitness.head.fitness
-    val (elites, inferiors) = byFitness.partition(p => p.fitness != maxFitness)
-    new Population(elites.sortWith((p1, p2) => p1.distance < p2.distance) ++ inferiors, p.f)
+    println("MAXFITNESS: " + maxFitness)
+    val (elites, inferiors) = byFitness.partition(p => p.fitness == maxFitness)
+
+    /*
+    println("=========")
+    println("ELITES: ")
+    elites.foreach(e => println(e.fitness))
+    println("INFERIORS:")
+    inferiors.foreach(i => println(i.fitness))
+    println("=========")
+    */
+
+    //  newPOP.playlists.foreach(p => println(p.fitness)
+    new Population(elites.sortWith((p1, p2) => p1.distance < p2.distance) ++ inferiors)
   }
 
   /**
@@ -21,11 +33,11 @@ object PopFactory {
     * @param db
     * @param f
     * @param size
-    * @return TODO remove f from Pop, is ok in Pl
+    * @return
     */
   def generatePopulation(db: MusicCollection, f: FitnessFunction, size: Int) = {
     sortByFitness(
-      new Population(PlaylistsFactory.generatePlaylists(db, GASettings.popSize, size, f), f)
+      new Population(PlaylistsFactory.generatePlaylists(db, GASettings.popSize, size, f))
     )
   }
 
@@ -39,12 +51,14 @@ object PopFactory {
     */
   def generatePopulation(db: MusicCollection, f: FitnessFunction) = {
     sortByFitness(new Population(
-      PlaylistsFactory.generatePlaylists(db, GASettings.popSize, f), f))
+      PlaylistsFactory.generatePlaylists(db, GASettings.popSize, f)
+    ))
   }
 
   def generateUniquePopulation(db: MusicCollection, f: FitnessFunction, size: Int) = {
     sortByFitness(new Population(
-      PlaylistsFactory.generateUniquePlaylists(db, GASettings.popSize, size, f), f))
+      PlaylistsFactory.generateUniquePlaylists(db, GASettings.popSize, size, f)
+    ))
   }
 
 }

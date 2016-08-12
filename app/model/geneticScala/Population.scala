@@ -13,7 +13,7 @@ import scala.util.Random
   *
   * playlists should be already sorted with fitness function, with head having the best fitness score
   */
-class Population(val playlists: Vector[Playlist], val f: FitnessFunction) {
+class Population(val playlists: Vector[Playlist]) {
 
   // the number of the initial candidate playlists
   val popSize = playlists.length
@@ -22,13 +22,13 @@ class Population(val playlists: Vector[Playlist], val f: FitnessFunction) {
   def get(i: Int) = playlists(i)
   def apply(c: Playlist) = playlists.find(x => x == c)
 
-  def getFittest: Playlist = playlists.head //playlists.sortWith((p1, p2) => getFitness(p1) < getFitness(p2)).head // playlists.reduce(fittest)
   def fittest(x: Playlist, y: Playlist): Playlist = {
     if(x.fitness == y.fitness) { if(x.distance < y.distance) x else y }
     else if(x.fitness < y.fitness) x
     else y
   }
 
+  val fittest = playlists.head
   val maxFitness = playlists.head.fitness
   val minDistance = playlists.head.distance
 
@@ -57,8 +57,9 @@ class Population(val playlists: Vector[Playlist], val f: FitnessFunction) {
   def evolve: Population = {
     // https://github.com/jsvazic/GAHelloWorld/blob/master/scala/src/main/scala/net/auxesia/Population.scala
     val elites = scala.math.round(popSize * GASettings.elitismRatio)
-    println("ELITES: " + elites)
-    val eliteBuffer: Vector[Playlist] = playlists.take(elites) // what for?
+  //  println("ELITES: " + elites)
+  //  for(i <- 1 to elites) { println(playlists(i).fitness + " (distance: " + playlists(i).distance) + ")" }
+    val eliteBuffer: Vector[Playlist] = playlists.take(elites)
 
     /*
     println("ELITES:")
@@ -71,12 +72,13 @@ class Population(val playlists: Vector[Playlist], val f: FitnessFunction) {
       // double check immutability with these arrays
       val darwinian = playlists(i)
       if (Random.nextFloat <= GASettings.crossoverRatio) {
-        crossover(eliteBuffer(Random.nextInt(eliteBuffer.length)), darwinian)
+        if(eliteBuffer.isEmpty) crossover(playlists(Random.nextInt(popSize)), darwinian)
+        else crossover(eliteBuffer(Random.nextInt(eliteBuffer.length)), darwinian)
       }
       else mutate(darwinian)
     }).toArray
 
-    PopFactory.sortByFitness(new Population(eliteBuffer ++ inferiors, f))
+    PopFactory.sortByFitness(new Population(eliteBuffer ++ inferiors))
     //.sortBy(p => getFitness(p)), f)
     // why not use PopFactory?
 
@@ -102,7 +104,7 @@ class Population(val playlists: Vector[Playlist], val f: FitnessFunction) {
     * of songs.
     */
   def crossover(p1: Playlist, p2: Playlist): Playlist = {
-    if(fittest(p1, p2) == p1) p1.crossover(p2)
+    if(scala.util.Random.nextInt(2) == 0) p1.crossover(p2)
     else p2.crossover(p1)
   }
 

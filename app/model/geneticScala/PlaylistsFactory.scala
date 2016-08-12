@@ -11,7 +11,6 @@ import model.music.MusicCollection
 object PlaylistsFactory {
 
   def generateUniquePlaylists(db: MusicCollection, poolSize: Int, size: Int, f: FitnessFunction) = {
-    println("UNIQUE SHOULD BE")
     val p = new MusicCollection(generatePlaylist(db, size, f).songs)
     (for(n <- 1 to poolSize) yield { generatePlaylist(p, size, f) }).toVector
   }
@@ -27,11 +26,12 @@ object PlaylistsFactory {
   }
 
   def generatePlaylist(db: MusicCollection, size: Int, f: FitnessFunction): Playlist = {
-    new Playlist(util.Random.shuffle(db.songs).take(size), f)
+    new Playlist(util.Random.shuffle(db.songs.distinct).take(size), f)
   }
 
+  // playlist with the whole collection, removed duplicates
   def generatePlaylist(db: MusicCollection, f: FitnessFunction): Playlist = {
-    new Playlist(util.Random.shuffle(db.songs), f)
+    new Playlist(util.Random.shuffle(db.songs).distinct, f)
   }
 
   /*  ====================================================================================================

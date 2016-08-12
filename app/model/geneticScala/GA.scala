@@ -1,6 +1,5 @@
 package model.geneticScala
 
-import model.constraints.{IncludeSmaller, IncreasingRange, _}
 import model.music._
 
 import scala.annotation.tailrec
@@ -24,6 +23,8 @@ object GA {
       evolve(pop, 1)
     }
   }
+
+  // ============================================================================
 
   def generatePlaylist(f: FitnessFunction, length: Int): Playlist = {
     if (f.getConstraints.isEmpty) generateRandomPlaylist(length, f)
@@ -73,16 +74,16 @@ object GA {
   @tailrec
   private def evolve(pop: Population, generation: Int): Playlist = {
     printGAResults(pop, generation)
-    if (generation >= GASettings.maxGen || pop.maxFitness >= GASettings.maxFitness) pop.getFittest
+    if (generation >= GASettings.maxGen || pop.maxFitness >= GASettings.maxFitness) pop.fittest
     else evolve(pop.evolve, generation + 1)
   }
 
   private def printGAResults(pop: Population, generation: Int): Unit = {
     println("=" * 20 + "GEN-" + generation + "=" * 20)
     println("GENERATION " + generation + ", max fitness: " + pop.maxFitness + ", distance: " + pop.minDistance +
-              ", unmatched: " + pop.getFittest.unmatched.map(i => i + 1).toString())
-    println("FITTEST:")
-    pop.getFittest.prettyPrint()
+              ", unmatched: " + pop.fittest.unmatched.map(i => i + 1).toString())
+  //  println("FITTEST:")
+  //  pop.fittest.prettyPrint()
   }
 
 }
