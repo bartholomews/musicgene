@@ -1,22 +1,37 @@
 package model.music
 
-import com.fasterxml.jackson.annotation.JsonValue
+import scala.reflect.runtime.{ universe => ru }
+
 import com.wrapper.spotify.models.{AudioFeature, Track}
 import model.constraints._
 import play.api.libs.json.{JsLookupResult, JsUndefined, JsValue}
-
 /**
   *
   */
 object MusicUtil {
 
+
+  /**
+    * @see http://stackoverflow.com/a/1642012
+    *
+    * @param clazz
+    * @param args
+    * @return
+    */
+  def instantiate(clazz: java.lang.Class[_])(args:AnyRef*): AnyRef = {
+    val constructor = clazz.getConstructors()(0)
+    constructor.newInstance(args:_*).asInstanceOf[AnyRef]
+  }
+
   // SETTINGS
-  val penalty: Double = 10000.00  // TODO it should be constraint-specific
-  val tolerance: Double = 10.00  // TODO it should be constraint-specific
+  val penalty: Double = 100.00  // TODO it should be constraint-specific
+  val tolerance: Double = 1.00  // TODO it should be constraint-specific
 
   def toSong(t: (Track, AudioFeature)): Song = {
-    new Song(t._1.getId, t._1.getPreviewUrl,
+    println("P_URL: " + t._1.getPreviewUrl)
+    SpotifySong(t._1.getId,
       Set[Attribute](
+        Preview_URL(t._1.getPreviewUrl),
         Title(t._1.getName),
         Album(t._1.getAlbum.getName),
         Artist(t._1.getArtists.get(0).getName),
@@ -66,52 +81,70 @@ object MusicUtil {
     * @return
     */
   def parseRequest(js: JsValue): (String, Set[Constraint]) = {
-    println("READY TO PARSE")
     val name = (js \ "name").as[String]
-    // checking constraints(TODO move to its own method)
-    println("PARSED " + name)
-    if((js \ "constraints").isInstanceOf[JsUndefined]) {
-      println("======> CONSTRAINTS UNDEFINED")
-      (name, Set())
-    }
+    val constraints = js \ "constraints"
+    if(constraints.isInstanceOf[JsUndefined]) { (name, Set()) }
     else {
       (name,
-        (js \ "constraints" \\ "constraint").map(c => (c \ "name").as[String] match {
+        (constraints \\ "constraint").map(c => {
+            val args = getBoxedArgs(c)
+            val cls = Class.forName("model.constraints." + (c \ "name").as[String])
+            instantiate(cls)(args._1, args._2, args._3, penalty.asInstanceOf[AnyRef]).asInstanceOf[Constraint]
 
-          case "IncludeSmaller" => IncludeSmaller(
-            from = getIndexes(c)._1,
-            to = getIndexes(c)._2,
-            that = parseJsonAttribute(c).asInstanceOf[AudioAttribute],
-            penalty * 2
-          )
+          /*
+            val ctr = cls.getConstructors()(0)
+            println("CTR: " + ctr.toString)
+            val parsedArgs = Array[AnyRef](
+              args._1,
+              args._2,
+              args._3,
+              penalty.asInstanceOf[AnyRef])
+            val instance = ctr.newInstance(parsedArgs: _*).asInstanceOf[Constraint]
+            instance
+          */
+
+            /*
+            IncludeSmaller(
+              args._1,
+              args._2,
+              args._3,
+              penalty * 2
+            )
+            */
+            /*
           case "IncludeLarger" => IncludeLarger(
             from = getIndexes(c)._1,
             to = getIndexes(c)._2,
-            that = parseJsonAttribute(c).asInstanceOf[AudioAttribute],
+            that = parseAudioAttribute(c),
             penalty * 2
           )
           case "IncludeEquals" => IncludeEquals(
             from = getIndexes(c)._1,
             to = getIndexes(c)._2,
-            that = parseJsonAttribute(c).asInstanceOf[AudioAttribute],
+            that = parseAudioAttribute(c),
             tolerance, penalty * 2
           )
 
           case "ConstantRange" => ConstantRange(
             from = getIndexes(c)._1,
             to = getIndexes(c)._2,
-            that = parseJsonAttributeName(c, penalty.toString).asInstanceOf[AudioAttribute]
+            that = parseAudioAttribute(c, penalty)
           )
           case "IncreasingRange" => IncreasingRange(
             from = getIndexes(c)._1,
             to = getIndexes(c)._2,
-            that = parseJsonAttributeName(c, penalty.toString).asInstanceOf[AudioAttribute]
+            that = parseAudioAttribute(c, penalty)
           )
-          case "DecreasingRange" => DecreasingRange(
-            from = getIndexes(c)._1,
-            to = getIndexes(c)._2,
-            that = parseJsonAttributeName(c, penalty.toString).asInstanceOf[AudioAttribute]
-          )
+          case "DecreasingRange" => {
+            val that = parseAudioAttribute(c, penalty)
+            DecreasingRange(
+              from = getIndexes(c)._1,
+              to = getIndexes(c)._2,
+              that,
+              x => x < that.value
+            )
+          }
+          */
 
           /*
           case "IncludeEquals" => {
@@ -154,15 +187,21 @@ object MusicUtil {
           }
           */
 
-          case unknown => throw new Exception(unknown + ": constraint not found")
+          //case unknown => throw new Exception(unknown + ": constraint not found")
 
         }).toSet)
     }
   }
 
-  def getIndexes(js: JsValue): (Int, Int) = {
-    ((js \ "from").as[String].toInt, (js \ "to").as[String].toInt)
+  def getBoxedArgs(js: JsValue) = {
+    (
+      getInt(js, "from").asInstanceOf[AnyRef],
+      getInt(js, "to").asInstanceOf[AnyRef],
+      parseAudioAttribute(js).asInstanceOf[AnyRef]
+      )
   }
+
+  def getInt(js: JsValue, key: String): Int = (js \ key).as[String].toInt
 
   def parseIndexedConstraint(constraint: (String, Int, List[String])): Constraint = constraint match {
     //    case ("Exclude", index, attr) => Exclude(index, parseAttribute(attr))
@@ -170,53 +209,56 @@ object MusicUtil {
     case (name, _, _) => throw new Exception(name + ": constraint not found")
   }
 
-  // TODO: REFLECTION, or at least intercept TimeAttribute to assign Double etc.
-  def parseJsonAttribute(js: JsValue): Attribute = {
-    val value = (js \ "attribute" \ "value").as[String]
-    parseJsonAttributeName(js, value)
+  def parseAudioAttribute(js: JsValue): AudioAttribute = {
+    if ((js \ "attribute" \ "value").isInstanceOf[JsUndefined]) {
+      println("WTF!!!!!!!!")
+      parseAudioAttribute(js, penalty)
+    }
+    else {
+      val value = (js \ "attribute" \ "value").as[String].toDouble
+      parseAudioAttribute(js, value)
+    }
   }
 
-  def parseJsonAttributeName(js: JsValue, value: String): Attribute = {
+  /**
+    * TODO catch errors
+    *
+    * @param js
+    * @return
+    */
+  def parseAudioAttribute(js: JsValue, value: Double): AudioAttribute = {
+    val cls = Class.forName("model.music." + (js \ "attribute" \ "name").as[String])
+    val ctr = cls.getConstructors()(0)
+    val args = Array[AnyRef](value.asInstanceOf[AnyRef])
+    val instance = ctr.newInstance(args: _*).asInstanceOf[AudioAttribute]
+    instance
+  }
+    /*
+    val typee = theConstr.getParameters()(0).getType
+    println("CONSTR: " + theConstr.toString)
+    println("PARATYPE: " + typee.toString)
+    val typeTag = getType(typee)
+    println("TYPE_TAG: " + typeTag)
+    val theType = Class.forName(typeTag.typeSymbol.asClass.fullName)
+    */
+    /*
     (js \ "attribute" \ "name").as[String] match {
       case "Acousticness" => Acousticness(value.toDouble)
       case "Danceability" => Danceability(value.toDouble)
+        /*
       case "Duration" =>
         val tuple = value.split(":")
         val result = (tuple(0).toDouble * 60000) + (tuple(1).toDouble * 1000)
         println("PARSED " + value + " as " + result)
         Duration(result)
+        */
       case "Liveness" => Liveness(value.toDouble)
       case "Loudness" => Loudness(value.toDouble)
       case "Speechiness" => Speechiness(value.toDouble)
-      case "Tempo" => Tempo(value.toDouble)
+      case "Tempo" => instance // Tempo(value.toDouble)
       case "Year" => Year(value.toInt)
       case unknown => throw new Exception(unknown + ": attribute not found")
     }
-  }
-
-  // TODO: REFLECTION
-  // this approach has less JavaScript parsing and input overhead
-  def parseAttribute(json: List[String]): Attribute = json match {
-    case name :: value => name match {
-      case "Acousticness" => value match {
-        case v :: Nil => Acousticness(v.toDouble)
-        case _ => throw new Exception("Acousticness has a bad format")
-      }
-      case "Artist" => value match {
-        case v :: Nil => Artist(v)
-        case _ => throw new Exception("Artist has a bad format")
-      }
-      case "Year" => value match {
-        case v :: Nil => Year(v.toInt)
-        case _ => throw new Exception("Year has a bad format")
-      }
-      case "Duration" => value match {
-        case v :: Nil => Duration(v.toInt)
-        case _ => throw new Exception("Duration has a bad format")
-      }
-    }
-    case _ => throw new Exception("Attribute has a bad format")
-  }
-
+    */
 
 }
