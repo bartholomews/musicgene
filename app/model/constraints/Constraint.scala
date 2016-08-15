@@ -26,7 +26,7 @@ trait Constraint {
   def score(p: Playlist): Set[Score]
 }
 
-abstract class RangeConstraint extends Constraint {
+trait RangeConstraint extends Constraint {
   val lo: Int; val hi: Int
   def inRange(p: Playlist): Boolean = {
     if (lo >= 0 && hi >= 0 && lo < p.size && hi < p.size && lo <= hi) true
@@ -38,7 +38,7 @@ abstract class RangeConstraint extends Constraint {
 // UNARY CONSTRAINT: Can accept `Any` Attribute value
 // ================================================================================================
 
-abstract class UnaryConstraint() extends RangeConstraint {
+trait UnaryConstraint extends RangeConstraint {
   val that: Attribute
   // TODO should include penalty in Score to influence GA?
 }
@@ -77,11 +77,11 @@ case class Exclude(lo: Int, hi: Int, that: Attribute) extends UnaryConstraint {
 // MONOTONIC CONSTRAINT
 // ================================================================================================
 
-abstract class MonotonicConstraint() extends RangeConstraint {
+trait MonotonicConstraint extends RangeConstraint {
   val that: AudioAttribute
 }
 
-abstract class MonotonicValue() extends MonotonicConstraint {
+abstract trait MonotonicValue extends MonotonicConstraint {
   val penalty = Double.MaxValue // this is currently not used, should remove from ConstraintsUtil
 }
 
@@ -147,7 +147,7 @@ case class IncludeEquals(lo: Int, hi: Int, that: AudioAttribute/*tolerance: Doub
 /**
   * Favours smoothness between tracks, as it compare each subsequent track value
   */
-abstract class MonotonicRange extends MonotonicConstraint {
+trait MonotonicRange extends MonotonicConstraint {
   // calculate monotonic distance as per f(Double => Boolean)
   def score(p: Playlist, f: (Double, Double) => Boolean) = {
     assert(inRange(p))
@@ -339,13 +339,6 @@ case class UnaryEqualAny(index: Int, a: AudioAttribute) extends Constraint {
 
 /*
 
-  case class BinarySmall(i: Int, j: Int, y: TimeAttribute, f: (Attribute, Attribute) => Boolean) {
-    def calc = db(i)
-  }
-
-  case class BinaryGreater(i: Int, j: Int, y: TimeAttribute)
-  case class BinaryEqual(i: Int, j: Int, y: Attribute)
-
   // total length, or percentage of presence of an attribute
   case class GlobalSum(i: Int, j: Int, x: Attribute)
   case class GlobalCount(i: Int, j: Int, x: Attribute, minCount: Int, maxCount: Int)
@@ -356,18 +349,3 @@ case class UnaryEqualAny(index: Int, a: AudioAttribute) extends Constraint {
 }
 
 // ================================================================================================
-
-// TODO
-abstract class DerivedConstraint() extends Constraint
-
-/*
- */
-
-// TODO
-abstract class UserDefinedConstraint() extends Constraint
-
-*/
-
-*/
-
-*/
