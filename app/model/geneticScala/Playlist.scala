@@ -16,12 +16,9 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
 
   def size = songs.length
 
-  val matched: Set[Int] = {
-    f.score(this).partition(s => s.matched)._1.map(s => s.index)
-  }
-  val unmatched: Set[Int] = {
-    f.score(this).partition(s => s.matched)._2.map(s => s.index)
-  }
+  val (matched, unmatched) = f.score(this).partition(s => s.matched)
+  val matchedIndexes: Set[Int] = matched.flatMap(s => s.index)
+  val unmatchedIndexes: Set[Int] = unmatched.flatMap(s => s.index)
 
   //def fitness: Float = f.getFitness(this)
 
@@ -36,13 +33,30 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
   // and move the mutationRatio check in the Population method caller
   def mutate: Playlist = {
     val arr = songs.toArray
-    val weakBucket = Random.shuffle(unmatched)
-    for (weakIndex <- weakBucket) {
-      if (Random.nextFloat() < GASettings.mutationRatio) {
-        val randomIndex = Random.nextInt(songs.length)
-        val aux = arr(weakIndex)
-        arr(weakIndex) = arr(randomIndex)
-        arr(randomIndex) = aux
+    // to avoid local optima and generate new solutions might be better to randomize the thing
+    def randomIndex = Random.nextInt(songs.length)
+    if(unmatchedIndexes.isEmpty) {  // || Random.nextFloat() < 0.2) {
+      // there is no index information for the unmatched constraints,
+      // do random swap mutation // (also a small chance to go random regardless, to improve novelty and new solutions)
+      val v1 = randomIndex
+      val v2 = randomIndex
+      val aux = arr(v1)
+      arr(v1) = arr(v2)
+      arr(v2) = aux
+    } else {
+      // shuffle the unmatched indexes
+      val weakBucket = Random.shuffle(unmatchedIndexes)
+      // each unmatched index might be swapped with another random index of the playlist
+      for (weakIndex <- weakBucket) {
+        if (Random.nextFloat() < GASettings.mutationRatio) {
+          // the random index is any unmatched (doesn't need to have an index value, i.e. in unmatchedIndexes Set,
+          // as it might belong to a different Score case class which doesn't return indexes)
+          //val randomIndex = Random.shuffle(songs.indices.filterNot(i => matchedIndexes.contains(i))).head
+          val v1 = randomIndex
+          val v2 = arr(weakIndex)
+          arr(weakIndex) = arr(v1)
+          arr(v1) = v2
+        }
       }
     }
     new Playlist(arr.toVector, f)
