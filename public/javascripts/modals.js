@@ -4,7 +4,6 @@
 $(document).ready(function () {
     playPreviewTable();  // listen for mouse click on track rows
     resetModal(); // listen for a closed modal
-    //checkSubmitModal();
     initSliders(1, parseInt(document.getElementById('numberOfTracks').value));
     focusInputOnOpenModal();
 });
@@ -16,17 +15,6 @@ function focusInputOnOpenModal() {
     $('.modal').on('shown.bs.modal', function () {
         $(this).find('input:text:visible:first').focus();
     })
-}
-
-
-/**
- * When an 'equals' or 'contains' button is clicked, its input text box is enabled
- * and on focus. TODO
- */
-function enableInput(inputID) {
-    var input = document.getElementById(inputID);
-    input.disabled = false;
-    input.focus();
 }
 
 /**
@@ -45,15 +33,6 @@ function isEnterKeyPressed(e, id) {
 }
 
 /**
- *
- */
-function checkSubmitModal() {
-    $('#form-tempo').submit(function(event) {
-        console.log("form submitted;")
-    });
-}
-
-/**
  * Triggered when a modal is closed: TODO empty text input field
  */
 function resetModal() {
@@ -62,20 +41,6 @@ function resetModal() {
         console.log("Modal hidden");
     });
 }
-
-
-/*
-/**
- * Triggered when a modal is closed: TODO empty text input field
- */
-/*
-function initSlider() {
-    $('body').on('shown.bs.modal', '.modal', function(){
-        console.log("Modal opened");
-        $("#slider-monotonic").slider("option", "max", 50);
-    });
-}
-*/
 
 /**
  * When a modal is saved, parse the Constraints in input;
@@ -88,7 +53,7 @@ function saveModal(name) {
     var trackSlider = $('#slider-' + name).slider();
     var from = trackSlider.slider('getValue')[0];
     var to = trackSlider.slider('getValue')[1];
-    if(name == 'monotonic') {
+    if(name == 'rangeConstraint') {
         if(from == to) {
             alert("Please enter a range with 1 as minimum step");
             return false;
@@ -96,7 +61,7 @@ function saveModal(name) {
     }
     $('#slider-' + name + '-from').val(trackSlider.slider('getValue')[0]);
     $('#slider-' + name + '-to').val(trackSlider.slider('getValue')[1]);
-    if(name == 'unary') {
+    if(name == 'valueConstraint') {
         var attrVal = document.getElementById(name + "-input").value;
         // check if value is empty
         if (attrVal == "") {
@@ -156,7 +121,7 @@ function checkAttributeFireSlider() {
  */
 function initSliders(minRange, maxRange) {
 
-    $('#slider-unary').slider({
+    $('#slider-valueConstraint').slider({
         min: minRange, max: maxRange, value: [1, maxRange], focus: true, step: 1,
         start: function (event, ui) {
             event.stopPropagation();
@@ -166,7 +131,7 @@ function initSliders(minRange, maxRange) {
         }
     });
     // TODO should enforce two values NOT to be same: it has to be a range of min step 1
-    $('#slider-monotonic').slider({
+    $('#slider-rangeConstraint').slider({
         min: minRange, max: maxRange, value: [1, maxRange], focus: true, step: 1,
         start: function (event, ui) {
             event.stopPropagation();
@@ -178,8 +143,8 @@ function initSliders(minRange, maxRange) {
 }
 
 function changeSlidersMaxValue(maxValue) {
-    changeSliderMaxValue('slider-monotonic', maxValue);
-    changeSliderMaxValue('slider-unary', maxValue);
+    changeSliderMaxValue('slider-rangeConstraint', maxValue);
+    changeSliderMaxValue('slider-valueConstraint', maxValue);
 }
 
 function changeSliderMaxValue(name, maxValue) {
