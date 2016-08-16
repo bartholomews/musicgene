@@ -170,7 +170,11 @@ trait MonotonicRange extends MonotonicConstraint {
     * @param hi
     */
   case class ConstantRange(lo: Int, hi: Int, that: AudioAttribute) extends MonotonicRange {
-    override def score(p: Playlist) = score(p, (x, y) => x == y)
+    override def score(p: Playlist) = {
+      val monoScores = score(p, (x, y) => x == y)
+      // as all the values will be unmatched, do not "save" all indexes in unmatchedBucke
+      monoScores.map(s => RangeScore(s.matched, s.distance))
+    }
   }
 
       /*
