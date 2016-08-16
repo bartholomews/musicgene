@@ -1,13 +1,13 @@
-
-// TODO clean div after that
+/**
+ *
+ */
 function createNewPlaylist() {
     clearNewPlaylist();
     $('#modal-playlistName').modal('hide');
     console.log('Preparing JSON...');
-    var nm = document.getElementById("generate-playlist").value;
     var js = {
         numberOfTracks: parseInt(document.getElementById('numberOfTracks').value),
-        name: nm,
+        name: document.getElementById("generate-playlist").value,
         ids: [],
         constraints: []
     };
@@ -17,58 +17,39 @@ function createNewPlaylist() {
     sendConstraints(JSON.stringify(js));
 }
 
-// TODO multiple tick or something like that
+/**
+ * TODO for now get the whole playlists collection,
+ * TODO should implement something like multiple ticks
+ *
+ * @param js
+ */
 function pushTrackIds(js) {
-    // for now get the whole playlists
+    // get all <tr> elements children of <music-collection> table (i.e. playlists)
     var db = document.querySelectorAll('#music-collection-table tbody tr'), i;
     for(i = 0; i < db.length; i++) {
-        var obj = {};
-        obj.id = db[i].getAttribute('id');
-        js.ids.push(obj);
+        js.ids.push(db[i].getAttribute('id'));
     }
 }
 
-// TODO parse numberOfTracks/Duration
+/**
+ *
+ * @param js
+ */
 function pushConstraint(js) {
     // var array = document.getElementById("query").getElementsByTagName("*");
     // get all <p> elements in div <input-constraints>
     var constraints = document.getElementById('input-constraints').getElementsByTagName('p');
     for (var i = 0; i < constraints.length; i++) {
-        var c = getIndexedConstraint(constraints[i]);
+        var c = getConstraint(constraints[i]);
         var obj = {};
         obj.constraint = c;
         js.constraints.push(obj);
     }
 }
 
-function getConstraints(element) {
-    switch (element.getAttribute("type")) {
-        case "indexed":
-            console.log("indexed constraint");
-            var c = getIndexedConstraints(element);
-            break;
-        case "simple":
-            console.log("simple constraint");
-            c = getUnaryConstraint(element);
-            break;
-    }
-    console.log("name: " + c.name);
-    console.log("attr: " + c.attribute);
-    return c;
-}
-
-function getUnaryConstraint(element) {
-    // validate name to be a String,
-    // attributes to be an Array of Strings
-    var obj = {};
-    obj.name = getName(element);
-    obj.attribute = getAttribute(element);
-    return obj
-}
-
-function getIndexedConstraint(element) {
+function getConstraint(element) {
     var constraint = {};
-    constraint.name = getName(element);
+    constraint.name = element.getAttribute("constraint-name");
     constraint.from = element.getAttribute("from-index");
     constraint.to = element.getAttribute("to-index");
     constraint.attribute = getAttribute(element);
@@ -82,25 +63,22 @@ function getAttribute(element) {
     return attribute;
 }
 
-function getName(element) {
-    return element.getAttribute("constraint-name")
-}
-
-function pushAttribute(js) {
-    js.push(attribute);
-}
-
+/**
+ * Send an AJAX Json request to the server at the to the 'playlist' endpoint
+ *
+ * @param obj
+ */
 function sendConstraints(obj) {
-    $.post({
-        url: "/playlist",
+    $.ajax({
         type: 'POST',
+        url: '/playlist',
         contentType: 'application/json',
         dataType: 'json',
         data: obj,
         success: function (json) {
             console.log('//playlist POST successful');
+            // playlistResponse.js
             getNewPlaylist(json);
-            //alert(json)
         },
         // TODO http://stackoverflow.com/a/450540
         error: function (xhr, ajaxOptions, thrownError) {
