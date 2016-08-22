@@ -15,8 +15,12 @@ object GA {
 
   val startTime = System.currentTimeMillis
 
-  def generatePlaylist(db: MusicCollection, f: FitnessFunction, length: Int): Playlist = {
-    if (f.getConstraints.isEmpty) {
+  def generatePlaylist(db: MusicCollection, f: FitnessFunction, length: Int, GAStatistics: Boolean = false): (Playlist, Option[GAResponse]) = {
+    generatePlaylist(db, f, length)
+  }
+
+  def generatePlaylist(db: MusicCollection, f: FitnessFunction, length: Int): (Playlist, Option[GAResponse]) = {
+    if (f.constraints.isEmpty) {
       generateRandomPlaylist(db, length, f)
     } else {
       val pop = PopFactory.generatePopulation(db, f, length)
@@ -26,8 +30,8 @@ object GA {
 
   // ============================================================================
 
-  def generatePlaylist(f: FitnessFunction, length: Int): Playlist = {
-    if (f.getConstraints.isEmpty) generateRandomPlaylist(length, f)
+  def generatePlaylist(f: FitnessFunction, length: Int): (Playlist, Option[GAResponse]) = {
+    if (f.constraints.isEmpty) generateRandomPlaylist(length, f)
     else {
       val db = new MusicCollection(Cache.extractSongs)
       val pop = PopFactory.generatePopulation(db, f, length)
@@ -35,6 +39,7 @@ object GA {
     }
   }
 
+  /*
   def generatePlaylist(db: MusicCollection, f: FitnessFunction): Playlist = {
     if (f.getConstraints.isEmpty) generateRandomPlaylist(db, f)
     else {
@@ -51,39 +56,43 @@ object GA {
       evolve(pop, 1)
     }
   }
+  */
 
   // i still feel playlists shouldnt have a fitnessfunc
-  def generateRandomPlaylist(length: Int, f: FitnessFunction) = {
-    new Playlist(util.Random.shuffle(Cache.extractSongs).take(length), f)
+  def generateRandomPlaylist(length: Int, f: FitnessFunction): (Playlist, Option[GAResponse]) = {
+    (new Playlist(util.Random.shuffle(Cache.extractSongs).take(length), f), None)
   }
 
-  def generateRandomPlaylist(db: MusicCollection, f: FitnessFunction) = {
-    new Playlist(util.Random.shuffle(db.songs).take(20), f)
+  def generateRandomPlaylist(db: MusicCollection, f: FitnessFunction): (Playlist, Option[GAResponse]) = {
+    (new Playlist(util.Random.shuffle(db.songs).take(20), f), None)
   }
 
-  def generateRandomPlaylist(db: MusicCollection, length: Int, f: FitnessFunction) = {
-    println("OK, JUST A RANDOM P-LIST THEM")
-    val p = new Playlist(util.Random.shuffle(db.songs).take(length), f)
-    p
+  def generateRandomPlaylist(db: MusicCollection, length: Int, f: FitnessFunction): (Playlist, Option[GAResponse]) = {
+    (new Playlist(util.Random.shuffle(db.songs).take(length), f), None)
   }
 
-  def generateRandomPlaylist(f: FitnessFunction) = {
-    new Playlist(util.Random.shuffle(Cache.extractSongs).take(20), f)
+  def generateRandomPlaylist(f: FitnessFunction): (Playlist, Option[GAResponse]) = {
+    (new Playlist(util.Random.shuffle(Cache.extractSongs).take(20), f), None)
   }
 
   @tailrec
-  private def evolve(pop: Population, generation: Int): Playlist = {
-    printGAResults(pop, generation)
-    if (generation >= GASettings.maxGen || pop.maxFitness >= GASettings.maxFitness) pop.fittest
-    else evolve(pop.evolve, generation + 1)
-  }
-
-  private def printGAResults(pop: Population, generation: Int): Unit = {
-    println("=" * 20 + "GEN-" + generation + "=" * 20)
-    println("GENERATION " + generation + ", max fitness: " + pop.maxFitness + ", distance: " + pop.minDistance +
-              ", unmatched: " + pop.fittest.unmatched.map(i => i + 1).toString())
-  //  println("FITTEST:")
-  //  pop.fittest.prettyPrint()
+  private def evolve(pop: Population, generation: Int, GAStatistics: Boolean = false): (Playlist, Option[GAResponse]) = {
+    val response = GAResponse(generation, pop.maxFitness, pop.minDistance, pop.fittest.unmatchedIndexes.map(i => i))
+    response.prettyPrint()
+    val matchedWorst = pop.fittest.matchedWorst
+    print("WORST MATCHED INT: " + matchedWorst)
+    if(matchedWorst.isDefined) println(" with distance " + pop.fittest.distance(pop.fittest.matchedWorst.get))
+    if (generation >= GASettings.maxGen || pop.maxFitness >= GASettings.maxFitness) {
+      if(GAStatistics) (pop.fittest, Some(response))
+      else (pop.fittest, None)
+    }
+    else {
+      if(GAStatistics) {
+        // sendResponse(response) TODO
+        evolve(pop.evolve, generation + 1, GAStatistics)
+      }
+      else evolve(pop.evolve, generation + 1, GAStatistics)
+    }
   }
 
 }

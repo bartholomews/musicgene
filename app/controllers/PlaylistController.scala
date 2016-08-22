@@ -2,9 +2,9 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 
-import model.constraints.{Constraint, ScoreConstraint, UnaryConstraint}
+import model.constraints._
 import model.music.{Cache, MusicCollection, MusicUtil, Song}
-import model.geneticScala.{CostBasedFitness, GA, Playlist, StandardFitness}
+import model.geneticScala.{CostBasedFitness, GA, GAResponse, Playlist}
 import play.api.libs.json.{JsSuccess, JsValue, Json}
 import play.api.mvc.{Action, Controller}
 
@@ -38,23 +38,43 @@ class PlaylistController @Inject() extends Controller {
     // ALL THIS STUFF SHOULD BE MOVED TO ITS OWN CLASS
     val n = MusicUtil.parseNumberOfTracks(request.body)
 
-    // how to determine specific kind of constraint?
-    val unary = constraints.asInstanceOf[Set[ScoreConstraint]]
-
-    def getPlaylist: Playlist = {
-      if (ids.isEmpty) GA.generatePlaylist(CostBasedFitness(unary), n)
+    // NOT FUNCTIONAL TAKES EXTERNAL VALUES
+    def getPlaylist(ids: Vector[String], c: Set[Constraint]): (Playlist, Option[GAResponse]) = {
+      if (ids.isEmpty) GA.generatePlaylist(CostBasedFitness(c), n)
       else {
         val songs = Cache.getFromCache(ids)._1
-        GA.generatePlaylist(new MusicCollection(songs), CostBasedFitness(unary), n)
+        GA.generatePlaylist(new MusicCollection(songs), CostBasedFitness(c), n)
       }
     }
-    val playlist = getPlaylist.songs
 
-    val tracksID = Json.toJson(playlist.map(s => s.id))
+   // val valueConstraints = constraints.filter(c => c.isInstanceOf[MonotonicValue])
+   // val retrievedIDs = getPlaylist(ids, valueConstraints)._1.songs.map(s => s.id)
+
+    /*
+    c.foreach {
+      case x: MonotonicValue => println("FIRST_STEP_BUCKET")
+      case x: MonotonicRange => println("TSA_BUCKET")
+      case _ => println("UNKNOWN_CONSTRAINT")
+    }
+    */
+
+    // SO YOU TAKE TWICE FROM CACHE SOMETHING YOU ALREADY HAVE?
+    val (playlist, _) = getPlaylist(ids, constraints.asInstanceOf[Set[Constraint]])
+
+    /*
+    val stats = statistics match {
+      case None => ""
+      case Some(s) => s
+    }
+    */
+
+    val tracksID = Json.toJson(playlist.songs.map(s => s.id))
     val js: JsValue = Json.obj(
       "name" -> name,
       "ids" -> tracksID
+    //  "response" -> statistics.get.distance // TODO proper
     )
+    println("AJAX RESPONSE => " + js.toString())
     Ok(js)
   }
 

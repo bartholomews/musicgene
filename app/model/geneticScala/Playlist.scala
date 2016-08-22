@@ -1,5 +1,6 @@
 package model.geneticScala
 
+import model.constraints.{Score}
 import model.music.{Loudness, Song, Tempo, Title}
 
 import scala.util.Random
@@ -16,9 +17,30 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
 
   def size = songs.length
 
-  val (matched, unmatched) = f.score(this).partition(s => s.matched)
-  val matchedIndexes: Set[Int] = matched.flatMap(s => s.index)
-  val unmatchedIndexes: Set[Int] = unmatched.flatMap(s => s.index)
+  val scores: Set[Score] = f.score(this)
+
+  val (matched, unmatched) = scores.partition(s => s.matched)
+
+  val matchedIndexes: Set[Int] = {
+    matched.flatMap(s => s.info).map(i => i.index)
+  }
+  val unmatchedIndexes: Set[Int] = {
+    unmatched.flatMap(s => s.info).map(i => i.index)
+  }
+
+  val matchedWorst: Option[Int] = {
+    val m = matched.flatMap(s => s.info)
+    if (m.isEmpty) None
+    else Some(m.maxBy(i => i.distance).index)
+  }
+
+
+  def distance(i: Int): Option[Double] = scores.flatMap(s => s.info).find(x => x.index == i) match {
+    case None => None
+    case Some(y) => Some(y.distance)
+  }
+
+  //val distanceBucket: Set[Int] = f.mapping(this).map(m => m._1 -> m)
 
   //def fitness: Float = f.getFitness(this)
 
@@ -75,15 +97,18 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
     */
   }
 
-  // single point crossover:
-  //  one crossover point is selected, the permutation is copied
-  // from the first parent till the crossover point,
-  // then the other parent is scanned and if the number
-  // is not yet in the offspring, it is added
-  // Note: there are more ways how to produce the rest after crossover point,
-  // maybe better to move the pivot to have the fittest playlist ???
+  /**
+    * Single-point crossover:
+    * one crossover point is selected, the permutation is copied
+    * from the first parent until the crossover point,
+    * then the other parent is scanned and if the value is
+    * not yet in the offspring, it is added.
+    * TODO investigate on more refined ways to produce xo
+    *
+    * @param that
+    * @return
+    */
   def crossover(that: Playlist) = {
-    // should Randomize pivot or takeRight or Left of pivot
     val pivot = Random.nextInt(songs.length)
     val v1 = this.songs.take(pivot)
     val v2 = that.songs.filter(s => !v1.contains(s)).take(that.songs.length - pivot)
@@ -91,10 +116,11 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
   }
 
   /*
+  CROSSOVER VERSION 2: it reaches to local optima way too soon
   Take the indexes matched of inferior playlist
-  add the indexes matched of superior playlist if not already there
-  add the indexes unmatched of inferior playlist if not already there
-  add the indexes unmatched of superior playlist if not already there
+  add the indexes matched of superior playlist
+  add the indexes unmatched of inferior playlist until right size is reached
+  add the indexes unmatched of superior playlist until right size is reached
  */
   /*
   def crossover(that: Playlist) = {

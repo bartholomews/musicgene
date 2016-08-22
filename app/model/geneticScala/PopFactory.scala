@@ -10,7 +10,7 @@ object PopFactory {
   def sortByFitness(p: Population) = {
     val byFitness = p.playlists.sortWith((p1, p2) => p1.fitness > p2.fitness)
     val maxFitness = byFitness.head.fitness
-    println("MAXFITNESS: " + maxFitness)
+     // println("MAXFITNESS: " + maxFitness)
     val (elites, inferiors) = byFitness.partition(p => p.fitness == maxFitness)
 
     /*
