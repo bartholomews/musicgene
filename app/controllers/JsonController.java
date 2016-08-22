@@ -26,7 +26,7 @@ public class JsonController {
 
     @SuppressWarnings("unchecked")
     public static void writeJSON(String id, Set<Attribute> attributes) throws IOException {
-        File f = new File(PATH + id + ".json");
+        File f = new File(PATH + id + JSON);
         if (!f.exists()) {
             String artist = "unknown_artist";
             String title = "unknown_title";
@@ -62,10 +62,10 @@ public class JsonController {
     @SuppressWarnings("unchecked")
     public static void readJSON() {
         JSONParser parser = new JSONParser();
-        List<String> files = getFiles(new File(PATH));
+        List<String> ids = getIDs(new File(PATH));
         try {
-            for (String f : files) {
-                Object obj = parser.parse(new FileReader(PATH + f));
+            for (String f : ids) {
+                Object obj = parser.parse(new FileReader(PATH + f + JSON));
                 JSONObject jsonObject = (JSONObject) obj;
                 String id = (String) jsonObject.get("ID");
                 JSONArray audioFeatures = (JSONArray) jsonObject.get("attributes");
@@ -94,11 +94,11 @@ public class JsonController {
     }
     */
 
-    public static List<String> readJSON(String file) {
+    public static List<String> readJSON(String id) {
         JSONParser parser = new JSONParser();
         List<String> result = new LinkedList<>();
         try {
-            Object obj = parser.parse(new FileReader(PATH + file + JSON));
+            Object obj = parser.parse(new FileReader(PATH + id + JSON));
             JSONObject jsonObject = (JSONObject) obj;
             result.add((String)jsonObject.get("ID"));
             JSONArray features = (JSONArray) jsonObject.get("attributes");
@@ -107,24 +107,25 @@ public class JsonController {
             }
             return result;
         }
-        // FileNotFound
+        // TODO FileNotFound
         catch (Exception ex) {
             ex.printStackTrace();
             return null;
         }
     }
 
-    public static List<String> getFiles() {
-        return getFiles(new File(PATH));
+    public static List<String> getIDs() {
+        return getIDs(new File(PATH));
     }
 
-    private static List<String> getFiles(File folder) {
+    private static List<String> getIDs(File folder) {
         List<String> result = new LinkedList<>();
         File[] files = folder.listFiles();
         assert files != null;
         for(File f : files) {
             if(f.isFile()) {
-                result.add(f.getName());
+                String file = f.getName();
+                result.add(file.substring(0, file.length() - 5));
             }
         }
         return result;
