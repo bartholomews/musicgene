@@ -64,6 +64,7 @@ function createPlaylistTable(tracks) {
         // acoustic attributes with range 0.0 to 1.0
         acousticness: ['acousticness'],
         danceability: ['danceability'],
+        energy: ['energy'],
         liveness: ['liveness'],
         speechiness: ['speechiness']
     };
@@ -88,7 +89,7 @@ function pushGraphData(obj, ID) {
     obj.name.push(($('#'+ID+"-title").text()));
     obj.tempo.push(($('#'+ID+"-tempo").text()));
     obj.loudness.push(($('#'+ID+"-loudness").text()));
-
+    obj.energy.push(($('#'+ID+"-energy").text()));
     obj.acousticness.push(($('#'+ID+"-acousticness").text()));
     obj.danceability.push(($('#'+ID+"-danceability").text()));
     obj.liveness.push(($('#'+ID+"-liveness").text()));
@@ -103,15 +104,15 @@ function generateFloatChart(obj) {
         data: {
             columns: [
                 obj.acousticness,
-                obj.danceability,
-                obj.liveness,
-                obj.speechiness
+                obj.energy
+             //   obj.liveness
+             //   obj.speechiness
             ],
             colors: {
                 acousticness: '#8b4513',
-                danceability: '#9933FF',
-                liveness: '#000066',
-                speechiness: '#CCFFFF'
+                energy: '#9933FF'
+             //   liveness: '#000066'
+             //   speechiness: '#CCFFFF'
             },
             onclick: function(d) { playPreviewGraph(d.index) }
         },
