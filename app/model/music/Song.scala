@@ -53,7 +53,7 @@ case class SpotifySong(id: String, attributes: Set[Attribute]) extends Song {
   ("unknown" parsed to another data type),
   should be using Option[value] for that.
  */
-  val durationToString = {
+  val stringDuration = {
     val seconds: Int = ((duration / 1000) % 60).toInt
     val minutes = ((duration / (1000*60)) % 60).toInt
     "%02d".format(minutes) + ":" + "%02d".format(seconds)
@@ -92,7 +92,6 @@ case class SpotifySong(id: String, attributes: Set[Attribute]) extends Song {
     *  below 0.6 most likely studio recordings
     */
   val liveness = findValue(Liveness(0))
-
   val valence = findValue(Valence(0))
   val energy = findValue(Energy(0))
 

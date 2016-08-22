@@ -18,7 +18,7 @@ object Cache {
     // or better query the external API for the nulls
     // well in this case you should have for sure, you're retrieving all of them in Json
     */
-    def extractSongs: Vector[Song] = JsonController.getFiles.toVector.map(f => parseSong(f))
+    def extractSongs: Vector[Song] = JsonController.getIDs.toVector.map(f => parseSong(f))
 
     /*
     If an empty parameter is given, it will retrieve ALL songs from the db
@@ -30,14 +30,14 @@ object Cache {
     }
     */
 
-    private def parseSong(file: String): Song = {
-        val list = controllers.JsonController.readJSON(file).toVector
+    private def parseSong(stringID: String): Song = {
+        val list = controllers.JsonController.readJSON(stringID).toVector
         val id = list(0)
         val attributes = list.drop(1).map(a => {
             val tuple: Array[String] = a.split(": ")
             extractAttribute((tuple(0), tuple(1)))
         }).toSet
-        new SpotifySong(id, attributes)
+        SpotifySong(id, attributes)
     }
 
     def get(id: String): Option[Song] = {
