@@ -53,7 +53,7 @@ trait UnaryConstraint extends RangeConstraint {
 case class Include(lo: Int, hi: Int, that: Attribute) extends UnaryConstraint {
   override def score(p: Playlist) = {
     for (i <- lo until hi) yield {
-      RangeScore(matched = p.songs(i).attributes.contains(that), index = Some(i)).asInstanceOf[Score]
+      RangeScore(matched = p.songs(i).attributes.contains(that))
     }
   }.toSet
 }
@@ -68,7 +68,7 @@ case class Include(lo: Int, hi: Int, that: Attribute) extends UnaryConstraint {
 case class Exclude(lo: Int, hi: Int, that: Attribute) extends UnaryConstraint {
   override def score(p: Playlist) = {
     for (i <- lo until hi) yield {
-      RangeScore(matched = !p.songs(i).attributes.contains(that), index = Some(i))
+      RangeScore(matched = !p.songs(i).attributes.contains(that))
     }
   }.toSet
 }
@@ -98,7 +98,7 @@ case class IncludeSmaller(lo: Int, hi: Int, that: AudioAttribute) extends Monoto
     assert(inRange(p))
     (for (index <- lo to hi) yield {
       val t = ConstraintsUtil.compareDistance(p.songs(index), that, (x, y) => x < y)
-      RangeScore(t._1, Some(t._2), Some(index))
+      RangeScore(t._1, Some(Info(that, index, t._2)))
     }).toSet
   }
 }
@@ -116,7 +116,7 @@ case class IncludeLarger(lo: Int, hi: Int, that: AudioAttribute) extends Monoton
     assert(inRange(p))
     (for (index <- lo to hi) yield {
       val t = ConstraintsUtil.compareDistance(p.songs(index), that, (x, y) => x > y)
-      RangeScore(t._1, Some(t._2), Some(index))
+      RangeScore(t._1, Some(Info(that, index, t._2)))
     }).toSet
   }
 }
@@ -135,7 +135,7 @@ case class IncludeEquals(lo: Int, hi: Int, that: AudioAttribute/*tolerance: Doub
     (for (index <- lo to hi) yield {
    //   val t = ConstraintsUtil.compareEquals(p.songs(index), that, tolerance, penalty)
       val t = ConstraintsUtil.compareDistance(p.songs(index), that, (x, y) => x == y)
-      RangeScore(t._1, Some(t._2), Some(index))
+      RangeScore(t._1, Some(Info(that, index, t._2)))
     }).toSet
   }
 }
@@ -149,14 +149,14 @@ case class IncludeEquals(lo: Int, hi: Int, that: AudioAttribute/*tolerance: Doub
   */
 trait MonotonicRange extends MonotonicConstraint {
   // calculate monotonic distance as per f(Double => Boolean)
-  def score(p: Playlist, f: (Double, Double) => Boolean): Set[Score] = {
+  def score(p: Playlist, that: AudioAttribute, f: (Double, Double) => Boolean): Set[Score] = {
     assert(inRange(p))
     (for (index <- lo until hi) yield {
       ConstraintsUtil.extractValues(p.songs(index), p.songs(index + 1), that) match {
-        case None => RangeScore(matched = false, Some(that.value), Some(index))
+        case None => RangeScore(matched = false, Some(Info(that, index)))
         case Some((x, y)) =>
-          val t = ConstraintsUtil.monotonicDistance(x, y, f(x, y))
-          RangeScore(t._1, Some(t._2), Some(index))
+          val t = ConstraintsUtil.monotonicDistance(x, y, that, f(x, y))
+          RangeScore(t._1, Some(Info(that, index, t._2)))
       }
     }).toSet
   }
@@ -171,9 +171,10 @@ trait MonotonicRange extends MonotonicConstraint {
     */
   case class ConstantRange(lo: Int, hi: Int, that: AudioAttribute) extends MonotonicRange {
     override def score(p: Playlist) = {
-      val monoScores = score(p, (x, y) => x == y)
+      score(p, that, (x, y) => x == y)
+      // TODO
       // as all the values will be unmatched, do not "save" all indexes in unmatchedBucke
-      monoScores.map(s => RangeScore(s.matched, s.distance))
+      //monoScores.map(s => RangeScore(s.matched, Some(Info(that, index, t._2))
     }
   }
 
@@ -195,7 +196,7 @@ trait MonotonicRange extends MonotonicConstraint {
       * @param hi
       */
     case class IncreasingRange(lo: Int, hi: Int, that: AudioAttribute) extends MonotonicRange {
-      override def score(p: Playlist) = score(p, (x, y) => x < y)
+      override def score(p: Playlist) = score(p, that, (x, y) => x < y)
     }
 
     /**
@@ -206,7 +207,7 @@ trait MonotonicRange extends MonotonicConstraint {
       * @param hi
       */
     case class DecreasingRange(lo: Int, hi: Int, that: AudioAttribute) extends MonotonicRange {
-      override def score(p: Playlist) = score(p, (x, y) => x > y)
+      override def score(p: Playlist) = score(p, that, (x, y) => x > y)
     }
       /*
       p.songs.slice(from, to + 1).sliding(2).map(v => {

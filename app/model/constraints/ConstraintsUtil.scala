@@ -81,18 +81,31 @@ object ConstraintsUtil {
     extractValue(s, that) match {
       case None => (false, Double.MaxValue)
       case Some(x) => // if(f(x)) 0.0 else
-        monotonicDistance(x, that.value, f(x, that.value))
+        monotonicDistance(x, that.value, that, f(x, that.value))
     }
   }
 
-  // either increasing or decreasing
-  def monotonicDistance(x: Double, y: Double, f: Boolean): (Boolean, Double) = {
+  /**
+    * TODO insert step Double value in that(value) attribute
+    * TODO in that case, the value is the "step"
+    * TODO e.g. IncreasingRange(Tempo(10))
+    * TODO with Tempo(8), Tempo(9) should be true, 9 (i.e. abs(step - distance))
+    * TODO with Tempo(8), Tempo(19) should be true, 1 (i.e. abs(step - distance))
+    * TODO with Tempo(10), Tempo(5) should be false, 25 (i.e. step + distance)
+    * TODO with Tempo(20), Tempo(2) should be false, 28 (i.e. step + distance)
+    *
+    * @param x
+    * @param y
+    * @param f
+    * @return
+    */
+  def monotonicDistance(x: Double, y: Double, that: AudioAttribute, f: Boolean): (Boolean, Double) = {
     // distance rounded to the nearest hundredth: TODO some features might need higher precision
-    val distance = scala.math.abs(x - y)
+    val distance: Double = scala.math.abs(x - y) / (that.max - that.min)
     // if y is <= of x for Increasing and vice-versa for Decreasing,
     // the distance is added to a penalty value to impact a negative score
     if (!f) (false, distance) // + penalty)
-    else (true, 0.0) // distance)
+    else (true, distance) // distance)
   }
 
 }
