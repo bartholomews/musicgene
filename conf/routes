@@ -2,26 +2,11 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# An example controller showing a sample home page
 GET     /                        controllers.SpotifyHomeController.index
-
 GET     /callback                controllers.AuthController.callback
-
-#GET     /updatetracks           controllers.HomeController.socket
-
 GET     /tracks                  controllers.SpotifyHomeController.getTracks
-
-
-#GET     /track/:id              controllers.HomeController.track(id: String)
-
+GET     /alltracks               controllers.SpotifyHomeController.getAllTracks
 POST    /auth                    controllers.AuthController.auth
-
-# GET     /song                    controllers.PlotController.song(id: String)
-
-# GET     /song/:id                controllers.PlotController.song(id)
-
-# GET     /getJson                 controllers.PlotController.getJson
-
 POST    /playlist                controllers.PlaylistController.generatePlaylist
 
 # Map static resources from the /public folder to the /assets URL path
