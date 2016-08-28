@@ -35,37 +35,13 @@ object Cache {
         val id = list(0)
         val attributes = list.drop(1).map(a => {
             val tuple: Array[String] = a.split(": ")
-            extractAttribute((tuple(0), tuple(1)))
+            MusicUtil.extractAttribute((tuple(0), tuple(1)))
         }).toSet
-        SpotifySong(id, attributes)
+        Song(id, attributes)
     }
 
     def get(id: String): Option[Song] = {
         // TODO
         None
     }
-
-    // TODO reflection or metaP could work here
-    private def extractAttribute(tuple: (String, String)): Attribute =
-        tuple match {
-            case ("Preview_URL", value) => Preview_URL(value)
-            case ("Title", value) => Title(value)
-            case ("Mode", value) => Mode(value.toInt)
-            case ("Time_Signature", value) => Time_Signature(value.toInt)
-            case ("Tempo", value) => Tempo(value.toDouble)
-            case ("Energy", value) => Energy(value.toDouble)
-            case ("Loudness", value) => Loudness(value.toDouble)
-            case ("Key", value) => Key(value.toInt)
-            case ("Artist", value) => Artist(value)
-            case ("Speechiness", value) => Speechiness(value.toDouble)
-            case ("Album", value) => Album(value)
-            case ("Acousticness", value) => Acousticness(value.toDouble)
-            case ("Duration", value) => Duration(value.toDouble)
-            case ("Valence", value) => Valence(value.toDouble)
-            case ("Instrumentalness", value) => Instrumentalness(value.toDouble)
-            case ("Liveness", value) => Liveness(value.toDouble)
-            case ("Danceability", value) => Danceability(value.toDouble)
-            case (unsupported, _) => throw new Exception(unsupported + ": Attribute not matched")
-        }
-
 }

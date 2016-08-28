@@ -8,9 +8,7 @@ import controllers.SpotifyJavaController
   *
   */
 
-trait Song {
-  val id: String
-  val attributes: Set[Attribute]
+case class Song(id: String, attributes: Set[Attribute]) {
 
   /*
   def find(that: Attribute): Option[Attribute] = attributes.find(a => a.getClass == that.getClass) match {
@@ -36,10 +34,6 @@ trait Song {
   }
 
   def find(that: Attribute) = findValue(that).getOrElse(that.value.toString)
-
-}
-
-case class SpotifySong(id: String, attributes: Set[Attribute]) extends Song {
 
   val duration: Double = getOrElse(Duration(0)).value.asInstanceOf[Double]
 

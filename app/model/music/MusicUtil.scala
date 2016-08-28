@@ -1,135 +1,45 @@
 package model.music
 
-import com.fasterxml.jackson.annotation.JsonValue
-
-import scala.reflect.runtime.{universe => ru}
 import com.wrapper.spotify.models.{AudioFeature, Track}
-import model.constraints._
-import play.api.libs.json._
+import play.api.libs.json.JsValue
 
-import scala.runtime.RichInt
 /**
   *
   */
 object MusicUtil {
 
-  /**
-    * @see http://stackoverflow.com/a/1642012
-    * @param cls
-    * @param args
-    * @return
-    */
-  private def instantiate(cls: java.lang.Class[_])(args: AnyRef*): AnyRef = {
-    val constructor = cls.getConstructors()(0)
-    constructor.newInstance(args: _*).asInstanceOf[AnyRef]
-  }
-
-  // SETTINGS
-  val penalty = Double.MaxValue // TODO it should be constraint-specific
-  // val tolerance: Double = 1.00  // TODO it should be constraint-specific
-
-  def parseNumberOfTracks(js: JsValue): Int = (js \ "numberOfTracks").as[Int]
-
-  def parseIDS(js: JsValue): Vector[String] = {
-    val ids = js \ "ids"
-    if (ids.isInstanceOf[JsUndefined]) {
-      // no songs selected, should get 'n' random if constraint is given from user db
-      println("======> NO SONGS SELECTED")
-      Vector()
-    } else {
-      ids.as[Array[String]].toVector
+  def extractAttribute(tuple: (String, String)): Attribute =
+    tuple match {
+        // TextAttribute
+      case ("Preview_URL", value) => Preview_URL(value)
+      case ("Title", value) => Title(value)
+      case ("Artist", value) => Artist(value)
+      case ("Album", value) => Album(value)
+        // AudioAttribute
+      case ("Tempo", value) => Tempo(getDoubleOrMax(value))
+      case ("Energy", value) => Energy(getDoubleOrMax(value))
+      case ("Loudness", value) => Loudness(getDoubleOrMax(value))
+      case ("Speechiness", value) => Speechiness(getDoubleOrMax(value))
+      case ("Acousticness", value) => Acousticness(getDoubleOrMax(value))
+      case ("Duration", value) => Duration(getDoubleOrMax(value))
+      case ("Valence", value) => Valence(getDoubleOrMax(value))
+      case ("Instrumentalness", value) => Instrumentalness(getDoubleOrMax(value))
+      case ("Liveness", value) => Liveness(getDoubleOrMax(value))
+      case ("Danceability", value) => Danceability(getDoubleOrMax(value))
+      // TimeAttribute
+      case ("Key", value) => Key(value.toInt)
+      case ("Mode", value) => Mode(value.toInt)
+      case ("Time_Signature", value) => Time_Signature(value.toInt)
+      case (unsupported, _) => throw new Exception(unsupported + ": Attribute not matched")
     }
-  }
 
-  // TODO could change json format with key type for indexed, standard etc
-  // again reflection todo
-  /**
-    * parse json of the form
-    * { "name": 'playlistName', "ids": ['id1', 'id2', 'id3'],
-    * "constraints": [{"constraint": [{"name": 'c_name', "attribute": {"name" : 'a_name', "value" : 'a_value'}]}]
-    *
-    * @param js
-    * @return
-    */
-  def parseRequest(js: JsValue): (String, Set[Constraint]) = {
-    val name = (js \ "name").as[String]
-    val constraints = js \ "constraints"
-    if (constraints.isInstanceOf[JsUndefined]) {
-      (name, Set())
-    }
-    else {
-      (name,
-        (constraints \\ "constraint").map(c => {
+  // http://stackoverflow.com/a/9542430
+  private def getDoubleOrMax(value: String): Double = try { value.toDouble } catch { case _: Throwable => Double.MaxValue }
 
-          // TODO should create key: 'constraint-type' to determine constructor args
-          // i.e. type: { MonotonicConstraint | UnaryConstraint }
-          val cls = Class.forName("model.constraints." + (c \ "name").as[String])
-          val args = getBoxedArgs(c)
-          val ok = instantiate(cls)(args._1, args._2, args._3 /*, penalty.asInstanceOf[AnyRef]*/).asInstanceOf[Constraint]
-          println(ok.toString)
-          ok
-
-          /*
-            val ctr = cls.getConstructors()(0)
-            println("CTR: " + ctr.toString)
-            val parsedArgs = Array[AnyRef](
-              args._1,
-              args._2,
-              args._3,
-              penalty.asInstanceOf[AnyRef])
-            val instance = ctr.newInstance(parsedArgs: _*).asInstanceOf[Constraint]
-            instance
-          */
-          //case unknown => throw new Exception(unknown + ": constraint not found")
-
-        }).toSet)
-    }
-  }
-
-  def getBoxedArgs(js: JsValue) = {
-    (getInt(js, "from").asInstanceOf[AnyRef],
-      getInt(js, "to").asInstanceOf[AnyRef],
-      parseAttribute(js).asInstanceOf[Attribute])
-  }
-
-  def getInt(js: JsValue, key: String): Int = (js \ key).as[String].toInt
-
-  def parseAttribute(js: JsValue): Attribute = {
-    val value = (js \ "attribute" \ "value").asOpt[String].getOrElse(penalty.toString)
-    // pattern match each attribute data type and convert value to that?
-    parseAttribute(js, value.toDouble)
-  }
-
-  def parseAttribute[T](js: JsValue, value: T): Attribute = {
-    val cls = Class.forName("model.music." + (js \ "attribute" \ "name").as[String])
-    val ctr = cls.getConstructors()(0)
-    val args = Array[AnyRef](value.asInstanceOf[AnyRef])
-    ctr.newInstance(args: _*).asInstanceOf[Attribute]
-  }
-
-  /*
-    val paraType = theConstr.getParameters()(0).getType
-    val typeTag = getType(paraType)
-    val classType = Class.forName(typeTag.typeSymbol.asClass.fullName)
-    */
-
-  /*
-    (js \ "attribute" \ "name").as[String] match {
-      case unknown => throw new Exception(unknown + ": attribute not found")
-    }
-    */
-
-  /*
-  def parseIndexedConstraint(constraint: (String, Int, List[String])): Constraint = constraint match {
-    //    case ("Exclude", index, attr) => Exclude(index, parseAttribute(attr))
-    //    case ("Include", index, attr) => Include(index, parseAttribute(attr))
-    case (name, _, _) => throw new Exception(name + ": constraint not found")
-  }
-  */
+  def toSongs(songs: Vector[(Track, AudioFeature)]): Vector[Song] = songs.map(t => toSong(t))
 
   def toSong(t: (Track, AudioFeature)): Song = {
-    println("P_URL: " + t._1.getPreviewUrl)
-    SpotifySong(t._1.getId,
+    Song(t._1.getId,
       Set[Attribute](
         Preview_URL(t._1.getPreviewUrl),
         Title(t._1.getName),
@@ -151,7 +61,5 @@ object MusicUtil {
       )
     )
   }
-
-  def toSongs(songs: Vector[(Track, AudioFeature)]): Vector[Song] = songs.map(t => toSong(t))
 
 }
