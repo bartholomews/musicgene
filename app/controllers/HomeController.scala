@@ -6,12 +6,14 @@ import com.wrapper.spotify.exceptions.BadRequestException
 import model.music.{Cache, Song}
 import play.api.mvc.{Action, Controller}
 import play.modules.reactivemongo.{MongoController, ReactiveMongoApi, ReactiveMongoComponents}
-import reactivemongo.api.{MongoConnection, MongoDriver}
+import reactivemongo.api.MongoConnection
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.BSONDocument
+import reactivemongo.play.json.collection.JSONCollection
 
 import collection.JavaConverters._
+import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -56,7 +58,10 @@ class HomeController @Inject()(implicit ec:ExecutionContext, val reactiveMongoAp
       val spotify = new SpotifyController
       val userName = spotify.getSpotifyName
       val playlists = spotify.getPlaylists
-      playlists.foreach(v => writeSongsToJSON(v._2))
+
+      //playlists.foreach(v => writeSongsToJSON(v._2))
+      writeSongsToJSON(Vector())
+
       Ok(views.html.tracks(userName, playlists))
     } catch {
       // @see https://developer.spotify.com/web-api/user-guide/
@@ -78,34 +83,42 @@ def writePlaylistsToJSON(db: List[(SimplePlaylist, List[Song])]) = {
 }
 */
 
-  def mongoConnection(driver: reactivemongo.api.MongoDriver): Try[MongoConnection] =
-    MongoConnection.parseURI(mongoUri).map { parsedUri =>
-      driver.connection(parsedUri)
-    }
-
   def writeSongsToJSON(songs: Vector[Song]) = {
-    resolve()
-    println("DB_RESOLVED")
-    val database = connection.db("heroku_pzmhfhvt")
- //   val collection = database.collection[BSONCollection]("Tracks")
-    val collection = database[BSONCollection]("Tracks")
-    println("I GOT TRACK COLLECTION")
-
     val document1 = BSONDocument(
       "firstName" -> "Stephane",
       "lastName" -> "Godbillon",
       "age" -> 29)
 
-    insertDoc1(collection, document1)
-    println("ALRIGHTY")
-
+    val futureCollection: Future[BSONCollection] =
+      reactiveMongoApi.database.map(_.collection[BSONCollection]("Tracks"))
+    futureCollection.onComplete {
+      case Failure(e) => {
+        println("============== FUTURECOLLECTION FAILED! ================")
+        e.printStackTrace()
+      }
+      case Success(coll) =>
+        println(s"successfully got collection: $coll")
+        insertDoc1(coll, document1)
+    }
   }
+
+    /*
+    resolve()
+    println("DB_RESOLVED")
+    val database = connection("heroku_pzmhfhvt")
+ //   val collection = database.collection[BSONCollection]("Tracks")
+    val collection = database[BSONCollection]("Tracks")
+    println("I GOT TRACK COLLECTION")
+  */
 
   def insertDoc1(coll: BSONCollection, doc: BSONDocument): Future[Unit] = {
     val writeRes: Future[WriteResult] = coll.insert(doc)
 
     writeRes.onComplete { // Dummy callbacks
-      case Failure(e) => e.printStackTrace()
+      case Failure(e) => {
+        println("============== INSERTION FAILED! ================")
+        e.printStackTrace()
+      }
       case Success(writeResult) =>
         println(s"successfully inserted document with result: $writeResult")
     }
@@ -113,6 +126,7 @@ def writePlaylistsToJSON(db: List[(SimplePlaylist, List[Song])]) = {
     writeRes.map(_ => {}) // in this example, do nothing with the success
   }
 
+  /*
     /**
       * http://reactivemongo.org/releases/0.11/documentation/tutorial/connect-database.html
       */
@@ -123,7 +137,7 @@ def writePlaylistsToJSON(db: List[(SimplePlaylist, List[Song])]) = {
         uri <- Future.fromTry(MongoConnection.parseURI(mongoUri))
         con = driver.connection(uri)
         dn <- Future(uri.db.get)
-      } yield db
+      } yield database
 
       database.onComplete {
         case resolution =>
@@ -131,6 +145,7 @@ def writePlaylistsToJSON(db: List[(SimplePlaylist, List[Song])]) = {
           driver.close()
       }
     }
+    */
 
  //   songs.foreach(s => JsonController.writeJSON(s.id, s.attributes.asJava))
     val test = BSONDocument(
