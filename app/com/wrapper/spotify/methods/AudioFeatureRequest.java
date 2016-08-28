@@ -3,6 +3,7 @@ package com.wrapper.spotify.methods;
 import com.google.common.util.concurrent.SettableFuture;
 import com.wrapper.spotify.exceptions.WebApiException;
 import com.wrapper.spotify.models.AudioFeature;
+import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 
 import java.io.IOException;
@@ -82,9 +83,6 @@ public class AudioFeatureRequest extends AbstractRequest {
         audioFeature.setAnalysisUrl(audioFeatureJson.getString("analysis_url"));
         audioFeature.setDurationMs(audioFeatureJson.getInt("duration_ms"));
         audioFeature.setTimeSignature(audioFeatureJson.getInt("time_signature"));
-
-
         return audioFeature;
     }
-
 }

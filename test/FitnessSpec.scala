@@ -1,5 +1,5 @@
 import model.constraints._
-import model.geneticScala.{Playlist, PlaylistsFactory, StandardFitness}
+import model.geneticScala.{Playlist, PlaylistsFactory}
 import model.music._
 import org.scalatest.{FlatSpec, Matchers}
 import org.scalatestplus.play.{OneAppPerTest, PlaySpec}
@@ -11,6 +11,22 @@ class FitnessSpec extends FlatSpec with Matchers {
 
   val emptyConstraints: Set[Constraint] = Set()
 
+  /*
+"StandardFitness" should "add up constraints" in {
+  val playlist = new Playlist(Vector(
+    new Song("Song_1", "_", Set(Tempo(10))),
+    new Song("Song_2", "_", Set(Tempo(20))),
+    new Song("Song_3", "_", Set(Tempo(30)))
+  ))
+
+  }
+  */
+
+  //val c1: Set[UnaryConstraint] = Set(MonotonicDistance(1,2, Tempo(0.0), (x, y) => x < y))
+  //StandardFitness(c1).getFitness(playlist) shouldBe 1.0
+
+}
+  /*
   val firstTitle3: Constraint = Include(0, Artist("Title_3"))
   val allArtist1: Constraint = IncludeAll(Artist("Artist_1"))
   val allFrom2000: Constraint = IncludeAll(Year(2000))
@@ -80,4 +96,6 @@ class FitnessSpec extends FlatSpec with Matchers {
 "A Playlist with one matching constraint" should "have fitness 1.0" in {
   FitnessCalc.getFitness(Set(Include(1, Year(2000))), c1) shouldBe 1.0
 }
+*/
+
 */

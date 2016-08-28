@@ -6,6 +6,10 @@ import model.music._
 /**
   *
   */
+
+
+/*
+
 object IndividualTest extends App {
 
 
@@ -101,8 +105,11 @@ object IndividualTest extends App {
 
   println()
 
-  println("FITTEST: " + pop.getFittest.prettyPrint())
+  println("FITTEST: " + pop.fittest.prettyPrint())
   println("FITNESS: ")
   pop.playlists.foreach(p => println(pop.playlists.indexOf(p) + ": " + p.fitness))
 
 }
+
+
+*/
