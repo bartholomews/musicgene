@@ -3,10 +3,11 @@ package controllers
 import javax.inject.{Inject, Singleton}
 
 import model.constraints._
-import model.music.{Cache, MusicCollection, ConstraintsParser, Song}
+import model.music.{Cache, ConstraintsParser, MusicCollection, Song}
 import model.geneticScala.{CostBasedFitness, GA, GAResponse, Playlist}
 import play.api.libs.json.{JsSuccess, JsValue, Json}
 import play.api.mvc.{Action, Controller}
+import play.modules.reactivemongo.{MongoController, ReactiveMongoApi, ReactiveMongoComponents}
 
 import scala.util.parsing.json.JSONArray
 
@@ -14,7 +15,8 @@ import scala.util.parsing.json.JSONArray
   *
   */
 @Singleton
-class PlaylistController @Inject() extends Controller {
+class PlaylistController @Inject()(val reactiveMongoApi: ReactiveMongoApi)
+  extends Controller with MongoController with ReactiveMongoComponents {
 
   // @see https://www.playframework.com/documentation/2.0/ScalaJsonRequests
   /*
@@ -38,9 +40,13 @@ class PlaylistController @Inject() extends Controller {
     // ALL THIS STUFF SHOULD BE MOVED TO ITS OWN CLASS
     val n = ConstraintsParser.parseNumberOfTracks(request.body)
 
+
+
+    val db = new MusicCollection(Vector())
+
     // NOT FUNCTIONAL TAKES EXTERNAL VALUES
     def getPlaylist(ids: Vector[String], c: Set[Constraint]): (Playlist, Option[GAResponse]) = {
-      if (ids.isEmpty) GA.generatePlaylist(CostBasedFitness(c), n)
+      if (ids.isEmpty) GA.generatePlaylist(db, CostBasedFitness(c), n)
       else {
         val songs = Cache.getFromCache(ids)._1
         GA.generatePlaylist(new MusicCollection(songs), CostBasedFitness(c), n)

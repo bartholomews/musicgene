@@ -24,9 +24,11 @@ libraryDependencies ++= Seq(
   "org.webjars" % "d3js" % "3.5.17",
   "org.webjars" % "c3" % "0.4.11",
   // "org.webjars" % "jquery" % "2.2.4",
-  "org.webjars" % "bootstrap" % "3.3.6" // exclude("org.webjars", "jquery"),
+  "org.webjars" % "bootstrap" % "3.3.6", // exclude("org.webjars", "jquery"),
   // "org.webjars" % "bootstrap-switch" % "3.3.2"
   // "org.webjars" % "requirejs" % "2.2.0",
+  "org.reactivemongo" %% "play2-reactivemongo" % "0.11.14"
+
 
 )
 
@@ -38,3 +40,10 @@ This allows the plugin to manipulate the JavaScript assets
 when packaging the application as a jar.
 */
 // pipelineStages := Seq(rjs)
+
+// https://www.playframework.com/documentation/2.4.0/ScalaRouting#Dependency-Injection
+// http://reactivemongo.org/releases/0.11/documentation/tutorial/play2.html
+routesGenerator := InjectedRoutesGenerator
+
+// http://stackoverflow.com/a/22978218
+sources in doc in Compile := List()
