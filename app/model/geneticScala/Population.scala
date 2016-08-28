@@ -13,6 +13,26 @@ import scala.util.Random
   *
   * playlists should be already sorted with fitness function, with head having the best fitness score
   */
+
+/**
+  * @see John Svazic's GAHelloWorld
+  *
+  * SELECTION
+  * select the best fit from the population in each generation.
+  * The fitness is the number of model.constraints satisfied by it.
+  *
+  * CROSSOVER
+  * create new solutions exchanging the gene information between two solutions
+  * to generate a new one.
+  *
+  * MUTATION
+  * introduce new features into the population pool after crossover,
+  * to maintain diversity.
+  *
+  */
+
+// encoding should be Permutation
+// @see https://courses.cs.washington.edu/courses/cse473/06sp/GeneticAlgDemo/encoding.html
 class Population(val playlists: Vector[Playlist]) {
 
   // the number of the initial candidate playlists

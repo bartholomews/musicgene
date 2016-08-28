@@ -82,6 +82,7 @@ object GA {
     val matchedWorst = pop.fittest.matchedWorst
     print("WORST MATCHED INT: " + matchedWorst)
     if(matchedWorst.isDefined) println(" with distance " + pop.fittest.distance(pop.fittest.matchedWorst.get))
+
     if (generation >= GASettings.maxGen || pop.maxFitness >= GASettings.maxFitness) {
       if(GAStatistics) (pop.fittest, Some(response))
       else (pop.fittest, None)

@@ -1,6 +1,7 @@
 package model.geneticScala
 
-import model.constraints.{Constraint, Score, UnaryConstraint}
+import model.constraints.{Constraint, Score}
+import model.music.Attribute
 
 
 /**
@@ -8,20 +9,19 @@ import model.constraints.{Constraint, Score, UnaryConstraint}
   * Each Playlist can be assigned a different kind of FitnessCalc
   */
 trait FitnessFunction {
-  def getConstraints: Set[Constraint]
+  val constraints: Set[Constraint]
+  def score(playlist: Playlist): Set[Score] = constraints.flatMap(c => c.score(playlist))
   def getFitness(playlist: Playlist): Double
   def getDistance(playlist: Playlist): Double
-  def score(playlist: Playlist): Set[Score]
+  def mapping(p: Playlist): Map[Attribute, Set[(Int, Double)]]
 }
 
 
 /**
-* Created by mba13 on 24/07/2016.
+ *
 */
 /*
 case class StandardFitness(constraints: Set[UnaryConstraint]) extends FitnessFunction {
-
-  override def getConstraints: Set[Constraint] = constraints.asInstanceOf[Set[Constraint]]
 
   override def getDistance(playlist: Playlist): Double = throw new Exception("CANNOT GET DISTANCE!")
   override def score(p: Playlist) = throw new Exception("CANNOT GET SCORE!")
@@ -50,29 +50,24 @@ case class StandardFitness(constraints: Set[UnaryConstraint]) extends FitnessFun
   * */
 
 case class CostBasedFitness(constraints: Set[Constraint]) extends FitnessFunction {
-  override def getConstraints: Set[Constraint] = constraints.asInstanceOf[Set[Constraint]]
-
-  override def score(p: Playlist): Set[Score] = constraints.flatMap(c => c.score(p))
-
   override def getFitness(p: Playlist): Double = {
-    if(constraints.isEmpty) 0.0
+    if(constraints.isEmpty) 1.0
     else {
-      val f1 = score(p).count(s => s.matched)
-      val f2 = score(p).size.toDouble
-      val f = score(p).count(s => s.matched) / score(p).size.toDouble
+      val playlistScore = score(p)
+      val f = playlistScore.count(s => s.matched) / playlistScore.size.toDouble
       BigDecimal.decimal(f).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
-  //    println(f1 + " / " + f2 + " = " + r + " (distance: " + getDistance(p) + ")")
     }
   }
-  override def getDistance(p: Playlist): Double = {
-    val distance = score(p).map(s => s.distance).sum
+  override def getDistance(playlist: Playlist): Double = {
+    val distance = score(playlist).flatMap(s => s.info).map(i => i.distance).sum
     BigDecimal.decimal(distance).setScale(4, BigDecimal.RoundingMode.HALF_UP).toDouble
   }
-}
 
-// ???
-  /*
-case class NoFitness() extends FitnessFunction {
-  override def getFitness(p: Playlist) = throw new Exception("NoFitness.getFitness")
+  // TODO
+  def mapping(p: Playlist): Map[Attribute, Set[(Int, Double)]] = {
+    p.scores.flatMap(scores => scores.info)
+      .groupBy(info => info.attr)
+      // m: Map[Attribute, Set[MonotonicInfo]] mapped into Attribute -> Set[(Int, Double)]
+      .map(m => m._1 -> m._2.map(i => (i.index, i.distance)))
+  }
 }
-*/
