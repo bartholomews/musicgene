@@ -46,7 +46,7 @@ class HomeController @Inject() extends Controller {
       val spotify = new SpotifyController
       val userName = spotify.getSpotifyName
       val playlists = spotify.getPlaylists
-      playlists.foreach(v => writeSongsToJSON(v._2))
+  //    playlists.foreach(v => writeSongsToJSON(v._2))
       Ok(views.html.tracks(userName, playlists))
     } catch {
       // @see https://developer.spotify.com/web-api/user-guide/
