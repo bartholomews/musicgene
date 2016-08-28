@@ -14,7 +14,7 @@ libraryDependencies ++= Seq(
                    // SPOTIFY API DEPENDENCIES //
   //"se.michaelthelin.spotify" % "spotify-web-api-java" % "1.5.0",
   //"com.google.guava" % "guava" % "18.0",
-  //"com.google.protobuf" % "protobuf-java" % "2.5.0",
+  "com.google.protobuf" % "protobuf-java" % "2.5.0",
   "commons-httpclient" % "commons-httpclient" % "3.1",
   "net.sf.json-lib" % "json-lib" % "2.4" classifier "jdk15",
   "com.googlecode.json-simple" % "json-simple" % "1.1.1",
