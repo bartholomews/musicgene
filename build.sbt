@@ -37,4 +37,4 @@ add RequireJS plugin to the list of stages.
 This allows the plugin to manipulate the JavaScript assets
 when packaging the application as a jar.
 */
-pipelineStages := Seq(rjs)
+// pipelineStages := Seq(rjs)
