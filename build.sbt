@@ -21,12 +21,12 @@ libraryDependencies ++= Seq(
   //===================================================================
   "org.projectlombok" % "lombok" % "1.16.6",
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test,
-  "org.webjars" % "requirejs" % "2.2.0",
   "org.webjars" % "d3js" % "3.5.17",
-  "org.webjars" % "c3" % "0.4.11"
+  "org.webjars" % "c3" % "0.4.11",
   // "org.webjars" % "jquery" % "2.2.4",
-  // "org.webjars" % "bootstrap" % "3.3.6" exclude("org.webjars", "jquery"),
+  "org.webjars" % "bootstrap" % "3.3.6" // exclude("org.webjars", "jquery"),
   // "org.webjars" % "bootstrap-switch" % "3.3.2"
+  // "org.webjars" % "requirejs" % "2.2.0",
 
 )
 

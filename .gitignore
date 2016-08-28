@@ -7,8 +7,6 @@ target
 /.settings
 /RUNNING_PID
 
-app/views/playlistgen.scala.html
-public/javascripts/jquery-1.12.1.min.js
 ### Java template
 
 # Mobile Tools for Java (J2ME)
@@ -47,8 +45,12 @@ test-result
 server.pid
 *.eml
 /dist/
-/public/bootstrap-3.3.6-dist/
-/public/javascripts/d3.min.js
-/public/javascripts/c3.min.js
-/public/stylesheets/c3.css
-/public/stylesheets/c3.min.css
+
+###
+#public/javascripts/jquery-1.12.1.min.js
+#/public/bootstrap-3.3.6-dist/
+#/public/javascripts/d3.min.js
+#/public/javascripts/c3.min.js
+#/public/stylesheets/c3.css
+#/public/stylesheets/c3.min.css
+###
