@@ -1,4 +1,4 @@
-name := """Genetic-Playlists"""
+name := """musicgene"""
 
 version := "1.0-SNAPSHOT"
 
