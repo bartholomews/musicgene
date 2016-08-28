@@ -24,7 +24,7 @@ class AuthController @Inject() extends Controller {
       case Some(code) =>
         spotify.getAccessToken(code)
         Ok(views.html.callback("Welcome, " + spotify.getName))
-      case None => BadRequest("Something went wrong! Please go back and try again.")
+      case None => BadRequest("Something went wrong. Please go back and try again.")
     }
     /**
       * TODO

@@ -13,8 +13,11 @@
                 <h1>GENETIC PLAYLISTS</h1>
                 <p>Create context-aware playlists</p>
                 <p>based on content-based audio analysis features</p>
-                <form action = "@routes.AuthController.auth" method = "post">
-                    <button class="btn btn-success btn-lg">Login</button>
+                <form action = "@routes.SpotifyController.auth" method = "get">
+                    <button class="btn btn-success btn-lg">Login with Spotify</button>
+                </form>
+                <form action = "@routes.HomeController.getSampleTracks" method = "get">
+                    <button class="btn btn-success btn-lg">Access a sample list of tracks (no login required)</button>
                 </form>
             </div>
         </body>

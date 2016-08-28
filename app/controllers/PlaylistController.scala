@@ -3,7 +3,7 @@ package controllers
 import javax.inject.{Inject, Singleton}
 
 import model.constraints._
-import model.music.{Cache, MusicCollection, MusicUtil, Song}
+import model.music.{Cache, MusicCollection, ConstraintsParser, Song}
 import model.geneticScala.{CostBasedFitness, GA, GAResponse, Playlist}
 import play.api.libs.json.{JsSuccess, JsValue, Json}
 import play.api.mvc.{Action, Controller}
@@ -28,15 +28,15 @@ class PlaylistController @Inject() extends Controller {
 
     println("received POST request for " + request.body.toString())
 
-    val (name, constraints) = MusicUtil.parseRequest(request.body)
+    val (name, constraints) = ConstraintsParser.parseRequest(request.body)
     println("PARSED CONSTRAINTS: =====> " + constraints.toString())
 
-    val ids = MusicUtil.parseIDS(request.body)
+    val ids = ConstraintsParser.parseIDS(request.body)
  //   println("PARSED IDS ========> " + ids.toString())
 
     // if a constraint with track number is selected, otherwise 20
     // ALL THIS STUFF SHOULD BE MOVED TO ITS OWN CLASS
-    val n = MusicUtil.parseNumberOfTracks(request.body)
+    val n = ConstraintsParser.parseNumberOfTracks(request.body)
 
     // NOT FUNCTIONAL TAKES EXTERNAL VALUES
     def getPlaylist(ids: Vector[String], c: Set[Constraint]): (Playlist, Option[GAResponse]) = {

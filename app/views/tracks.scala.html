@@ -1,7 +1,6 @@
 @import model.music.Song
 
-@import model.music.SpotifySong
-@(title: String, tracks: Vector[(String, Vector[SpotifySong])])
+@(title: String, tracks: Vector[(String, Vector[Song])])
 
 @main("MIR") {
 
@@ -26,7 +25,7 @@
         <body>
 
             <div class="jumbotron text-center" id="jumbotron">
-                <h1 id="playlist-title">Your Saved Playlists</h1>
+                <h1 id="playlist-title">@title's Playlists</h1>
                 <p>Tick the songs to get the analysis.
                     Do something else.
                     See the plot.
@@ -38,8 +37,8 @@
                 <div class="constraints">
                         <div id="constraints-firstLine" class="inline">
                             <p class="inline" id="constraints-firstLine-1">A</p>
-                            <button type="button" class="btn btn-secondary btn-lg" id="numberOfTracks" value="15"
-                            data-toggle="modal" data-target="#modal-tracks">15 tracks</button>
+                            <button type="button" class="btn btn-secondary btn-lg" id="numberOfTracks" value="10"
+                            data-toggle="modal" data-target="#modal-tracks">10 tracks</button>
                             <p class="inline" id="constraints-firstLine-2">playlist with no constraints</p>
                         </div>
                     <div id="input-constraints" data-clean="true">
@@ -115,6 +114,7 @@
                             <th>Album</th>
                             <th>Loudness</th>
                             <th>Tempo</th>
+                            <th>Energy</th>
                             <th>Acousticness</th>
                             <th>Danceability</th>
                             <th>Liveness</th>
@@ -131,6 +131,7 @@
                         <td id="@track.id-album">@track.album</td>
                         <td id="@track.id-loudness">@track.loudness</td>
                         <td id="@track.id-tempo">@track.tempo</td>
+                        <td id="@track.id-energy">@track.energy</td>
                         <td id="@track.id-acousticness">@track.acousticness</td>
                         <td id="@track.id-danceability">@track.danceability</td>
                         <td id="@track.id-liveness">@track.liveness</td>
@@ -254,10 +255,12 @@
                                 <option id="valueConstraint-duration" value="Duration">Duration</option>
                                 <option id="valueConstraint-acousticness" value="Acousticness">Acousticness</option>
                                 <option id="valueConstraint-liveness" value="Liveness">Liveness</option>
+                                <option id="valueConstraint-danceability" value="Danceability">Danceability</option>
+                                <option id="valueConstraint-energy" value="Energy">Energy</option>
                             </select>
                             <br/>
-                            <label for="radio-IncludeLarger" class="radio-inline"><input type="radio" id="radio-IncludeLarger" name="monotonicValue" value="IncludeLarger">no less than (HIGHEST?)</label>
-                            <label for="radio-IncludeSmaller" class="radio-inline"><input type="radio" id="radio-IncludeSmaller" name="monotonicValue" value="IncludeSmaller">no more than(LOWEST?)</label>
+                            <label for="radio-IncludeLarger" class="radio-inline"><input type="radio" id="radio-IncludeLarger" name="monotonicValue" value="IncludeLarger">no less than</label>
+                            <label for="radio-IncludeSmaller" class="radio-inline"><input type="radio" id="radio-IncludeSmaller" name="monotonicValue" value="IncludeSmaller">no more than</label>
                             <label for="radio-IncludeEquals" class="radio-inline"><input type="radio" id="radio-IncludeEquals" name="monotonicValue" value="IncludeEquals" checked="checked">about</label>
                             <label class="inline" for="unary-input">
                                 @* class="form-control" *@
@@ -307,6 +310,8 @@
                                 <option id="rangeConstraint-acousticness" value="Acousticness">Acousticness</option>
                                 <option id="rangeConstraint-liveness" value="Liveness">Liveness</option>
                                 <option id="rangeConstraint-speechiness" value="Speechiness">Speechiness</option>
+                                <option id="valueConstraint-danceability" value="Danceability">Danceability</option>
+                                <option id="valueConstraint-energy" value="Energy">Energy</option>
                             </select> <br/>
                         </div>
                         <div class="modal-footer">
