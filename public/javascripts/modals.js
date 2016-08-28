@@ -19,7 +19,7 @@ function focusInputOnOpenModal() {
 
 /**
  * On each input box in a modal,
- * if 'Enter' is pressed the 'Save' button will be triggered.2
+ * if 'Enter' is pressed the 'Save' button will be triggered.
  * ----------
  * reference:
  * {@link http://stackoverflow.com/a/155265}

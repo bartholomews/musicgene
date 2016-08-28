@@ -17,8 +17,8 @@ function resetConstraints() {
  */
 function selectNumberOfTracks() {
     var numberOfTracks = document.getElementById('input-numberOfTracks').value;
-    if(numberOfTracks < 5 || numberOfTracks > 50) {
-        alert("A new playlist can have between 5 and 50 tracks;");
+    if(numberOfTracks < 5 || numberOfTracks > 20) {
+        alert("A new playlist can have between 5 and 20 tracks;");
         return false;
     } else {
         var n = document.getElementById('numberOfTracks');
