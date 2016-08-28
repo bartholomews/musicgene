@@ -76,11 +76,17 @@ class SpotifyController @Inject() extends Controller {
   def getPlaylistCollection(playlist: SimplePlaylist): (SimplePlaylist, Vector[Song]) = {
     println("creating playlist collection..")
     val trackList: Vector[Track] = spotify.getPlaylistTracks(playlist).map(t => t.getTrack).toVector
+
+  /*
     val (inCache, outCache) = Cache.getFromCache(trackList.map(t => t.getId))
     (playlist, inCache ++ MusicUtil.toSongs(
       trackList.filter(t => outCache.contains(t.getId))
                 .map { t => (t, spotify.getAnalysis(t.getId)) }
     ))
+    */
+
+    (playlist, MusicUtil.toSongs(trackList.map(t => (t, spotify.getAnalysis(t.getId)))))
+
   }
 
   def getTracksFeatures(list: Vector[Track]): Vector[(Track, AudioFeature)] = {
