@@ -6,7 +6,7 @@ import com.wrapper.spotify.exceptions.BadRequestException
 import model.music.{Cache, Song}
 import play.api.mvc.{Action, Controller}
 import play.modules.reactivemongo.{MongoController, ReactiveMongoApi, ReactiveMongoComponents}
-import reactivemongo.api.MongoConnection
+import reactivemongo.api.{MongoConnection, MongoDriver}
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.BSONDocument
@@ -89,7 +89,9 @@ def writePlaylistsToJSON(db: List[(SimplePlaylist, List[Song])]) = {
       "lastName" -> "Godbillon",
       "age" -> 29)
 
-    val futureCollection: Future[BSONCollection] =
+    val futureCollection: Future[BSONCollection] = {
+
+      val drive = new MongoDriver
       reactiveMongoApi.database.map(_.collection[BSONCollection]("Tracks"))
     futureCollection.onComplete {
       case Failure(e) => {
