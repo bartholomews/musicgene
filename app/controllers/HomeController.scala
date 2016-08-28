@@ -8,11 +8,12 @@ import play.api.mvc.{Action, Controller}
 import play.modules.reactivemongo.{MongoController, ReactiveMongoApi, ReactiveMongoComponents}
 import reactivemongo.api.{MongoConnection, MongoDriver}
 import reactivemongo.api.collections.bson.BSONCollection
+import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.BSONDocument
 
 import collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
   *
@@ -86,7 +87,30 @@ def writePlaylistsToJSON(db: List[(SimplePlaylist, List[Song])]) = {
     resolve()
     println("DB_RESOLVED")
     val database = connection.db("heroku_pzmhfhvt")
-    println("OK")
+ //   val collection = database.collection[BSONCollection]("Tracks")
+    val collection = database[BSONCollection]("Tracks")
+    println("I GOT TRACK COLLECTION")
+
+    val document1 = BSONDocument(
+      "firstName" -> "Stephane",
+      "lastName" -> "Godbillon",
+      "age" -> 29)
+
+    insertDoc1(collection, document1)
+    println("ALRIGHTY")
+
+  }
+
+  def insertDoc1(coll: BSONCollection, doc: BSONDocument): Future[Unit] = {
+    val writeRes: Future[WriteResult] = coll.insert(doc)
+
+    writeRes.onComplete { // Dummy callbacks
+      case Failure(e) => e.printStackTrace()
+      case Success(writeResult) =>
+        println(s"successfully inserted document with result: $writeResult")
+    }
+
+    writeRes.map(_ => {}) // in this example, do nothing with the success
   }
 
     /**
