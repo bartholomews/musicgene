@@ -45,6 +45,7 @@ test-result
 server.pid
 *.eml
 /dist/
+/conf/application.conf
 
 ###
 #public/javascripts/jquery-1.12.1.min.js
