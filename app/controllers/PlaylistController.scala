@@ -5,9 +5,8 @@ import javax.inject.{Inject, Singleton}
 import model.constraints._
 import model.music.{Cache, ConstraintsParser, MusicCollection, Song}
 import model.geneticScala.{CostBasedFitness, GA, GAResponse, Playlist}
-import play.api.libs.json.{JsSuccess, JsValue, Json}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, Controller}
-import play.modules.reactivemongo.{MongoController, ReactiveMongoApi, ReactiveMongoComponents}
 
 import scala.util.parsing.json.JSONArray
 
@@ -15,8 +14,7 @@ import scala.util.parsing.json.JSONArray
   *
   */
 @Singleton
-class PlaylistController @Inject()(val reactiveMongoApi: ReactiveMongoApi)
-  extends Controller with MongoController with ReactiveMongoComponents {
+class PlaylistController @Inject() extends Controller {
 
   // @see https://www.playframework.com/documentation/2.0/ScalaJsonRequests
   /*

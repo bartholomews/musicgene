@@ -9,12 +9,6 @@ import com.wrapper.spotify.exceptions.BadRequestException
 import model.music.{Cache, Song}
 import play.api.Play
 import play.api.mvc.{Action, Controller}
-import play.modules.reactivemongo.{MongoController, ReactiveMongoApi, ReactiveMongoComponents}
-import reactivemongo.api.{MongoConnection, MongoConnectionOptions, MongoDriver, ScramSha1Authentication}
-import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.api.commands.WriteResult
-import reactivemongo.bson.BSONDocument
-import reactivemongo.core.nodeset.Authenticate
 
 import collection.JavaConverters._
 import scala.concurrent.duration.Duration
@@ -35,11 +29,6 @@ import com.mongodb.casbah.Imports._
   */
 @Singleton
 class HomeController @Inject()(implicit exec: ExecutionContext, config: play.api.Configuration) extends Controller {
-
-  val doc = BSONDocument(
-    "firstName" -> "Stephane",
-    "lastName" -> "Godbillon",
-    "age" -> 29)
 
   /**
     * TODO THE WHOLE PROCESS OF RETRIEVING DATA SHOULD GO TO ITN OWN CLASS
