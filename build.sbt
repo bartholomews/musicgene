@@ -6,6 +6,8 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.11.7"
 
+// val reactiveMongoVer = "0.11.11"
+
 libraryDependencies ++= Seq(
   jdbc,
   cache,
@@ -27,9 +29,8 @@ libraryDependencies ++= Seq(
   "org.webjars" % "bootstrap" % "3.3.6", // exclude("org.webjars", "jquery"),
   // "org.webjars" % "bootstrap-switch" % "3.3.2"
   // "org.webjars" % "requirejs" % "2.2.0",
-  "org.reactivemongo" %% "play2-reactivemongo" % "0.11.14"
-
-
+  // "org.reactivemongo" %% "play2-reactivemongo" % reactiveMongoVer,
+  "org.mongodb" %% "casbah" % "3.0.0"
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
@@ -38,6 +39,7 @@ resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
 add RequireJS plugin to the list of stages.
 This allows the plugin to manipulate the JavaScript assets
 when packaging the application as a jar.
+DOESN'T PLAY WELL WITH HEROKU
 */
 // pipelineStages := Seq(rjs)
 
