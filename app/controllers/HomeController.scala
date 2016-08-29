@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 
-import com.mongodb.ServerAddress
+import com.mongodb.{DBCollection, ServerAddress}
 import com.mongodb.casbah.commons.MongoDBObject
 import com.mongodb.casbah.{MongoClient, MongoClientURI, MongoCredential}
 import com.wrapper.spotify.exceptions.BadRequestException
@@ -14,8 +14,11 @@ import collection.JavaConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
-
 import com.mongodb.casbah.Imports._
+import play.api.libs.json.JsValue
+import util.JsonUtil
+
+import scala.util.parsing.json.JSONObject
 
 /**
   *
@@ -54,9 +57,9 @@ class HomeController @Inject()(implicit exec: ExecutionContext, config: play.api
     try {
       val spotify = new SpotifyController
       val userName = spotify.getSpotifyName
-      val playlists = spotify.getPlaylists
-      //playlists.foreach(v => writeSongsToJSON(v._2))
-      writeToDB(Vector())
+      val playlists: Vector[(String, Vector[Song])] = spotify.getPlaylists
+      // TODO async write to DB
+      writeToDB(playlists.flatMap(p => p._2))
       Ok(views.html.tracks(userName, playlists))
     } catch {
       // @see https://developer.spotify.com/web-api/user-guide/
@@ -69,30 +72,25 @@ class HomeController @Inject()(implicit exec: ExecutionContext, config: play.api
     }
   }
 
+  private def alreadyInDB[T](key: String, value: T, collection: MongoCollection) = {
+    val q = MongoDBObject(key -> value)
+    collection.find(q).nonEmpty
+  }
+
   def writeToDB(songs: Vector[Song]) = {
-
-    val db = getMongoDB
-
-    val collection = db("tracks")
-    val allDocs = collection.find()
-    println("FIND()")
-    println(allDocs)
-    for(doc <- allDocs) println(doc)
-    val n = collection.count()
-    println("COUNT: " + n)
-    /*
-    val a = MongoDBObject("hello" -> "world")
-    collection.insert( a )
-    println("INSERT()")
-    */
+    val collection = getMongoDB("tracks")
+    val jsValues = JsonUtil.toJson(songs.filterNot(s => alreadyInDB("spotify_id", s.id, collection)))
+    jsValues.foreach { track =>
+      collection.insert(com.mongodb.util.JSON.parse(track.toString).asInstanceOf[DBObject])
+    }
   }
 
   private def getMongoDB: MongoDB = {
     val name = "admin"
     val host = config.underlying.getString("mongodb.host")
     val port = config.underlying.getInt("mongodb.port")
-    val dbName = config.underlying.getString("mongodb.db")
     val server = new ServerAddress(host, port)
+    val dbName = config.underlying.getString("mongodb.db")
     val credentials = MongoCredential.createScramSha1Credential(name, dbName, name.toCharArray)
     val mongoClient = MongoClient(server, List(credentials))
     mongoClient(dbName)
