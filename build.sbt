@@ -45,7 +45,7 @@ DOESN'T PLAY WELL WITH HEROKU
 
 // https://www.playframework.com/documentation/2.4.0/ScalaRouting#Dependency-Injection
 // http://reactivemongo.org/releases/0.11/documentation/tutorial/play2.html
-routesGenerator := InjectedRoutesGenerator
+// routesGenerator := InjectedRoutesGenerator
 
 // http://stackoverflow.com/a/22978218
 sources in doc in Compile := List()
