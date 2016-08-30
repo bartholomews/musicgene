@@ -32,7 +32,6 @@ import scala.util.parsing.json.JSONObject
   */
 @Singleton
 class HomeController @Inject()(implicit exec: ExecutionContext, config: play.api.Configuration) extends Controller {
-
   /**
     * TODO THE WHOLE PROCESS OF RETRIEVING DATA SHOULD GO TO ITN OWN CLASS
     * I NEED MUSIC_UTIL.GetSONG(id) as well (now in Cache)
@@ -47,9 +46,8 @@ class HomeController @Inject()(implicit exec: ExecutionContext, config: play.api
   }
 
   def getSampleTracks = Action {
-    val songs = Cache.extractSongs
-    // TODO inject
-    Ok(views.html.tracks("SAMPLE SONGS", Vector(("A list of unsorted tracks with different characteristics",
+    val songs = MongoController.readAll
+    Ok(views.html.tracks("sample songs", Vector(("A list of unsorted tracks with different characteristics",
       songs))))
   }
 
@@ -59,7 +57,7 @@ class HomeController @Inject()(implicit exec: ExecutionContext, config: play.api
       val userName = spotify.getSpotifyName
       val playlists: Vector[(String, Vector[Song])] = spotify.getPlaylists
       // TODO async write to DB
-      writeToDB(playlists.flatMap(p => p._2))
+      MongoController.writeToDB(playlists.flatMap(p => p._2))
       Ok(views.html.tracks(userName, playlists))
     } catch {
       // @see https://developer.spotify.com/web-api/user-guide/
@@ -70,30 +68,6 @@ class HomeController @Inject()(implicit exec: ExecutionContext, config: play.api
       // case _  => // some other exception handling
       // case 429 (too many requests) : maybe should be catched in SpotifyController
     }
-  }
-
-  private def alreadyInDB[T](key: String, value: T, collection: MongoCollection) = {
-    val q = MongoDBObject(key -> value)
-    collection.find(q).nonEmpty
-  }
-
-  def writeToDB(songs: Vector[Song]) = {
-    val collection = getMongoDB("tracks")
-    val jsValues = JsonUtil.toJson(songs.filterNot(s => alreadyInDB("spotify_id", s.id, collection)))
-    jsValues.foreach { track =>
-      collection.insert(com.mongodb.util.JSON.parse(track.toString).asInstanceOf[DBObject])
-    }
-  }
-
-  private def getMongoDB: MongoDB = {
-    val name = "admin"
-    val host = config.underlying.getString("mongodb.host")
-    val port = config.underlying.getInt("mongodb.port")
-    val server = new ServerAddress(host, port)
-    val dbName = config.underlying.getString("mongodb.db")
-    val credentials = MongoCredential.createScramSha1Credential(name, dbName, name.toCharArray)
-    val mongoClient = MongoClient(server, List(credentials))
-    mongoClient(dbName)
   }
 
 }
