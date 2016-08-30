@@ -3,7 +3,7 @@ package controllers
 import javax.inject.{Inject, Singleton}
 
 import model.constraints._
-import model.music.{Cache, ConstraintsParser, MusicCollection, Song}
+import model.music.{ConstraintsParser, MusicCollection}
 import model.geneticScala.{CostBasedFitness, GA, GAResponse, Playlist}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, Controller}
@@ -38,17 +38,12 @@ class PlaylistController @Inject() extends Controller {
     // ALL THIS STUFF SHOULD BE MOVED TO ITS OWN CLASS
     val n = ConstraintsParser.parseNumberOfTracks(request.body)
 
-
-
-    val db = new MusicCollection(Vector())
+    val db = new MusicCollection(ids.flatMap(id => MongoController.readByID(id)))
 
     // NOT FUNCTIONAL TAKES EXTERNAL VALUES
     def getPlaylist(ids: Vector[String], c: Set[Constraint]): (Playlist, Option[GAResponse]) = {
-      if (ids.isEmpty) GA.generatePlaylist(db, CostBasedFitness(c), n)
-      else {
-        val songs = Cache.getFromCache(ids)._1
-        GA.generatePlaylist(new MusicCollection(songs), CostBasedFitness(c), n)
-      }
+      if (ids.isEmpty) GA.generatePlaylist(new MusicCollection(MongoController.readAll), CostBasedFitness(c), n)
+      else GA.generatePlaylist(db, CostBasedFitness(c), n)
     }
 
    // val valueConstraints = constraints.filter(c => c.isInstanceOf[MonotonicValue])
@@ -62,7 +57,6 @@ class PlaylistController @Inject() extends Controller {
     }
     */
 
-    // SO YOU TAKE TWICE FROM CACHE SOMETHING YOU ALREADY HAVE?
     val (playlist, _) = getPlaylist(ids, constraints.asInstanceOf[Set[Constraint]])
 
     /*
