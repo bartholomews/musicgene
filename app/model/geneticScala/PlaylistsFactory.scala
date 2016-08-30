@@ -26,12 +26,12 @@ object PlaylistsFactory {
   }
 
   def generatePlaylist(db: MusicCollection, size: Int, f: FitnessFunction): Playlist = {
-    new Playlist(util.Random.shuffle(db.songs.distinct).take(size), f)
+    new Playlist(scala.util.Random.shuffle(db.songs.distinct).take(size), f)
   }
 
   // playlist with the whole collection, removed duplicates
   def generatePlaylist(db: MusicCollection, f: FitnessFunction): Playlist = {
-    new Playlist(util.Random.shuffle(db.songs).distinct, f)
+    new Playlist(scala.util.Random.shuffle(db.songs).distinct, f)
   }
 
   /*  ====================================================================================================

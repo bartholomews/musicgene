@@ -1,5 +1,6 @@
 package model.geneticScala
 
+import controllers.MongoController
 import model.music._
 
 import scala.annotation.tailrec
@@ -19,21 +20,12 @@ object GA {
     generatePlaylist(db, f, length)
   }
 
-  def generatePlaylist(db: MusicCollection, f: FitnessFunction, length: Int): (Playlist, Option[GAResponse]) = {
-    if (f.constraints.isEmpty) {
-      generateRandomPlaylist(db, length, f)
-    } else {
-      val pop = PopFactory.generatePopulation(db, f, length)
-      evolve(pop, 1)
-    }
-  }
-
   // ============================================================================
 
-  def generatePlaylist(f: FitnessFunction, length: Int): (Playlist, Option[GAResponse]) = {
+  def generatePlaylist(db: MusicCollection, f: FitnessFunction, length: Int): (Playlist, Option[GAResponse]) = {
     if (f.constraints.isEmpty) generateRandomPlaylist(length, f)
     else {
-      val db = new MusicCollection(Cache.extractSongs)
+     // val db = new MusicCollection(Cache.extractSongs)
       val pop = PopFactory.generatePopulation(db, f, length)
       evolve(pop, 1)
     }
@@ -60,19 +52,19 @@ object GA {
 
   // i still feel playlists shouldnt have a fitnessfunc
   def generateRandomPlaylist(length: Int, f: FitnessFunction): (Playlist, Option[GAResponse]) = {
-    (new Playlist(util.Random.shuffle(Cache.extractSongs).take(length), f), None)
+    (new Playlist(scala.util.Random.shuffle(MongoController.readAll).take(length), f), None)
   }
 
   def generateRandomPlaylist(db: MusicCollection, f: FitnessFunction): (Playlist, Option[GAResponse]) = {
-    (new Playlist(util.Random.shuffle(db.songs).take(20), f), None)
+    (new Playlist(scala.util.Random.shuffle(db.songs).take(20), f), None)
   }
 
   def generateRandomPlaylist(db: MusicCollection, length: Int, f: FitnessFunction): (Playlist, Option[GAResponse]) = {
-    (new Playlist(util.Random.shuffle(db.songs).take(length), f), None)
+    (new Playlist(scala.util.Random.shuffle(db.songs).take(length), f), None)
   }
 
   def generateRandomPlaylist(f: FitnessFunction): (Playlist, Option[GAResponse]) = {
-    (new Playlist(util.Random.shuffle(Cache.extractSongs).take(20), f), None)
+    (new Playlist(scala.util.Random.shuffle(MongoController.readAll).take(20), f), None)
   }
 
   @tailrec
