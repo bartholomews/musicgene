@@ -37,6 +37,14 @@ object MongoController {
     }
   }
 
+  def readByID(id: String): Option[Song] = {
+    val query = MongoDBObject("spotify_id" -> id)
+    collection.findOne(query) match {
+      case None => None
+      case Some(e) => Some(parseDBObject(e))
+    }
+  }
+
   def readAll: Vector[Song] = {
     val spotify_id = "spotify_id" $exists true
     collection.find(spotify_id).map(e => parseDBObject(e)).toVector
