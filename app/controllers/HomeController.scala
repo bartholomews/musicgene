@@ -2,27 +2,11 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 
-import com.mongodb.{DBCollection, ServerAddress}
-import com.mongodb.casbah.commons.MongoDBObject
-import com.mongodb.casbah.{MongoClient, MongoClientURI, MongoCredential}
 import com.wrapper.spotify.exceptions.BadRequestException
-import model.music.{Cache, Song}
-import play.api.Play
+import model.music.Song
 import play.api.mvc.{Action, Controller}
+import scala.concurrent.ExecutionContext
 
-import collection.JavaConverters._
-import scala.concurrent.duration.Duration
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
-import com.mongodb.casbah.Imports._
-import play.api.libs.json.JsValue
-import util.JsonUtil
-
-import scala.util.parsing.json.JSONObject
-
-/**
-  *
-  */
 /**
   * This controller creates an `Action` to handle HTTP requests to the
   * application's home page.
