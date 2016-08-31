@@ -52,7 +52,7 @@ object MongoController {
 
   def parseDBObject(obj: DBObject): Song = {
     Song(obj.get("spotify_id").asInstanceOf[String],
-      obj.get("attributes").asInstanceOf[DBObject].map(a => MusicUtil.extractAttribute(a)).toSet)
+      obj.get("attributes").asInstanceOf[DBObject].map(a => MusicUtil.extractAttribute(a._1, a._2.toString)).toSet)
   }
 
 }

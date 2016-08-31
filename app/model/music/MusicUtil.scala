@@ -9,13 +9,13 @@ import play.api.libs.json.JsValue
 object MusicUtil {
 
   // TODO reflection getName.getSimpleName pattern matched on Attribute type
-  def extractAttribute(tuple: (String, AnyRef)): Attribute =
+  def extractAttribute(tuple: (String, String)): Attribute =
     tuple match {
         // TextAttribute
-      case ("Preview_URL", value) => Preview_URL(value.asInstanceOf[String])
-      case ("Title", value) => Title(value.asInstanceOf[String])
-      case ("Artist", value) => Artist(value.asInstanceOf[String])
-      case ("Album", value) => Album(value.asInstanceOf[String])
+      case ("Preview_URL", value) => Preview_URL(value)
+      case ("Title", value) => Title(value)
+      case ("Artist", value) => Artist(value)
+      case ("Album", value) => Album(value)
         // AudioAttribute
       case ("Tempo", value) => Tempo(getDoubleOrMax(value))
       case ("Energy", value) => Energy(getDoubleOrMax(value))
@@ -28,15 +28,15 @@ object MusicUtil {
       case ("Liveness", value) => Liveness(getDoubleOrMax(value))
       case ("Danceability", value) => Danceability(getDoubleOrMax(value))
       // TimeAttribute
-      case ("Key", value) => Key(value.asInstanceOf[Int])
-      case ("Mode", value) => Mode(value.asInstanceOf[Int])
-      case ("Time_Signature", value) => Time_Signature(value.asInstanceOf[Int])
+      case ("Key", value) => Key(value.toInt)
+      case ("Mode", value) => Mode(value.toInt)
+      case ("Time_Signature", value) => Time_Signature(value.toInt)
       case (unsupported, _) => throw new Exception(unsupported + ": Attribute not matched")
     }
 
   // http://stackoverflow.com/a/9542430
-  private def getDoubleOrMax(value: AnyRef): Double = {
-    try { value.asInstanceOf[Double] } catch { case _: Throwable => Double.MaxValue }
+  private def getDoubleOrMax(value: String): Double = {
+    try { value.toDouble } catch { case _: Throwable => Double.MaxValue }
   }
 
   def toSongs(songs: Vector[(Track, AudioFeature)]): Vector[Song] = songs.map(t => toSong(t))
