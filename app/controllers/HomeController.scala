@@ -15,7 +15,7 @@ import scala.concurrent.ExecutionContext
   * if not in the cache then retrieve the audioAnalysis
   */
 @Singleton
-class HomeController @Inject()(implicit exec: ExecutionContext, config: play.api.Configuration) extends Controller {
+class HomeController @Inject() extends Controller {
   /**
     * TODO THE WHOLE PROCESS OF RETRIEVING DATA SHOULD GO TO ITN OWN CLASS
     * I NEED MUSIC_UTIL.GetSONG(id) as well (now in Cache)
@@ -40,13 +40,11 @@ class HomeController @Inject()(implicit exec: ExecutionContext, config: play.api
       val spotify = new SpotifyController
       val userName = spotify.getSpotifyName
       val playlists: Vector[(String, Vector[Song])] = spotify.getPlaylists
-      // TODO async write to DB
-      MongoController.writeToDB(playlists.flatMap(p => p._2))
       Ok(views.html.tracks(userName, playlists))
     } catch {
       // @see https://developer.spotify.com/web-api/user-guide/
       case _: BadRequestException => {
-        BadRequest("That was a bad request.")
+        BadRequest("That was a bad request.") // 429 falls here
       } // TODO implement Button BACK to index
       case _: NullPointerException => BadRequest("Something went wrong.") // should return something else not badreq>
       // case _  => // some other exception handling

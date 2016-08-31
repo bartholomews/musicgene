@@ -9,6 +9,7 @@ import com.wrapper.spotify.exceptions.WebApiException;
 import com.wrapper.spotify.methods.CurrentUserRequest;
 import com.wrapper.spotify.methods.authentication.ClientCredentialsGrantRequest;
 import com.wrapper.spotify.models.*;
+import net.sf.json.JSONException;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -26,7 +27,8 @@ public class SpotifyJavaController {
     // TODO inject?
     private static final String CLIENT_ID = "24c87b0353a141768e9b842eb7bd0f67";
     private static final String CLIENT_SECRET = "cc5d6ebca4b445c782b6aced791710ab";
-    private static final String REDIRECT_URI = "https://musicgene.herokuapp.com/callback";
+    private static final String REDIRECT_URI = "http://localhost:9000/callback";
+//    private static final String REDIRECT_URI = "https://musicgene.herokuapp.com/callback";
 
     private SpotifyJavaController() {}
 
@@ -215,9 +217,9 @@ public class SpotifyJavaController {
     public List<SimplePlaylist> getSavedPlaylists() throws IOException, WebApiException {
         try {
             List<SimplePlaylist> list = api.getPlaylistsForUser(getID()).build().get().getItems();
-            for (SimplePlaylist p : list) {
-                System.out.println(p.getName());
-                // find a nice way to get ALL playlists, goddamit.
+            //for (SimplePlaylist p : list) {
+                //System.out.println(p.getName());
+                // find a nice way to get ALL playlists.
                 // again, too many requests.
             /*
             List<PlaylistTrack> page1 = api.getPlaylistTracks(id, p.getId()).build().get().getItems();
@@ -225,7 +227,7 @@ public class SpotifyJavaController {
                 System.out.println(t.getTrack().getName());
             }
             */
-            }
+            //}
             return list;
         } catch(IOException io) {
             System.out.println(io.getMessage() + ": IOException");
@@ -239,11 +241,18 @@ public class SpotifyJavaController {
     // TODO it should work with "current user" get playlist, try with multiple (i.e. no need to getID)
     public List<PlaylistTrack> getPlaylistTracks(SimplePlaylist playlist) throws IOException, WebApiException {
         try {
-            return api.getPlaylistTracks(playlist.getOwner().getId(), playlist.getId()).build().get().getItems();
+            Page<PlaylistTrack> tracks =
+                    api.getPlaylistTracks(playlist.getOwner().getId(), playlist.getId()).build().get();
+            System.out.println("RETRIEVING PAGES......");
+            return tracks.getItems();
         } catch (WebApiException ex) {
             // 401 = "Unauthorized" (should have a button or straight redirect to index and log in again)
             System.out.println("getPlaylistTracks error code: " + ex.getMessage());
             throw ex;
+        } catch (JSONException ex) {
+            ex.getMessage();
+            return null;
+            // return null;
         }
     }
 
@@ -280,7 +289,11 @@ public class SpotifyJavaController {
 
     // TODO getAsync, and maybe also BUILD THE NEW JAR!
     public AudioFeature getAnalysis(String id) throws IOException, WebApiException {
-        return api.getAudioFeature(id).build().get();
+        try {
+            return api.getAudioFeature(id).build().get();
+        } catch(JSONException ex) {
+            return null;
+        }
     }
 
     public void getDetailedAnalysis(AudioFeature a) throws IOException {
