@@ -17,15 +17,16 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
 
   def size = songs.length
 
-  val scores: Set[Score] = f.score(this)
+  val scores: Seq[Score] = f.score(this)
 
   val (matched, unmatched) = scores.partition(s => s.matched)
 
   val matchedIndexes: Set[Int] = {
-    matched.flatMap(s => s.info).map(i => i.index)
+    matched.flatMap(s => s.info).map(i => i.index).toSet
   }
+
   val unmatchedIndexes: Set[Int] = {
-    unmatched.flatMap(s => s.info).map(i => i.index)
+    unmatched.flatMap(s => s.info).map(i => i.index).toSet
   }
 
   val matchedWorst: Option[Int] = {
@@ -33,7 +34,6 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
     if (m.isEmpty) None
     else Some(m.maxBy(i => i.distance).index)
   }
-
 
   def distance(i: Int): Option[Double] = scores.flatMap(s => s.info).find(x => x.index == i) match {
     case None => None

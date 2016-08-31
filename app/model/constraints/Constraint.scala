@@ -23,7 +23,7 @@ import model.music._
 // db = MusicCollection? Array/Seq[Song]? Something else?
 
 trait Constraint {
-  def score(p: Playlist): Set[Score]
+  def score(p: Playlist): Seq[Score]
 }
 
 trait RangeConstraint extends Constraint {
@@ -55,7 +55,7 @@ case class Include(lo: Int, hi: Int, that: Attribute) extends UnaryConstraint {
     for (i <- lo until hi) yield {
       RangeScore(matched = p.songs(i).attributes.contains(that))
     }
-  }.toSet
+  }
 }
 
 /**
@@ -70,7 +70,7 @@ case class Exclude(lo: Int, hi: Int, that: Attribute) extends UnaryConstraint {
     for (i <- lo until hi) yield {
       RangeScore(matched = !p.songs(i).attributes.contains(that))
     }
-  }.toSet
+  }
 }
 
 // ================================================================================================
@@ -96,10 +96,10 @@ trait MonotonicValue extends MonotonicConstraint {
 case class IncludeSmaller(lo: Int, hi: Int, that: AudioAttribute) extends MonotonicValue {
   override def score(p: Playlist) = {
     assert(inRange(p))
-    (for (index <- lo to hi) yield {
+    for (index <- lo to hi) yield {
       val t = ConstraintsUtil.compareDistance(p.songs(index), that, (x, y) => x < y)
       RangeScore(t._1, Some(Info(that, index, t._2)))
-    }).toSet
+    }
   }
 }
 
@@ -112,12 +112,12 @@ case class IncludeSmaller(lo: Int, hi: Int, that: AudioAttribute) extends Monoto
   * @return true if the attribute x of the song matches y, false otherwise
   */
 case class IncludeLarger(lo: Int, hi: Int, that: AudioAttribute) extends MonotonicValue {
-  override def score(p: Playlist): Set[Score] = {
+  override def score(p: Playlist) = {
     assert(inRange(p))
-    (for (index <- lo to hi) yield {
+    for (index <- lo to hi) yield {
       val t = ConstraintsUtil.compareDistance(p.songs(index), that, (x, y) => x > y)
       RangeScore(t._1, Some(Info(that, index, t._2)))
-    }).toSet
+    }
   }
 }
 
@@ -132,11 +132,11 @@ case class IncludeLarger(lo: Int, hi: Int, that: AudioAttribute) extends Monoton
 case class IncludeEquals(lo: Int, hi: Int, that: AudioAttribute/*tolerance: Double,*/) extends MonotonicValue {
   override def score(p: Playlist) = {
     assert(inRange(p))
-    (for (index <- lo to hi) yield {
+    for (index <- lo to hi) yield {
    //   val t = ConstraintsUtil.compareEquals(p.songs(index), that, tolerance, penalty)
       val t = ConstraintsUtil.compareDistance(p.songs(index), that, (x, y) => x == y)
       RangeScore(t._1, Some(Info(that, index, t._2)))
-    }).toSet
+    }
   }
 }
 
@@ -149,16 +149,16 @@ case class IncludeEquals(lo: Int, hi: Int, that: AudioAttribute/*tolerance: Doub
   */
 trait MonotonicRange extends MonotonicConstraint {
   // calculate monotonic distance as per f(Double => Boolean)
-  def score(p: Playlist, that: AudioAttribute, f: (Double, Double) => Boolean): Set[Score] = {
+  def score(p: Playlist, that: AudioAttribute, f: (Double, Double) => Boolean) = {
     assert(inRange(p))
-    (for (index <- lo until hi) yield {
+    for (index <- lo until hi) yield {
       ConstraintsUtil.extractValues(p.songs(index), p.songs(index + 1), that) match {
         case None => RangeScore(matched = false, Some(Info(that, index)))
         case Some((x, y)) =>
           val t = ConstraintsUtil.monotonicDistance(x, y, that, f(x, y))
           RangeScore(t._1, Some(Info(that, index, t._2)))
       }
-    }).toSet
+    }
   }
 }
 

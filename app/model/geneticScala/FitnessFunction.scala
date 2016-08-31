@@ -10,10 +10,10 @@ import model.music.Attribute
   */
 trait FitnessFunction {
   val constraints: Set[Constraint]
-  def score(playlist: Playlist): Set[Score] = constraints.flatMap(c => c.score(playlist))
+  def score(playlist: Playlist): Seq[Score] = constraints.toSeq.flatMap(c => c.score(playlist))
   def getFitness(playlist: Playlist): Double
   def getDistance(playlist: Playlist): Double
-  def mapping(p: Playlist): Map[Attribute, Set[(Int, Double)]]
+  def mapping(p: Playlist): Map[Attribute, Seq[(Int, Double)]]
 }
 
 
@@ -64,7 +64,7 @@ case class CostBasedFitness(constraints: Set[Constraint]) extends FitnessFunctio
   }
 
   // TODO
-  def mapping(p: Playlist): Map[Attribute, Set[(Int, Double)]] = {
+  override def mapping(p: Playlist): Map[Attribute, Seq[(Int, Double)]] = {
     p.scores.flatMap(scores => scores.info)
       .groupBy(info => info.attr)
       // m: Map[Attribute, Set[MonotonicInfo]] mapped into Attribute -> Set[(Int, Double)]
