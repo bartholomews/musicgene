@@ -23,7 +23,8 @@ object PopFactory {
     */
 
     //  newPOP.playlists.foreach(p => println(p.fitness)
-    new Population(elites.sortWith((p1, p2) => p1.distance < p2.distance) ++ inferiors)
+    //new Population(p.playlists.sortWith((p1, p2) => p1.distance < p2.distance))
+   new Population(elites.sortWith((p1, p2) => p1.distance < p2.distance) ++ inferiors)
   }
 
   /**
