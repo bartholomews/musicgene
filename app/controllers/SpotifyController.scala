@@ -77,11 +77,18 @@ class SpotifyController @Inject() extends Controller {
     println("creating playlist collection..")
     try {
       val trackList: Vector[Track] = spotify.getPlaylistTracks(playlist).map(t => t.getTrack).toVector
+      println("RETRIEVED TRACKLIST")
+
       val inDB: Vector[Song] = trackList.flatMap(t => MongoController.readByID(t.getId))
+
       val outDB: Vector[Song] = MusicUtil.toSongs(
         trackList.filterNot(t => inDB.exists(s => s.id == t.getId))
-          .map { t => (t, spotify.getAnalysis(t.getId)) }
-      )
+          .flatMap(t => spotify.getAnalysis(t.getId) match {
+            case None => None
+            case Some(analysis) => Some(t, analysis)
+          }
+      ))
+
       println(outDB.size + " songs fetched from Spotify API")
       // TODO SHOULD BE ASYNC
       MongoController.writeToDB(outDB)
@@ -90,16 +97,6 @@ class SpotifyController @Inject() extends Controller {
     } catch {
       case _: NullPointerException => None
     }
-  }
-
-  def getTracksFeatures(list: Vector[Track]): Vector[(Track, AudioFeature)] = {
-    list.map { t => (t, spotify.getAnalysis(t.getId)) }
-  }
-
-  // TODO async and multibucket
-  def createCollection(list: Vector[Track]): MusicCollection = {
-    val tracks: Vector[(Track, AudioFeature)] = list.map { t => (t, spotify.getAnalysis(t.getId)) }
-    new MusicCollection(MusicUtil.toSongs(tracks))
   }
 
   def getPlaylistTracks(playlist: SimplePlaylist): Vector[Track] = {

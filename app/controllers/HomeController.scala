@@ -43,7 +43,8 @@ class HomeController @Inject() extends Controller {
       Ok(views.html.tracks(userName, playlists))
     } catch {
       // @see https://developer.spotify.com/web-api/user-guide/
-      case _: BadRequestException => {
+      case x: BadRequestException => {
+        x.printStackTrace()
         BadRequest("That was a bad request.") // 429 falls here
       } // TODO implement Button BACK to index
       case _: NullPointerException => BadRequest("Something went wrong.") // should return something else not badreq>

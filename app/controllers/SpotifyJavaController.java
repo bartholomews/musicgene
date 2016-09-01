@@ -10,6 +10,9 @@ import com.wrapper.spotify.methods.CurrentUserRequest;
 import com.wrapper.spotify.methods.authentication.ClientCredentialsGrantRequest;
 import com.wrapper.spotify.models.*;
 import net.sf.json.JSONException;
+import scala.None;
+import scala.Option;
+import scala.Some;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -288,11 +291,11 @@ public class SpotifyJavaController {
     }
 
     // TODO getAsync, and maybe also BUILD THE NEW JAR!
-    public AudioFeature getAnalysis(String id) throws IOException, WebApiException {
+    public Option<AudioFeature> getAnalysis(String id) { //throws IOException, WebApiException {
         try {
-            return api.getAudioFeature(id).build().get();
-        } catch(JSONException ex) {
-            return null;
+            return Option.apply(api.getAudioFeature(id).build().get());
+        } catch(Exception ex) {
+            return Option.apply(null);
         }
     }
 
