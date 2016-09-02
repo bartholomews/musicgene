@@ -5,5 +5,4 @@ import model.constraints.Constraint
 /**
   *
   */
-case class PlaylistRequest(name: String, numberOfTracks: Int, ids: Vector[String], constraints: Set[Constraint])
-
+case class PlaylistRequest(name: String, length: Int, ids: Vector[String], constraints: Set[Constraint])
