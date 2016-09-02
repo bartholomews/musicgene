@@ -1,6 +1,6 @@
 package model.constraints
 
-import model.geneticScala.Playlist
+import model.genetic.Playlist
 import model.music._
 
 /**
@@ -69,6 +69,30 @@ case class Exclude(lo: Int, hi: Int, that: Attribute) extends IndexedConstraint 
   }
 }
 
+case class AdjacentInclude(lo: Int, hi: Int, that: Attribute) extends IndexedConstraint {
+  override def score(p: Playlist) = {
+    for(index <- lo until hi) yield {
+      val info = Some(Info(that, index))
+      ConstraintsUtil.extractValues(p.songs(index), p.songs(index + 1), that) match {
+        case None => Score(matched = false, info)
+        case Some((x, y)) => Score(x == y, info)
+      }
+    }
+  }
+}
+
+case class AdjacentExclude(lo: Int, hi: Int, that: Attribute) extends IndexedConstraint {
+  override def score(p: Playlist) = {
+    for(index <- lo until hi) yield {
+      val info = Some(Info(that, index))
+      ConstraintsUtil.extractValues(p.songs(index), p.songs(index + 1), that) match {
+        case None => Score(matched = true, info)
+        case Some((x, y)) => Score(x != y, info)
+      }
+    }
+  }
+}
+
 // ================================================================================================
 // MONOTONIC CONSTRAINT
 // ================================================================================================
@@ -78,7 +102,6 @@ trait AudioConstraint extends IndexedConstraint {
 }
 
 trait MonotonicValue extends AudioConstraint {
-  val penalty = Double.MaxValue // this is currently not used, should remove from ConstraintsUtil
   def score(p: Playlist, f: (Double, Double) => Boolean): Seq[Score] = {
     assert(inRange(p))
     for(index <- lo to hi) yield {
@@ -192,6 +215,33 @@ trait MonotonicTransition extends AudioConstraint {
     case class DecreasingTransition(lo: Int, hi: Int, that: AudioAttribute) extends MonotonicTransition {
       override def score(p: Playlist) = score(p, (x, y) => x > y)
     }
+
+
+// ================================================================================================
+// UNARY CONSTRAINT: Can accept `Any` Attribute value
+// ================================================================================================
+
+trait RangeConstraint extends AudioConstraint {
+  val from: Double
+  val to: Double
+  def score(p: Playlist, f: Double => Boolean): Seq[Score] = {
+    for(index <- lo to hi) yield {
+      val info = Some(Info(that, index))
+      ConstraintsUtil.extractValue(p.songs(index), that) match {
+        case None => Score(matched = false, info)
+        case Some(x) => Score(f(x), info)
+      }
+    }
+  }
+}
+
+case class InRange(lo: Int, hi: Int, from: Double, to: Double, that: AudioAttribute) extends RangeConstraint {
+  override def score(p: Playlist) = score(p, x => x >= from && x <= to)
+}
+
+case class OutRange(lo: Int, hi: Int, from: Double, to: Double, that: AudioAttribute) extends RangeConstraint {
+  override def score(p: Playlist) = score(p, x => x < from || x > to)
+}
 
 
 /*
