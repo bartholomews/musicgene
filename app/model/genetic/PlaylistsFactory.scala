@@ -1,4 +1,4 @@
-package model.geneticScala
+package model.genetic
 
 import model.music.MusicCollection
 

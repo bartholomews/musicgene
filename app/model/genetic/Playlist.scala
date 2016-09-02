@@ -1,4 +1,4 @@
-package model.geneticScala
+package model.genetic
 
 import model.constraints.{Score}
 import model.music.{Loudness, Song, Tempo, Title}
@@ -35,7 +35,7 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
     else Some(m.maxBy(i => i.distance).index)
   }
 
-  def distance(i: Int): Option[Double] = scores.flatMap(s => s.info).find(x => x.index == i) match {
+  def distance(n: Int): Option[Double] = scores.flatMap(s => s.info).find(i => i.index == n) match {
     case None => None
     case Some(y) => Some(y.distance)
   }
