@@ -1,36 +1,81 @@
 package model.music
 
-import com.fasterxml.jackson.annotation.JsonValue
-
-import scala.reflect.runtime.{universe => ru}
-import com.wrapper.spotify.models.{AudioFeature, Track}
 import model.constraints._
 import play.api.libs.json._
 
-import scala.runtime.RichInt
 /**
   *
   */
 object JSONParser {
 
-  def parseLength(js: JsValue): Int = (js \ "length").as[Int]
+  /**
+    *
+    * @return
+    */
+  def parseRequest(js: JsValue): Option[PlaylistRequest] = {
+    try {
+      Some(PlaylistRequest(
+        parseName(js),
+        parseLength(js),
+        parseIDS(js),
+        parseConstraints(js)
+      ))
+    }
+    catch {
+      case x: Throwable => None
+    }
+  }
 
+  /**
+    *
+    * @return
+    */
   def parseName(js: JsValue): String = (js \ "name").asOpt[String].getOrElse("")
 
+  /**
+    *
+    * @return
+    */
+  def parseLength(js: JsValue): Int = (js \ "length").as[Int]
+
+  /**
+    *
+    * @return
+    */
   def parseIDS(js: JsValue): Vector[String] = {
     val ids = (js \ "ids").asOpt[Array[String]].getOrElse(Array())
     ids.toVector
   }
 
+  /**
+    *
+    * @return
+    */
   def parseConstraints(js: JsValue): Set[Constraint] = {
     val constraints = js \ "constraints"
     if (constraints.isInstanceOf[JsUndefined]) Set()
-    (constraints \\ "constraint").map(c => {
-      // TODO should create key: 'constraint-type' to determine constructor args
-      // i.e. type: { MonotonicConstraint | UnaryConstraint }
+    else (constraints \\ "constraint").map(c => {
       val cls = Class.forName("model.constraints." + (c \ "name").as[String])
-      val args = getBoxedArgs(c)
-      instantiate(cls)(args._1, args._2, args._3).asInstanceOf[Constraint]
+      (c \ "type").as[String] match {
+        case "RangeConstraint" =>
+          val args = (
+            getInt(c, "from"),
+            getInt(c, "to"),
+            getInt(c, "min"),
+            getInt(c, "max"),
+            parseAttribute(c)
+            )
+          instantiate(cls)(args._1, args._2, args._3, args._4, args._5)
+        case "IndexedConstraint" =>
+          val args = (
+            getInt(c, "from"),
+            getInt(c, "to"),
+            parseAttribute(c)
+            )
+          instantiate(cls)(args._1, args._2, args._3)
+        case "Constraint" => instantiate(cls)(parseAttribute(js))
+        case x => throw new Exception("Constraint type not supported: " + x)
+      }
     }).toSet
   }
 
@@ -40,22 +85,28 @@ object JSONParser {
     * @param args
     * @return
     */
-  private def instantiate(cls: java.lang.Class[_])(args: AnyRef*): AnyRef = {
+  def instantiate(cls: java.lang.Class[_])(args: AnyRef*): Constraint = {
     val constructor = cls.getConstructors()(0)
-    constructor.newInstance(args: _*).asInstanceOf[AnyRef]
+    constructor.newInstance(args: _*).asInstanceOf[Constraint]
   }
 
-  private def getBoxedArgs(js: JsValue) = {
-    (getInt(js, "from").asInstanceOf[AnyRef],
-      getInt(js, "to").asInstanceOf[AnyRef],
-      parseAttribute(js))
-  }
+  /**
+    *
+    * @param key
+    * @return
+    */
+  def getInt(js: JsValue, key: String): AnyRef = (js \ key).as[String].toInt.asInstanceOf[AnyRef]
 
-  private def getInt(js: JsValue, key: String): Int = (js \ key).as[String].toInt
-
-  private def parseAttribute(js: JsValue): Attribute = {
+  /**
+    *
+    * @return
+    */
+  def parseAttribute(js: JsValue): Attribute = {
+    println("PARSING ATTR.....")
     val attrName = (js \ "attribute" \ "name").as[String]
+    println("GOT ATTRIBUTE: " + attrName)
     val value = (js \ "attribute" \ "value").asOpt[String].getOrElse("")
+    println("WITH VALUE: " + value)
     MusicUtil.extractAttribute((attrName, value))
   }
 
