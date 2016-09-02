@@ -45,6 +45,13 @@ object MongoController {
     }
   }
 
+  /* TODO AVOID PARSING ALL DB INTO SONGS AND TAKE JUST A FEW, RETRIEVE JUST THE IDs
+  def getIDs: Vector[String] = {
+    val spotify_id = "spotify_id" $exists true
+    collection.find(spotify_id)
+  }
+  */
+
   def readAll: Vector[Song] = {
     val spotify_id = "spotify_id" $exists true
     collection.find(spotify_id).map(e => parseDBObject(e)).toVector
