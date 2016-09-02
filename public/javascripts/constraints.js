@@ -16,17 +16,17 @@ function resetConstraints() {
  * @returns {boolean}
  */
 function selectNumberOfTracks() {
-    var numberOfTracks = document.getElementById('input-numberOfTracks').value;
-    if(numberOfTracks < 5 || numberOfTracks > 20) {
+    var length = document.getElementById('input-length').value;
+    if(length < 5 || length > 20) {
         alert("A new playlist can have between 5 and 20 tracks;");
         return false;
     } else {
-        var n = document.getElementById('numberOfTracks');
-        n.setAttribute('value', numberOfTracks);
+        var n = document.getElementById('length');
+        n.setAttribute('value', length);
         resetConstraints();
-        changeSlidersMaxValue(parseInt(numberOfTracks));
+        changeSlidersMaxValue(parseInt(length));
         // should check also paragraphs out of range and modify/delete them accordingly
-        n.innerHTML = numberOfTracks + " tracks";
+        n.innerHTML = length + " tracks";
         $('#modal-tracks').modal('hide');
         return true;
     }
@@ -68,7 +68,7 @@ function parseValueConstraints(input) {
     // if from == to Unary else Range(from, to)
 
     var para = document.createElement('p');
-    para.setAttribute("type", "monotonic");
+    para.setAttribute("type", "IndexedConstraint");
     para.setAttribute("from-index", (from - 1) + "");
     para.setAttribute("to-index", (to - 1) + "");
 
@@ -131,13 +131,13 @@ function getTextFromRadioValue(text) {
         case "IncludeEquals":
             return "around";
             break;
-        case "ConstantRange":
+        case "ConstantTransition":
             return "constant";
             break;
-        case "IncreasingRange":
+        case "IncreasingTransition":
             return "increasing";
             break;
-        case "DecreasingRange":
+        case "DecreasingTransition":
             return "decreasing";
             break;
     }

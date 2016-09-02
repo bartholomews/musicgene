@@ -4,7 +4,7 @@
 $(document).ready(function () {
     playPreviewTable();  // listen for mouse click on track rows
     resetModal(); // listen for a closed modal
-    initSliders(1, parseInt(document.getElementById('numberOfTracks').value));
+    initSliders(1, parseInt(document.getElementById('length').value));
     focusInputOnOpenModal();
 });
 
@@ -154,6 +154,10 @@ function changeSliderMaxValue(name, maxValue) {
     $slider = $('#' + name);
     $slider.slider('refresh');
 }
+
+function createModal(name) {}
+
+
 //}
         /*
         $slider = $('#slider-monotonic');

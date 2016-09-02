@@ -6,8 +6,8 @@ function createNewPlaylist() {
     $('#modal-playlistName').modal('hide');
     console.log('Preparing JSON...');
     var js = {
-        numberOfTracks: parseInt(document.getElementById('numberOfTracks').value),
         name: document.getElementById("generate-playlist").value,
+        length: parseInt(document.getElementById('length').value),
         ids: [],
         constraints: []
     };
@@ -52,6 +52,7 @@ function getConstraint(element) {
     constraint.name = element.getAttribute("constraint-name");
     constraint.from = element.getAttribute("from-index");
     constraint.to = element.getAttribute("to-index");
+    constraint.type = element.getAttribute("type");
     constraint.attribute = getAttribute(element);
     return constraint;
 }
