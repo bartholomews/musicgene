@@ -1,5 +1,5 @@
 import model.constraints._
-import model.geneticScala.{CostBasedFitness, Playlist}
+import model.genetic.{CostBasedFitness, Playlist}
 import model.music._
 import org.scalatest.{FlatSpec, Matchers}
 

@@ -1,5 +1,5 @@
 import model.constraints._
-import model.geneticScala.{Playlist, PlaylistsFactory}
+import model.genetic.{Playlist, PlaylistsFactory}
 import model.music._
 import org.scalatest.{FlatSpec, Matchers}
 import org.scalatestplus.play.{OneAppPerTest, PlaySpec}
