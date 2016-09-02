@@ -101,7 +101,7 @@ function parseRangeConstraints(name) {
     console.log(from + " to " + to);
 
     var para = document.createElement('p');
-    para.setAttribute("type", "monotonic");
+    para.setAttribute("type", "IndexedConstraint");
     para.setAttribute("from-index", (from - 1) + "");
     para.setAttribute("to-index", (to - 1) + "");
 
