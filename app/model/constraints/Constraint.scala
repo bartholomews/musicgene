@@ -101,6 +101,8 @@ trait AudioConstraint extends IndexedConstraint {
   val that: AudioAttribute
 }
 
+// TODO SEE IF YOU CAN CHANGE f: (Double, AudioAttribute) => Boolean
+// AND CHANGE ConstraintsUtil accordingly to be used anywhere (i.e. just assess f over p.songs(index))
 trait MonotonicValue extends AudioConstraint {
   def score(p: Playlist, f: (Double, Double) => Boolean): Seq[Score] = {
     assert(inRange(p))
