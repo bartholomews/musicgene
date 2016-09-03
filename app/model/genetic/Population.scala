@@ -90,10 +90,10 @@ class Population(val playlists: Vector[Playlist]) {
     // jsvazic uses Futures and Akka Router
     val inferiors: Array[Playlist] = (for (i <- elites until popSize) yield {
       // double check immutability with these arrays
-      val darwinian = playlists(i)
+      val inferior = playlists(i)
       if (Random.nextFloat <= GASettings.crossoverRatio) {
-        if(eliteBuffer.isEmpty) crossover(playlists(Random.nextInt(popSize)), darwinian)
-        else crossover(eliteBuffer(Random.nextInt(eliteBuffer.length)), darwinian)
+        if(eliteBuffer.isEmpty) crossover(playlists(Random.nextInt(popSize)), inferior)
+        else crossover(eliteBuffer(Random.nextInt(eliteBuffer.length)), inferior)
       }
       else mutate(darwinian)
     }).toArray

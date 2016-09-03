@@ -16,8 +16,8 @@ object PlaylistsFactory {
   }
 
   // Generate 'poolSize` playlists each containing `size` songs from the db collection in random order
-  def generatePlaylists(db: MusicCollection, poolSize: Int, size: Int, f: FitnessFunction): Vector[Playlist] = {
-    (for(n <- 1 to poolSize) yield { generatePlaylist(db, size, f) }).toVector
+  def generatePlaylists(db: MusicCollection, poolSize: Int, length: Int, f: FitnessFunction): Vector[Playlist] = {
+    (for(n <- 1 to poolSize) yield { generatePlaylist(db, length, f) }).toVector
   }
 
   // Generate `poolSize` playlists each containing the whole database collection in random order
