@@ -48,9 +48,18 @@ object GA {
     (new Playlist(scala.util.Random.shuffle(MongoController.readAll).take(20), f), None)
   }
 
+  /**
+    * TODO stop after 10 secs
+    *
+    * @param pop
+    * @param generation
+    * @param GAStatistics
+    * @param time
+    * @return
+    */
   @tailrec
   private def evolve(pop: Population, generation: Int, GAStatistics: Boolean = false, time: Long): (Playlist, Option[GAResponse]) = {
-    println("TIME: " + time / 1000000000.0 + " sec")
+    println("TIME: " + time)
     val start = System.nanoTime()
     val response = GAResponse(generation, pop.maxFitness, pop.minDistance, pop.fittest.unmatchedIndexes.map(i => i))
     response.prettyPrint()
