@@ -104,7 +104,7 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
     * @param that
     * @return
     */
-  def crossover(that: Playlist): Playlist = {
+  def singlePointCrossover(that: Playlist): Playlist = {
     val pivot = Random.nextInt(songs.length)
     val v1 = this.songs.take(pivot)
     val v2 = that.songs.filter(s => !v1.contains(s)).take(that.songs.length - pivot)
@@ -118,18 +118,22 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
   add the indexes unmatched of inferior playlist until right size is reached
   add the indexes unmatched of superior playlist until right size is reached
  */
-  /*
   def crossover(that: Playlist) = {
-    val v1 = that.matched.map(i => that.songs(i)).toVector
-    val v2 = this.matched.map(i => this.songs(i)).toVector.filter(s => !v1.contains(s))
-    val v3 = v1 ++ v2
-    val v4 = that.unmatched.map(i => that.songs(i)).toVector.filter(s => !v3.contains(s))
-    val v5 = v3 ++ v4
-    val v6 = this.unmatched.map(i => this.songs(i)).toVector.filter(s => !v5.contains(s))
-    val newP = new Playlist(v5 ++ v6, f)
-    println("XO => new playlist with size " + newP.size)
-    newP
+    val v1 = getSongsAtIndex(that, matchedIndexes)
+    val v2 = getSongsAtIndex(this, matchedIndexes).filter(s => !v1.contains(s))
+    val v3 = (v1 ++ v2).take(songs.length)
+    if(v3.length < songs.length) {
+      val v4 = Random.shuffle(
+        getSongsAtIndex(that, unmatchedIndexes) ++ getSongsAtIndex(this, unmatchedIndexes)
+      ).take(songs.length - v3.length)
+      new Playlist(v3 ++ v4, f)
+    }
+    else new Playlist(v3, f)
+    //println("XO => new playlist with size " + newP.size)
   }
-  */
+
+  def getSongsAtIndex(p: Playlist, indexes: Set[Int]): Vector[Song] = {
+    indexes.map(i => p.songs(i)).toVector
+  }
 
 }
