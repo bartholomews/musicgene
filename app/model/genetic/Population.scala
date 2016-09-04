@@ -33,7 +33,7 @@ import scala.util.Random
 
 // encoding should be Permutation
 // @see https://courses.cs.washington.edu/courses/cse473/06sp/GeneticAlgDemo/encoding.html
-class Population(val playlists: Vector[Playlist]) {
+class Population(val playlists: Vector[Playlist], t_size: Int = 2) {
 
   // the number of the initial candidate playlists
   val popSize = playlists.length
@@ -61,68 +61,33 @@ class Population(val playlists: Vector[Playlist]) {
   val maxFitness = f.getFitness(playlists.head)
   */
 
-
-  def prettyPrint() = {
-    playlists.foreach(p => {
-      println("=" * 10 + '\n' + "PLAYLIST " + playlists.indexOf(p) + " (" + p.fitness + ")" + '\n' + "=" * 10)
-      p.prettyPrint()
-    })
-  }
-
   /**
     * Evolution version:
     * http://www.theprojectspot.com/tutorial-post/applying-a-genetic-algorithm-to-the-travelling-salesman-problem/5
-    *
+    * https://github.com/jsvazic/GAHelloWorld/blob/master/scala/src/main/scala/net/auxesia/Population.scala
     */
   def evolve: Population = {
-    // https://github.com/jsvazic/GAHelloWorld/blob/master/scala/src/main/scala/net/auxesia/Population.scala
-    val elites = scala.math.round(popSize * GASettings.elitismRatio)
-  //  println("ELITES: " + elites)
-  //  for(i <- 1 to elites) { println(playlists(i).fitness + " (distance: " + playlists(i).distance) + ")" }
+    val elites = math.round(popSize * GASettings.elitismRatio)
     val eliteBuffer: Vector[Playlist] = playlists.take(elites)
 
-    /*
-    println("ELITES:")
-    eliteBuffer.foreach(p => p.prettyPrint())
-    println("==============================")
-    */
-
-    // jsvazic uses Futures and Akka Router
-    val inferiors: Array[Playlist] = (for (i <- elites until popSize) yield {
-      // double check immutability with these arrays
-      val inferior = playlists(i)
-      if (Random.nextFloat <= GASettings.crossoverRatio) {
-        if(eliteBuffer.isEmpty) crossover(playlists(Random.nextInt(popSize)), inferior)
-        else crossover(eliteBuffer(Random.nextInt(eliteBuffer.length)), inferior)
+    val offspring: Array[Playlist] = (for (i <- elites until popSize) yield {
+      val parent1 = tournament(t_size)
+      if(Random.nextFloat <= GASettings.crossoverRatio) {
+        val parent2 = tournament(t_size)
+        crossover(parent1, parent2)
       }
-      else mutate(darwinian)
+      else mutate(parent1)
     }).toArray
 
-    PopFactory.sortByFitness(new Population(eliteBuffer ++ inferiors))
-    //.sortBy(p => getFitness(p)), f)
-    // why not use PopFactory?
-
-    //println("NEW POP:")
-    //p.prettyPrint()
+    PopFactory.sortByFitness(new Population(eliteBuffer ++ offspring))
   }
 
-  // will mutate also fit ones, if over there it will test each song to be mutated:
-  // that is, this is a high mutation rate algo
+  def tournament(size: Int = 2): Playlist = {
+    (for(i <- 1 to size) yield { playlists(Random.nextInt(popSize)) }).maxBy(p => p.fitness)
+  }
+
   def mutate(p: Playlist): Playlist = p.mutate
 
-  /*
-  private def randomMutate(p: Playlist) = {
-    if (Random.nextFloat() <= GASettings.mutationRatio) p.mutate else p
-  }
-  */
-
-  /**
-    * Single point crossover: permutation is copied from the first parent
-    * until the crossover point, then the other parent is scanned and if
-    * the song is not yet in the offspring, it is added;
-    * TODO this will work if the two playlists have the same size and set
-    * of songs.
-    */
   def crossover(p1: Playlist, p2: Playlist): Playlist = {
     if(scala.util.Random.nextInt(2) == 0) p1.crossover(p2)
     else p2.crossover(p1)
