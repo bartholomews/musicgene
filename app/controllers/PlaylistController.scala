@@ -27,7 +27,11 @@ class PlaylistController @Inject() extends Controller {
       case None => BadRequest("Json Request failed")
       case Some(p) =>
         println("READY TO ACCESS MONGO")
-        val db = new MusicCollection(p.ids.flatMap(id => MongoController.readByID(id)))
+   //  val db = new MusicCollection(p.ids.flatMap(id => MongoController.readByID(id)))
+        val db = new MusicCollection(
+            MongoController.readIDs.filter(s => p.ids.contains(s))
+              .flatMap(i => MongoController.readByID(i)))
+
         println("IDS RETRIEVED FROM MONGO")
         val (playlist, _) = GA.generatePlaylist(db, p.constraints, p.length)
         val js = createJsonResponse(p.name, playlist)
