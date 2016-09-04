@@ -114,6 +114,8 @@ function generateFloatChart(obj) {
              //   liveness: '#000066'
              //   speechiness: '#CCFFFF'
             },
+            // smooth plotting
+            type: 'spline',
             onclick: function(d) { playPreviewGraph(d.index) }
         },
         axis: {
@@ -158,6 +160,8 @@ function generateChart(obj) {
                 'tempo': 'y', //bpm
                 'loudness': 'y2'   //dB
             },
+            // smooth plotting
+            type: 'spline',
             onclick: function(d) { playPreviewGraph(d.index) }
         },
         axis: {
