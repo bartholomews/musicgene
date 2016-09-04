@@ -24,7 +24,19 @@ trait Constraint {
 }
 
 case class IncludeAny(that: Attribute) extends Constraint {
-  def score(p: Playlist) = Seq(Score(p.songs.exists(s => s.attributes == that)))
+  def score(p: Playlist) = Seq(Score(p.songs.exists(s => s.attributes.contains(that))))
+}
+
+case class IncludeAll(that: Attribute) extends Constraint {
+  def score(p: Playlist) = Seq(Score(p.songs.forall(s => s.attributes.contains(that))))
+}
+
+case class ExcludeAny(that: Attribute) extends Constraint {
+  def score(p: Playlist) = Seq(Score(p.songs.exists(s => !s.attributes.contains(that))))
+}
+
+case class ExcludeAll(that: Attribute) extends Constraint {
+  def score(p: Playlist) = Seq(Score(!p.songs.exists(s => s.attributes.contains(that))))
 }
 
 trait IndexedConstraint extends Constraint {
