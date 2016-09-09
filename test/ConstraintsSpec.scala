@@ -84,18 +84,73 @@ class ConstraintsSpec extends FlatSpec with Matchers {
 
   //====================================================================================================================
 
+  "An IndexedConstraint" should "throw an IndexOutOfBoundsException if indexes are out of range" in {
+    intercept[IndexOutOfBoundsException] {
+      Include(1, 20, Tempo(140)).score(p1)
+    }
+  }
+
+  "An Include constraint" should "return all matched Score results if all indexes have that Attribute" in {
+    val scores = Include(0, 4, Tempo(140)).score(p1)
+    val (matched, unmatched) = scores.partition(p => p.matched)
+    matched.size shouldBe 5
+    unmatched.size shouldBe 0
+  }
+
+  it should "return all unmatched Score results if no indexes have that Attribute" in {
+    val scores = Include(0, 4, Danceability(1.0)).score(p1)
+    val (matched, unmatched) = scores.partition(p => p.matched)
+    matched.size shouldBe 0
+    unmatched.size shouldBe 5
+  }
+
+  it should "return 'n' matched Score results if 'n' indexes have that Attribute" in {
+    val scores = Include(0, 3, Energy(1.0)).score(p1)
+    val (matched, unmatched) = scores.partition(p => p.matched)
+    matched.size shouldBe 2
+    matched.flatMap(s => s.info).map(i => i.index).toSet shouldBe Set(0, 1)
+    unmatched.size shouldBe 2
+    unmatched.flatMap(s => s.info).map(i => i.index).toSet shouldBe Set(2, 3)
+  }
+
+  "An Exclude constraint" should "return all matched Score results if no indexes have that Attribute" in {
+    val scores = Exclude(0, 4, Danceability(1.0)).score(p1)
+    val (matched, unmatched) = scores.partition(p => p.matched)
+    matched.size shouldBe 5
+    unmatched.size shouldBe 0
+  }
+
+  it should "return all unmatched Score results if all indexes have that Attribute" in {
+    val scores = Exclude(0, 4, Tempo(140)).score(p1)
+    val (matched, unmatched) = scores.partition(p => p.matched)
+    matched.size shouldBe 0
+    unmatched.size shouldBe 5
+  }
+
+  it should "return 'n' matched Score results if 'n' indexes don't have that Attribute" in {
+    val scores = Exclude(0, 3, Energy(1.0)).score(p1)
+    val (matched, unmatched) = scores.partition(p => p.matched)
+    matched.size shouldBe 2
+    matched.flatMap(s => s.info).map(i => i.index).toSet shouldBe Set(2, 3)
+    unmatched.size shouldBe 2
+    unmatched.flatMap(s => s.info).map(i => i.index).toSet shouldBe Set(0, 1)
+  }
+
+  //====================================================================================================================
+
+  "AdjacentInclude" should " " in {
+    // TODO
+  }
+
+  "AdjacentExclude" should "" in {
+    // TODO
+  }
+
+  //====================================================================================================================
 
 
 }
-
-
 /*
-
-  "A Range Constraint with indexes out of bounds" should "throw exception or do something else" in {
-    val c1 = ConstantRange(0, 2, Loudness(10))
-// TODO   c1.distance(new Playlist(Vector())) shouldBe 0.0
-  }
-
   "it" should "handle case for a song without the constraint to calculate" in {
     // TODO (return that.value?)
   }
