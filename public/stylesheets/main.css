@@ -1,4 +1,14 @@
 
+/* default bootstrap navbar margin-bottom: 20px */
+.navbar {
+    margin-bottom: 0;
+}
+
+.jumbotron {
+    background-size: cover;
+    background-color: transparent !important;
+}
+
 div.bar {
     display: inline-block;
     width: 20px;

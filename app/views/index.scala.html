@@ -1,25 +1,37 @@
 
 @(title: String)
 
-@main("MUSIC-GENE") {
+@main("musicgene") {
     <html>
 
         <head>
             <title>@title</title>
+            <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/index.css")">
         </head>
 
         <body>
             <div class="jumbotron text-center">
-                <h1>GENETIC PLAYLISTS</h1>
-                <p>Create context-aware playlists</p>
-                <p>based on content-based audio analysis features</p>
-                <form action = "@routes.SpotifyController.auth" method = "get">
-                    <button class="btn btn-success btn-lg">Login with Spotify</button>
-                </form>
-                <form action = "@routes.HomeController.getSampleTracks" method = "get">
-                    <button class="btn btn-success btn-lg">Access a sample list of tracks (no login required)</button>
-                </form>
+                @* make the jumbotron full width *@
+                <div class="container">
+                    <div class="bd-pageheader">
+                        <div class="container">
+                            <h1>musicgene</h1>
+                            <p>Automatic playlist generation</p>
+                            <p>based on content-based audio analysis features</p>
+                        </div>
+                        <form action = "@routes.SpotifyController.auth" method = "get">
+                            <button class="btn btn-success btn-lg">Login with Spotify</button>
+                        </form>
+                        <br>
+                        <p>or use sample tracks (no login required)</p>
+                        <form action = "@routes.HomeController.getSampleTracks" method = "get">
+                            <button class="btn btn-success btn-lg">Try the App</button>
+                        </form>
+                        <br>
+                    </div>
+                  </div>
             </div>
+            @* http://aarmstrong.org/content/aspect_ratio_calc.php?w=2560&h=1440&rw=16&rh=9&s=Submit *@
         </body>
     </html>
 }

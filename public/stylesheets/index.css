@@ -1,0 +1,23 @@
+
+.bd-pageheader {
+    background-color: black;
+    opacity: 0.6;
+}
+
+.jumbotron {
+    /* make jumbotron full height (viewport height) */
+    height: 100vh;
+    background-image: url("/assets/images/string-555070.jpg");
+    background-size: cover;
+    background-color: transparent;
+}
+
+.jumbotron h1 {
+    color: green !important;
+}
+
+.jumbotron p {
+    color: ghostwhite;
+    font-style: italic;
+    font-weight: 500 !important;
+}
