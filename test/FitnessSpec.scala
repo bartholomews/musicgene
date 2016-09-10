@@ -1,101 +1,51 @@
 import model.constraints._
-import model.genetic.{Playlist, PlaylistsFactory}
+import model.genetic.{CostBasedFitness, FitnessFunction, Playlist, PlaylistsFactory}
 import model.music._
+import org.scalatest.mock.MockitoSugar
+import org.mockito.Mockito._
 import org.scalatest.{FlatSpec, Matchers}
-import org.scalatestplus.play.{OneAppPerTest, PlaySpec}
 
 /**
   *
   */
-class FitnessSpec extends FlatSpec with Matchers {
+class FitnessSpec extends FlatSpec with Matchers with MockitoSugar {
 
   val emptyConstraints: Set[Constraint] = Set()
 
-  /*
-"StandardFitness" should "add up constraints" in {
-  val playlist = new Playlist(Vector(
-    new Song("Song_1", "_", Set(Tempo(10))),
-    new Song("Song_2", "_", Set(Tempo(20))),
-    new Song("Song_3", "_", Set(Tempo(30)))
+  // Mocks
+  val p = mock[Playlist]
+  val threeOutOfThree = mock[Constraint]
+  val noneOutOfThree = mock[Constraint]
+  val twoOutOfFour = mock[Constraint]
+  // Mocks setup
+  when(threeOutOfThree.score(p)).thenReturn(Seq(
+    Score(matched = true),
+    Score(matched = true),
+    Score(matched = true)
+  ))
+  when(noneOutOfThree.score(p)).thenReturn(Seq(
+    Score(matched = false),
+    Score(matched = false),
+    Score(matched = false)
+  ))
+  when(twoOutOfFour.score(p)).thenReturn(Seq(
+    Score(matched = true),
+    Score(matched = false),
+    Score(matched = true),
+    Score(matched = false)
   ))
 
-  }
-  */
+  val info1 = Some(Info(Tempo(140), 1, 1.0))
+  val info2 = Some(Info(Tempo(140), 2, 2.0))
+  val info3 = Some(Info(Tempo(140), 3, 3.0))
 
-  //val c1: Set[UnaryConstraint] = Set(MonotonicDistance(1,2, Tempo(0.0), (x, y) => x < y))
-  //StandardFitness(c1).getFitness(playlist) shouldBe 1.0
-
-}
-  /*
-  val firstTitle3: Constraint = Include(0, Artist("Title_3"))
-  val allArtist1: Constraint = IncludeAll(Artist("Artist_1"))
-  val allFrom2000: Constraint = IncludeAll(Year(2000))
-
-  val testConstraints: Set[Constraint] = Set(
-    firstTitle3,
-    allArtist1,
-    allFrom2000
-  )
-
-  val s1: Song = new Song("s1", Set(Artist("Artist_1"), Title("Title_1"), Year(1999)))
-  val s2: Song = new Song("s2", Set(Artist("Artist_1"), Title("Title_2"), Year(2000)))
-  val s3: Song = new Song("s3", Set(Artist("Artist_2"), Title("Title_3"), Year(2000)))
-  val s4: Song = new Song("s4", Set(Artist("Artist_2"), Title("Title_4"), Year(2000)))
-  val s5: Song = new Song("s5", Set(Artist("Artist_3"), Title("Title_5"), Year(2001)))
-  val s6: Song = new Song("s6", Set(Artist("Artist_3"), Title("Title_1"), Year(2000)))
-
-  "Test constraints" should "" in {
-    val set1 = Set(Artist("A1"), Title("T1"))
-    val set2 = Set(Artist("A1"), Title("T2"))
-    set1.contains(Title("T2")) shouldBe false
+  "CostBasedFitness" should "evaluate to 1.0 if all constraints are matched" in {
+    CostBasedFitness(Set(threeOutOfThree)).getFitness(p) shouldBe 1.0
   }
 
-  "A Playlist with no matching constraint" should "have zero fitness" in {
-    /*
-      track 0 = "Title_3" FALSE
-      allArtist1 = FALSE
-      allFrom2001 = FALSE
-     */
-    val p1: Playlist = new Playlist(Vector(s1, s2, s3), new StandardFitness(testConstraints))
-      p1.fitness shouldBe 0.0
-    }
-
-  /*
-    track 0 = "Title_3" FALSE
-    allArtist1 = FALSE
-    allFrom2000 = TRUE
-   */
-  "A Playlist with 1/3 matching constraint" should "have fitness 0.33" in {
-    val p2 = new Playlist(Vector(s2, s3, s4), new StandardFitness(testConstraints))
-    p2.fitness shouldBe 0.33.toFloat
-  }
-
-  "A Playlist with 1/4 matching constraints" should "have 0.25 fitness" in {
-    /*
-      allYear2000 = FALSE
-      track 5 = "Artist_1" FALSE (no track 5, shouldn't complain with out of bounds?)
-      track 2 = "Title_5" TRUE
-      track 2 = "Wrong_Title" FALSE
-     */
-    val p3 = new Playlist(Vector(s3, s4, s5),
-      new StandardFitness(Set(
-        IncludeAll(Year(2000)),
-        Include(5, Artist("Artist_1")),
-        Include(2, Title("Title_5")),
-        Include(2, Title("Wrong_Title"))
-      ))
-    )
-    p3.fitness shouldBe 0.25
+  it should "average the final evaluation over the number of constraints" in {
+    val f: FitnessFunction = CostBasedFitness(Set(threeOutOfThree, noneOutOfThree, twoOutOfFour))
+    f.getFitness(p) shouldBe 0.5
   }
 
 }
-
-// ===========================================================================
-
-/* OLD WAY OF FitnessCal WAS MORE FUNCTIONAL?
-"A Playlist with one matching constraint" should "have fitness 1.0" in {
-  FitnessCalc.getFitness(Set(Include(1, Year(2000))), c1) shouldBe 1.0
-}
-*/
-
-*/
