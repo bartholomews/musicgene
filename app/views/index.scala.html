@@ -13,11 +13,11 @@
             <div class="jumbotron text-center">
                 @* make the jumbotron full width *@
                 <div class="container">
-                    <div class="bd-pageheader">
+                    <div class="bd-pageheader" id="title-header">
                         <div class="container">
                             <h1>musicgene</h1>
                             <p>Automatic playlist generation</p>
-                            <p>based on content-based audio analysis features</p>
+                            <p>from content-based audio analysis features</p>
                         </div>
                         <form action = "@routes.SpotifyController.auth" method = "get">
                             <button class="btn btn-success btn-lg">Login with Spotify</button>

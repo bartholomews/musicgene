@@ -1,7 +1,10 @@
 
-.bd-pageheader {
-    background-color: black;
-    opacity: 0.6;
+#title-header {
+    /* IE8 and below */
+    background: rgb(108, 111, 126);
+    /* opacity 0.5 */
+ /*   background: rgba(100, 125, 115, 0.5); */
+    background: rgba(245, 255, 255, 0.5);
 }
 
 .jumbotron {
@@ -13,11 +16,12 @@
 }
 
 .jumbotron h1 {
-    color: green !important;
+    color: black !important;
+    opacity: 100;
 }
 
 .jumbotron p {
-    color: ghostwhite;
+    color: black;
     font-style: italic;
     font-weight: 500 !important;
 }

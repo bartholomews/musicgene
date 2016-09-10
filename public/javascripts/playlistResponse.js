@@ -44,6 +44,7 @@ function isPlaying() {
  */
 function getNewPlaylist(json) {
     console.log("Ready to save new playlist to DOM");
+    console.log("Create eval object at /test endpoint");
     //   console.log(json);
     $('#playlist-title').text(json.name);
     createPlaylistTable(json.ids);
