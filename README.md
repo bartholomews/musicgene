@@ -5,15 +5,4 @@
 ### Federico Bartolomei
 =================================
 
-This file will be packaged with `activator dist`.
-
-##### Controllers
-===========
-
-
-#####Components
-==========
-
-
-#####View
-===========
+[![Heroku](https://heroku-badge.herokuapp.com/?app=heroku-badge)]
