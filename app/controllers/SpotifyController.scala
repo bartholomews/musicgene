@@ -96,6 +96,7 @@ class SpotifyController @Inject() extends Controller {
       Some(playlist, inDB ++ outDB)
     } catch {
       case _: NullPointerException => None
+      case _: BadRequestException => None // TODO handle properly
     }
   }
 

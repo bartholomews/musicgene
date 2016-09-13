@@ -21,17 +21,15 @@ class PlaylistController @Inject() extends Controller {
   doesn't meet that expectation. Hence we don’t need to check again
   in our action code.
    */
-  def generatePlaylist =  Action(parse.json) { implicit request =>
+  def generatePlaylist = Action(parse.json) { implicit request =>
     println(request.body.toString())
     JSONParser.parseRequest(request.body) match {
       case None => BadRequest("Json Request failed")
       case Some(p) =>
         println("READY TO ACCESS MONGO")
-   //  val db = new MusicCollection(p.ids.flatMap(id => MongoController.readByID(id)))
         val db = new MusicCollection(
-            MongoController.readIDs.filter(s => p.ids.contains(s))
-              .flatMap(i => MongoController.readByID(i)))
-
+          p.ids.flatMap(id => MongoController.readByID(id))
+        )
         println("IDS RETRIEVED FROM MONGO")
         val (playlist, _) = GA.generatePlaylist(db, p.constraints, p.length)
         val js = createJsonResponse(p.name, playlist)
@@ -50,24 +48,6 @@ class PlaylistController @Inject() extends Controller {
     js
   }
 
+  def test = Action { Ok(views.html.test()) }
+
 }
-
-
-// val valueConstraints = constraints.filter(c => c.isInstanceOf[MonotonicValue])
-// val retrievedIDs = getPlaylist(ids, valueConstraints)._1.songs.map(s => s.id)
-
-/*
-c.foreach {
-  case x: MonotonicValue => println("FIRST_STEP_BUCKET")
-  case x: MonotonicRange => println("TSA_BUCKET")
-  case _ => println("UNKNOWN_CONSTRAINT")
-}
-*/
-
-
-/*
-val stats = statistics match {
-  case None => ""
-  case Some(s) => s
-}
-*/

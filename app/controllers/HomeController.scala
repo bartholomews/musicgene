@@ -30,12 +30,13 @@ class HomeController @Inject() extends Controller {
   }
 
   def getSampleTracks = Action {
+    // should get no more than 500 tracks probably
     val songs = MongoController.readAll
     Ok(views.html.tracks("sample songs", Vector(("A list of unsorted tracks with different characteristics",
       songs))))
   }
 
-  def getUserPlaylists = Action {
+  def getSpotifyTracks = Action {
     try {
       val spotify = new SpotifyController
       val userName = spotify.getSpotifyName
