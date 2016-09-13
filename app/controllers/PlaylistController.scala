@@ -48,6 +48,4 @@ class PlaylistController @Inject() extends Controller {
     js
   }
 
-  def test = Action { Ok(views.html.test()) }
-
 }

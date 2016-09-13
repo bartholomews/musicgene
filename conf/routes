@@ -5,7 +5,7 @@
 GET     /                        controllers.HomeController.index
 GET     /auth                    controllers.SpotifyController.auth
 GET     /callback                controllers.SpotifyController.callback
-GET     /tracks                  controllers.HomeController.getUserPlaylists
+GET     /tracks                  controllers.HomeController.getSpotifyTracks
 GET     /alltracks               controllers.HomeController.getSampleTracks
 POST    /playlist                controllers.PlaylistController.generatePlaylist
 
