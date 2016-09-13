@@ -15,37 +15,33 @@ object GA {
 
   // ============================================================================
 
-  val startTime = System.currentTimeMillis
-
   def generatePlaylist(db: MusicCollection, c: Set[Constraint], length: Int): (Playlist, Option[GAResponse]) = {
-    if (db.songs.isEmpty) GA.generatePlaylist(new MusicCollection(MongoController.readAll), CostBasedFitness(c), length)
-    else GA.generatePlaylist(db, CostBasedFitness(c), length)
-  }
-
-  def generatePlaylist(db: MusicCollection, f: FitnessFunction, length: Int, GAStatistics: Boolean = false): (Playlist, Option[GAResponse]) = {
-    generatePlaylist(db, f, length)
+    GA.generatePlaylist(db, CostBasedFitness(c), length)
   }
 
   // ============================================================================
 
   def generatePlaylist(db: MusicCollection, f: FitnessFunction, length: Int): (Playlist, Option[GAResponse]) = {
+//    val start: Long = System.currentTimeMillis()
     if (f.constraints.isEmpty) generateRandomPlaylist(db, length, f)
     else {
       val pop = PopFactory.generatePopulation(db, f, length)
-      evolve(pop, 1, time = 0.0.toLong)
+//      val end: Long = System.currentTimeMillis()
+//      println("=" * 50)
+//      println("INITIAL POPULATION CREATED IN " + (end - start) + " ms")
+//      val start2: Long = System.currentTimeMillis()
+      val p = evolve(pop, 1)
+//      val end2: Long = System.currentTimeMillis()
+//      val watch: Long = end2 - start2
+//      println("=" * 50)
+//      println("SOLUTION FOUND IN " + watch + " ms")
+//      println("=" * 50)
+      p
     }
-  }
-
-  def generateRandomPlaylist(db: MusicCollection, f: FitnessFunction): (Playlist, Option[GAResponse]) = {
-    (new Playlist(scala.util.Random.shuffle(db.songs).take(20), f), None)
   }
 
   def generateRandomPlaylist(db: MusicCollection, length: Int, f: FitnessFunction): (Playlist, Option[GAResponse]) = {
     (new Playlist(scala.util.Random.shuffle(db.songs).take(length), f), None)
-  }
-
-  def generateRandomPlaylist(f: FitnessFunction): (Playlist, Option[GAResponse]) = {
-    (new Playlist(scala.util.Random.shuffle(MongoController.readAll).take(20), f), None)
   }
 
   /**
@@ -54,32 +50,38 @@ object GA {
     * @param pop
     * @param generation
     * @param GAStatistics
-    * @param time
     * @return
     */
   @tailrec
-  private def evolve(pop: Population, generation: Int, GAStatistics: Boolean = false, time: Long): (Playlist, Option[GAResponse]) = {
-    println("TIME: " + time)
-    val start = System.nanoTime()
+  private def evolve(pop: Population, generation: Int, GAStatistics: Boolean = false): (Playlist, Option[GAResponse]) = {
+    val start: Long = System.currentTimeMillis()
     val response = GAResponse(generation, pop.maxFitness, pop.minDistance, pop.fittest.unmatchedIndexes.map(i => i))
     response.prettyPrint()
-    val matchedWorst = pop.fittest.matchedWorst
-    print("WORST MATCHED INT: " + matchedWorst)
-    if (matchedWorst.isDefined) println(" with distance " + pop.fittest.distance(pop.fittest.matchedWorst.get))
+   // val matchedWorst = pop.fittest.matchedWorst
+   // print("WORST MATCHED INT: " + matchedWorst)
+   // if (matchedWorst.isDefined) println(" with distance " + pop.fittest.distance(pop.fittest.matchedWorst.get))
+
+//    val end: Long = System.currentTimeMillis()
+//    val time: Long = end - start
 
     if (generation >= GASettings.maxGen
       || pop.maxFitness >= GASettings.maxFitness) {
       if (GAStatistics) (pop.fittest, Some(response))
-      else (pop.fittest, None)
+      else {
+//        println(time + " ms")
+        // response.unmatched.foreach(i => print(i) + " ")
+        (pop.fittest, None)
+      }
     }
     else {
-      val end = System.nanoTime()
-      val watch = end - start
       if (GAStatistics) {
         // sendResponse(response) TODO
-        evolve(pop.evolve, generation + 1, GAStatistics, time + watch)
+        evolve(pop.evolve, generation + 1, GAStatistics)
       }
-      else evolve(pop.evolve, generation + 1, GAStatistics, time + watch)
+      else {
+//        println(time + " ms")
+        evolve(pop.evolve, generation + 1, GAStatistics)
+      }
     }
   }
 
