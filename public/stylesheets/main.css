@@ -1,12 +1,41 @@
+body {
+    background-color: rgba(9, 5, 6, 0.81);
+}
+
+/* http://stackoverflow.com/a/31184284 */
+.table td.fit,
+.table th.fit {
+    white-space: nowrap;
+    width: 1%;
+}
+
+.background-image {
+    /* make jumbotron full height (viewport height) */
+    height: 100vh;
+    background-image: url("/assets/images/string-555070.jpg");
+    background-size: cover;
+    background-color: transparent;
+}
+
+.white-semitransparent {
+    /* IE8 and below */
+    background: rgb(108, 111, 126);
+    /* opacity 0.5 */
+    /*   background: rgba(100, 125, 115, 0.5); */
+    background: rgba(245, 255, 255, 0.8);
+}
+
+.white-opaque {
+    /* IE8 and below */
+    background: rgb(108, 111, 126);
+    /* opacity 0.5 */
+    /*   background: rgba(100, 125, 115, 0.5); */
+    background: rgba(245, 255, 255, 1.0);
+}
 
 /* default bootstrap navbar margin-bottom: 20px */
 .navbar {
     margin-bottom: 0;
-}
-
-.jumbotron {
-    background-size: cover;
-    background-color: transparent !important;
 }
 
 div.bar {
@@ -46,3 +75,7 @@ caption {
 .inline {
     display: inline;
 }
+
+path.domain { stroke: white; }
+.tick text { stroke: white; }
+.c3-legend-item text { stroke: white; }

@@ -11,7 +11,7 @@
             <script src="@routes.Assets.versioned("javascripts/constraints.js")" type="text/javascript"></script>
             <script src="@routes.Assets.versioned("javascripts/playlistRequest.js")" type="text/javascript"></script>
             <script src="@routes.Assets.versioned("javascripts/playlistResponse.js")" type="text/javascript"></script>
-            <!-- Bootstrap-select -->
+                <!-- Bootstrap-select -->
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css">
             <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
                 <!-- Bootstrap switch -->
@@ -24,7 +24,7 @@
 
         <body>
 
-            <div class="jumbotron text-center" id="jumbotron">
+            <div class="jumbotron text-left white-transparent">
                 <h1 id="playlist-title">@title's Playlists</h1>
                 <p>Tick the songs to get the analysis.
                     Do something else.
@@ -35,12 +35,12 @@
                 <br/><br/>
                     <!-- Constraints area: an inline div  -->
                 <div class="constraints">
-                        <div id="constraints-firstLine" class="inline">
-                            <p class="inline" id="constraints-firstLine-1">A</p>
-                            <button type="button" class="btn btn-secondary btn-lg" id="length" value="10"
-                            data-toggle="modal" data-target="#modal-tracks">10 tracks</button>
-                            <p class="inline" id="constraints-firstLine-2">playlist with no constraints</p>
-                        </div>
+                    <div id="constraints-firstLine" class="inline">
+                        <p class="inline" id="constraints-firstLine-1">A</p>
+                        <button type="button" class="btn btn-secondary btn-lg" id="length" value="10"
+                        data-toggle="modal" data-target="#modal-tracks">10 tracks</button>
+                        <p class="inline" id="constraints-firstLine-2">playlist with no constraints</p>
+                    </div>
                     <div id="input-constraints" data-clean="true">
                         <!-- here javaScript will dynamically add <p> elements
                              with attributes:
@@ -57,27 +57,9 @@
                     </div>
                 </div>
                 <br/>
-                <!-- Dropdown button Constraints modal -->
+
+                    <!-- Dropdown button Constraints modal -->
                 <div class="btn-group">
-
-                    @*
-                    <!-- First Constraint type -->
-                    <button type="button" class="btn btn-primary dropdown-toggle" id="constraints-toggle"
-                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        GLOBAL CONSTRAINTS</button>
-                    <div class="dropdown-menu">
-                        <button type="button" class="btn btn-primary" data-toggle="modal"
-                        data-target="#modal-duration">Duration</button>
-                        <button type="button" class="btn btn-primary" data-toggle="modal"
-                        data-target="#modal-tempo">Tempo</button>
-                        <button type="button" class="btn btn-primary" data-toggle="modal"
-                        data-target="#modal-loudness">Loudness</button>
-                        <button type="button" class="btn btn-primary" data-toggle="modal"
-                        data-target="#modal-acousticness">Acousticness</button>
-                        <div class="dropdown-divider"></div>
-                    </div>
-                        *@
-
                         <!-- ValueConstraint (i.e. MonotonicValue, Unary) -->
                     <button type="button" class="btn btn-primary" id="valueConstraint-constraints-button"
                     data-toggle="modal" data-target="#modal-valueConstraint">
@@ -92,18 +74,15 @@
                 onclick="resetConstraints()">CLEAR CONSTRAINTS</button>
             </div>
 
-                <!-- Generated playlist chart with C3.js -->
-            <div id="playlist-chart">
-            </div>
-
+            <!-- Generated playlist chart with C3.js -->
+            <div id="playlist-chart"></div>
                 <!-- Generated playlist float chart with C3.js -->
-            <div id="playlist-float-chart">
-            </div>
+            <div id="playlist-float-chart"></div>
 
                 <!-- Existing Music collection -->
             <div class="music-collection" id="music-collection">
             @tracks.map { t =>
-                <table class="table table-hover" id="music-collection-table">
+                <table class="table table-responsive table-hover table-inverse" id="music-collection-table">
                     <caption>@t._1</caption>
                     <thead>
                         <tr>
@@ -143,9 +122,11 @@
             }
             </div>
 
-                <!-- Newly generated playlist -->
+                <!--
+                Newly generated playlist: head via createNewPlaylistTable() in
+                -->
             <div class="new-playlist" id="new-playlist">
-                <table class="table table-hover" id="new-playlist-table">
+                <table class="table table-responsive table-hover table-inverse" id="new-playlist-table">
                     <thead>
                         @* Should copy from main table to avoid duplicated code and change twice *@
                         @* TODO dynamically copy <tr> from main table above to avoid code repetition*@

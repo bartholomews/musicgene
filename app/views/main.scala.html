@@ -12,16 +12,16 @@
     <head>
         @* Here's where we render the page title `String`. *@
         <title>@title</title>
+            <!-- Bootstrap -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/css/bootstrap.min.css"
+        integrity="sha384-2hfp1SzUoho7/TsGGGDaFdsuuDL0LX2hnUp6VkX3CUQ2K4K+xjboZdsXyp4oUHZj" crossorigin="anonymous">
         <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")">
             <!-- jQuery -->
-        <script type="text/javascript" src="@routes.Assets.versioned("javascripts/jquery-1.12.1.min.js")"></script>
-            <!-- Bootstrap -->
-        <link rel="stylesheet" href="@routes.Assets.versioned("bootstrap-3.3.6-dist/css/bootstrap.css")">
-        <script type="text/javascript" src="@routes.Assets.versioned("bootstrap-3.3.6-dist/js/bootstrap.js")"></script>
+             <script type="text/javascript" src="@routes.Assets.versioned("javascripts/jquery-1.12.1.min.js")"></script>
             <!-- D3.js and C3.js -->
-        <link rel=stylesheet type="text/css" href="@routes.Assets.versioned("stylesheets/c3.css")">
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+        <link rel=stylesheet type="text/css" href="@routes.Assets.versioned("stylesheets/c3.css")">
         <script type="text/javascript" src="@routes.Assets.versioned("javascripts/c3.min.js")"></script>
         @* *@
     </head>
@@ -30,9 +30,12 @@
         @* And here's where we render the `Html` object containing
          * the page content. *@
         @content
-        @*
-        <script src="http://code.jquery.com/jquery.min.js"></script>
-        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-        *@
+            <!-- Bootstrap -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.2.0/js/tether.min.js"
+        integrity="sha384-Plbmg8JY28KFelvJVai01l8WyZzrYWG825m+cZ0eDDS1f7d/js6ikvy1+X+guPIB"
+        crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/js/bootstrap.min.js"
+        integrity="sha384-VjEeINv9OSwtWFLAtmc4JCtEJXXBub00gtSnszmspDLCtC0I4z4nqz7rEFbIZLLU"
+        crossorigin="anonymous"></script>
     </body>
 </html>

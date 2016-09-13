@@ -1,18 +1,5 @@
-
-#title-header {
-    /* IE8 and below */
-    background: rgb(108, 111, 126);
-    /* opacity 0.5 */
- /*   background: rgba(100, 125, 115, 0.5); */
-    background: rgba(245, 255, 255, 0.5);
-}
-
-.jumbotron {
-    /* make jumbotron full height (viewport height) */
-    height: 100vh;
+body {
     background-image: url("/assets/images/string-555070.jpg");
-    background-size: cover;
-    background-color: transparent;
 }
 
 .jumbotron h1 {
@@ -24,4 +11,9 @@
     color: black;
     font-style: italic;
     font-weight: 500 !important;
+}
+
+/* http://stackoverflow.com/a/26131377 */
+.container {
+    padding: 0;
 }
