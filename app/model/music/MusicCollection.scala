@@ -7,20 +7,8 @@ import com.wrapper.spotify.models.{Track, AudioFeature}
   */
 class MusicCollection(val songs: Vector[Song]) {
 
-    /*
-  def this(IDs: Vector[String]) {
-    this(Cache.extractSongs(IDs))
-  }
-  */
-
-  /*
-  def this(list: List[(Track, AudioFeature)]) {
-    this(MusicUtil.toSongs(list))
-  }
-  */
-
   def apply(i: Int) = songs(i)
-  def length = songs.length
+  def size = songs.size
   def IDs: Vector[String] = songs.map(t => t.id)
   /**
     * @param p the predicate which filter out songs
