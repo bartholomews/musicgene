@@ -104,7 +104,7 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
     * @param that
     * @return
     */
-  def singlePointCrossover(that: Playlist): Playlist = {
+  def crossover(that: Playlist): Playlist = {
     val pivot = Random.nextInt(songs.length)
     val v1 = this.songs.take(pivot)
     val v2 = that.songs.filter(s => !v1.contains(s)).take(that.songs.length - pivot)
@@ -112,13 +112,14 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
   }
 
   /*
-  CROSSOVER VERSION 2: it reaches to local optima way too soon
+  CROSSOVER VERSION 2: it reaches to local optima way too soon, well actually it explodes
+  because it creates different size playlists!!!!!!
   Take the indexes matched of inferior playlist
   add the indexes matched of superior playlist
   add the indexes unmatched of inferior playlist until right size is reached
   add the indexes unmatched of superior playlist until right size is reached
  */
-  def crossover(that: Playlist) = {
+  def crossoverV2(that: Playlist) = {
     val v1 = getSongsAtIndex(that, matchedIndexes)
     val v2 = getSongsAtIndex(this, matchedIndexes).filter(s => !v1.contains(s))
     val v3 = (v1 ++ v2).take(songs.length)
