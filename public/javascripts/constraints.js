@@ -81,7 +81,7 @@ function parseValueConstraints(input) {
     var trackN;
     if(from == to) trackN = '#' + from;
     else trackN = '#' + from + " to #" + to;
-    var text = trackN + " having " + attributeName + " " + getTextFromRadioValue(constraintName) + " " + input;
+    var text = trackN + " having " + attributeName + " " + getTextFromRadioValue(constraintName) + " " + getUnit(input, attributeName);
 
     var node = document.createTextNode(text);
     para.appendChild(node);
@@ -139,6 +139,20 @@ function getTextFromRadioValue(text) {
             break;
         case "DecreasingTransition":
             return "decreasing";
+            break;
+    }
+}
+
+function getUnit(input, attribute) {
+    switch(attribute) {
+        case "Tempo":
+            return input + " BPM";
+            break;
+        case "Loudness":
+            return input + " dB";
+            break;
+        default:
+            return parseFloat(input) * 100 + "%";
             break;
     }
 }
