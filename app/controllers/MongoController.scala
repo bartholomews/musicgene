@@ -50,6 +50,11 @@ object MongoController {
     collection.find(spotify_id).map(e => getID(e)).toVector
   }
 
+  def read(n: Int): Vector[Song] = {
+    val spotify_id = "spotify_id" $exists true
+    collection.find(spotify_id).limit(n).map(e => parseDBObject(e)).toVector
+  }
+
   def readAll: Vector[Song] = {
     val spotify_id = "spotify_id" $exists true
     collection.find(spotify_id).map(e => parseDBObject(e)).toVector
