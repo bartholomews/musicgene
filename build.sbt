@@ -1,3 +1,5 @@
+import play.sbt.PlayImport
+
 name := """musicgene"""
 
 version := "1.0-SNAPSHOT"
@@ -29,7 +31,9 @@ libraryDependencies ++= Seq(
   "org.webjars" % "c3" % "0.4.11",
   //"org.webjars" % "bootstrap" % "3.3.6", // exclude("org.webjars", "jquery"),
   // "org.reactivemongo" %% "play2-reactivemongo" % reactiveMongoVer,
-  "org.mongodb" %% "casbah" % "3.0.0"
+  "org.mongodb" %% "casbah" % "3.0.0",
+  "com.github.karelcemus" %% "play-redis" % "1.3.0-M1",
+  PlayImport.cache exclude("net.sf.ehcache", "ehcache-core")
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
