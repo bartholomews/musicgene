@@ -9,10 +9,7 @@ import com.wrapper.spotify.exceptions.WebApiException;
 import com.wrapper.spotify.methods.CurrentUserRequest;
 import com.wrapper.spotify.methods.authentication.ClientCredentialsGrantRequest;
 import com.wrapper.spotify.models.*;
-import net.sf.json.JSONException;
-import scala.None;
 import scala.Option;
-import scala.Some;
 
 import java.io.IOException;
 import java.util.Arrays;
