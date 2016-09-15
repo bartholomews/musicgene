@@ -105,36 +105,43 @@ function generateFloatChart(obj) {
         data: {
             columns: [
                 obj.acousticness,
-                obj.energy
-             //   obj.liveness
-             //   obj.speechiness
+                obj.energy,
+                obj.liveness,
+                obj.speechiness,
+                obj.danceability
             ],
             colors: {
                 acousticness: '#8b4513',
-                energy: '#9933FF'
-             //   liveness: '#000066'
-             //   speechiness: '#CCFFFF'
+                energy: '#9933FF',
+                liveness: '#000066',
+                speechiness: '#7335FA'
             },
             // smooth plotting
             type: 'spline',
-            onclick: function(d) { playPreviewGraph(d.index) }
+            onclick: function (d) {
+                playPreviewGraph(d.index)
+            }
         },
         axis: {
             x: {
                 tick: {
                     culling: false,
-                    format: function(x) { return x+1; }
+                    format: function (x) {
+                        return x + 1;
+                    }
                 }
             },
-            y: {
-            //    label: '0 (min) to 1 (max)',
-            //    position: 'outer-middle',
+            y1: {
+                //    label: '0 (min) to 1 (max)',
+                //    position: 'outer-middle',
                 max: 1.0,
                 min: 0.0,
                 show: true
             },
             y2: {
-                show: false
+                max: 1.0,
+                min: 0.0,
+                show: true
             }
         },
         tooltip: {
@@ -145,7 +152,10 @@ function generateFloatChart(obj) {
                 value: d3.format(',')
             }
         }
-    })
+    });
+    chart.hide(['liveness']);
+    chart.hide(['speechiness']);
+    chart.hide(['danceability']);
 }
 
 // http://c3js.org/samples/tooltip_format.html
