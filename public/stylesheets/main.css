@@ -1,5 +1,5 @@
 body {
-    background-color: rgba(9, 5, 6, 0.81);
+    background-color: inherit;
 }
 
 /* http://stackoverflow.com/a/31184284 */
@@ -23,19 +23,6 @@ body {
     /* opacity 0.5 */
     /*   background: rgba(100, 125, 115, 0.5); */
     background: rgba(245, 255, 255, 0.8);
-}
-
-.white-opaque {
-    /* IE8 and below */
-    background: rgb(108, 111, 126);
-    /* opacity 0.5 */
-    /*   background: rgba(100, 125, 115, 0.5); */
-    background: rgba(245, 255, 255, 1.0);
-}
-
-/* default bootstrap navbar margin-bottom: 20px */
-.navbar {
-    margin-bottom: 0;
 }
 
 div.bar {
@@ -76,6 +63,6 @@ caption {
     display: inline;
 }
 
-path.domain { stroke: white; }
-.tick text { stroke: white; }
-.c3-legend-item text { stroke: white; }
+/* path.domain { stroke: white; } */
+/* .tick text { stroke: white; } */
+/* .c3-legend-item text { stroke: white; } */
