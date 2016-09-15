@@ -19,19 +19,16 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * Controller to interface the Java Spotify API wrapper
  * {@see https://github.com/thelinmichael/spotify-web-api-java}
- *
- * TODO DETAILED ANALYSIS? ALSO, SHOULD GET SEVERALTRACKS (see https://developer.spotify.com/web-api/get-several-tracks/)
- * FOR BETTER RATE LIMITS
  */
 public class SpotifyJavaController {
     private static volatile SpotifyJavaController instance;
     private static final Object lock = new Object();
-    // TODO inject?
     private static final String CLIENT_ID = "24c87b0353a141768e9b842eb7bd0f67";
     private static final String CLIENT_SECRET = "cc5d6ebca4b445c782b6aced791710ab";
-    private static final String REDIRECT_URI = "http://localhost:9000/callback";
-//    private static final String REDIRECT_URI = "https://musicgene.herokuapp.com/callback";
+//    private static final String REDIRECT_URI = "http://localhost:9000/callback";
+    private static final String REDIRECT_URI = "https://musicgene.herokuapp.com/callback";
 
     private SpotifyJavaController() {}
 
@@ -89,14 +86,8 @@ public class SpotifyJavaController {
             "user-library-read", "user-library-modify", "playlist-modify-public");
 
     /* Set a state. This is used to prevent cross site request forgeries. */
-    private final String state = "someExpectedStateString"; // TODO
+    private final String state = "musicgene";
 
-    /**
-     * TODO SHOULD BE INJECTED AT CONSTRUCTION TIME
-     */
-
-    // private String authorizeURL = api.createAuthorizeURL(scopes, state);
-    // scopes, state, showDialog)
     private String authorizeURL = createAuthorizeURL(scopes, state, true);
 
     /* Create a request object. */
@@ -123,9 +114,7 @@ public class SpotifyJavaController {
     }
 
     /**
-     * Use the request object to make the request, either asynchronously (getAsync)
-     * or synchronously (get)
-     * IF RETURNS NULL?
+     * Use the request object to make the request
      */
     public void getAccessToken(String code) {
         String token = null;
@@ -139,22 +128,18 @@ public class SpotifyJavaController {
 
             @Override
             public void onSuccess(AuthorizationCodeCredentials authorizationCodeCredentials) {
-                // The tokens were retrieved successfully! */
+                /*
                 System.out.println("ACCESS_TOKEN: " + authorizationCodeCredentials.getAccessToken());
                 System.out.println("EXPIRES IN " + authorizationCodeCredentials.getExpiresIn() + " SECONDS");
                 System.out.println("REFRESH_TOKEN: " + authorizationCodeCredentials.getRefreshToken());
-
+                */
                 // Set the access token and refresh token so that they are used whenever needed */
                 api.setAccessToken(authorizationCodeCredentials.getAccessToken());
                 api.setRefreshToken(authorizationCodeCredentials.getRefreshToken());
             }
-
             @Override
             public void onFailure(Throwable throwable) {
                 System.out.println(throwable.getMessage());
-                // Let's say that the client id is invalid, or the code has been used more than once,
-                // the request will fail. Why it fails is written in the throwable's message. */
-
             }
         });
     }
@@ -179,18 +164,6 @@ public class SpotifyJavaController {
             return null;
         }
     }
-            /*
-            System.out.println("Display name: " + user.getDisplayName());
-            System.out.println("Email: " + user.getEmail());
-            System.out.println("Images:");
-            for (Image image : user.getImages()) {
-                System.out.println(image.getUrl());
-            }
-
-            System.out.println("This account is a " + user.getProduct() + " account");
-            /*
-
-             */
 
     /**
      * {@see} https://developer.spotify.com/web-api/get-users-saved-tracks/
@@ -207,7 +180,7 @@ public class SpotifyJavaController {
         }
     }
 
-    public String getID() throws IOException, WebApiException {
+    private String getID() throws IOException, WebApiException {
         try {
             return api.getMe().build().get().getId();
         } catch(WebApiException ex) {
@@ -218,70 +191,19 @@ public class SpotifyJavaController {
 
     // again check with getAsync and Java8
     public List<SimplePlaylist> getSavedPlaylists() throws IOException, WebApiException {
-        try {
-            List<SimplePlaylist> list = api.getPlaylistsForUser(getID()).build().get().getItems();
-            //for (SimplePlaylist p : list) {
-                //System.out.println(p.getName());
-                // find a nice way to get ALL playlists.
-                // again, too many requests.
-            /*
-            List<PlaylistTrack> page1 = api.getPlaylistTracks(id, p.getId()).build().get().getItems();
-            for(PlaylistTrack t : page1) {
-                System.out.println(t.getTrack().getName());
-            }
-            */
-            //}
-            return list;
-        } catch(IOException io) {
-            System.out.println(io.getMessage() + ": IOException");
-            throw io;
-        } catch(WebApiException ex) {
-            System.out.println("getSavedPlaylists error code: " + ex.getMessage());
-            throw ex;
-        }
+        return api.getPlaylistsForUser(getID()).build().get().getItems();
     }
 
-    // TODO it should work with "current user" get playlist, try with multiple (i.e. no need to getID)
     public List<PlaylistTrack> getPlaylistTracks(SimplePlaylist playlist) throws IOException, WebApiException {
-        try {
-            Page<PlaylistTrack> tracks =
-                    api.getPlaylistTracks(playlist.getOwner().getId(), playlist.getId()).build().get();
-            System.out.println("RETRIEVING PAGES......");
-            return tracks.getItems();
-        } catch (WebApiException ex) {
-            // 401 = "Unauthorized" (should have a button or straight redirect to index and log in again)
-            System.out.println("getPlaylistTracks error code: " + ex.getMessage());
-            throw ex;
-        } catch (JSONException ex) {
-            ex.getMessage();
-            return null;
-            // return null;
-        }
+        Page<PlaylistTrack> tracks =
+                api.getPlaylistTracks(playlist.getOwner().getId(), playlist.getId()).build().get();
+        return tracks.getItems();
     }
-
-    /*
-    private List<LibraryTrack> sendTracks(int offset, int pageSize) throws WebApiException, IOException {
-        List<LibraryTrack> result = new LinkedList<>();
-        boolean again = true;
-        return sendTracks(offset, pageSize);
-        /* THIS WILL CRASH WITH 429 TOO MANY REQUESTS
-        do {
-            List<LibraryTrack> temp = sendTracks(offset, pageSize);
-            if (temp != null) {
-                result.addAll(temp);
-            } else again = false;
-            offset += pageSize;
-        } while (again);
-        return result;
-        */
 
     private List<LibraryTrack> sendTracks(int offset, int pageSize) throws IOException, WebApiException {
         try {
             Page<LibraryTrack> libraryTracksPage = api.getMySavedTracks().offset(offset).limit(pageSize).build().get();
             return libraryTracksPage.getItems();
-            //  String next = libraryTracksPage.getNext();
-            //  System.out.println("NEXT: " + next);
-            //  return next;
         } catch (BadRequestException br) {
             System.out.println(br.getMessage());
             throw br;
@@ -290,7 +212,13 @@ public class SpotifyJavaController {
         // seconds you have to wait before sending new requests)
     }
 
-    // TODO getAsync, and maybe also BUILD THE NEW JAR!
+
+    /**
+     * Exception such as status code 429: too many requests will stop the retrieval and return None for that id
+     *
+     * @param id the string id
+     * @return either Some(AudioFeature) for the string id or None an error occurs
+     */
     public Option<AudioFeature> getAnalysis(String id) { //throws IOException, WebApiException {
         try {
             return Option.apply(api.getAudioFeature(id).build().get());
@@ -298,11 +226,5 @@ public class SpotifyJavaController {
             return Option.apply(null);
         }
     }
-
-    public void getDetailedAnalysis(AudioFeature a) throws IOException {
-        String URL = a.getAnalysisUrl();
-
-    }
-
 
 }
