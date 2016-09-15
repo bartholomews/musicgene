@@ -25,11 +25,12 @@
         <body>
 
             <div class="jumbotron text-left white-transparent">
-                <h1 id="playlist-title">@title's Playlists</h1>
-                <p>Tick the songs to get the analysis.
-                    Do something else.
-                    See the plot.
-                    Select constraints</p>
+                <h1 id="playlist-title">@title's playlists</h1>
+                <p>Select restriction on the playlist to be generated.
+                    Click on a track to listen to a short preview.
+                    After sending a request, a new playlist will return shortly,
+                    together with the plotting of its audio analysis features.
+                </p>
                 <button type="button" class="btn btn-success btn-lg" data-toggle="modal"
                 data-target="#modal-playlistName">GENE-RATE</button>
                 <br/><br/>
@@ -127,7 +128,7 @@
                 -->
             <div class="new-playlist" id="new-playlist">
                 <table class="table table-responsive table-hover" id="new-playlist-table">
-                    <caption align="top">OH, YEAH</caption>
+                  @*  <caption align="top"></caption>   NOT WORKING WITH BOOTSRAP 4? *@
                     <thead>
                         @* Should copy from main table to avoid duplicated code and change twice *@
                         @* TODO dynamically copy <tr> from main table above to avoid code repetition*@
