@@ -82,7 +82,7 @@
                 <!-- Existing Music collection -->
             <div class="music-collection" id="music-collection">
             @tracks.map { t =>
-                <table class="table table-responsive table-hover table-inverse" id="music-collection-table">
+                <table class="table table-striped table-hover table-sm" id="music-collection-table">
                     <caption>@t._1</caption>
                     <thead>
                         <tr>
@@ -126,7 +126,8 @@
                 Newly generated playlist: head via createNewPlaylistTable() in
                 -->
             <div class="new-playlist" id="new-playlist">
-                <table class="table table-responsive table-hover table-inverse" id="new-playlist-table">
+                <table class="table table-responsive table-hover" id="new-playlist-table">
+                    <caption align="top">OH, YEAH</caption>
                     <thead>
                         @* Should copy from main table to avoid duplicated code and change twice *@
                         @* TODO dynamically copy <tr> from main table above to avoid code repetition*@
@@ -234,7 +235,7 @@
                             <select class="form-control" id="attr-select">
                                 <option id="valueConstraint-tempo" class="submitModal" value="Tempo">Tempo</option>
                                 <option id="valueConstraint-loudness" value="Loudness">Loudness</option>
-                                <option id="valueConstraint-duration" value="Duration">Duration</option>
+                              @*  <option id="valueConstraint-duration" value="Duration">Duration</option> *@
                                 <option id="valueConstraint-acousticness" value="Acousticness">Acousticness</option>
                                 <option id="valueConstraint-liveness" value="Liveness">Liveness</option>
                                 <option id="valueConstraint-danceability" value="Danceability">Danceability</option>
@@ -288,7 +289,7 @@
                             <select class="form-control" id="rangeConstraint-attr-select">
                                 <option id="rangeConstraint-tempo" class="submitModal" value="Tempo">Tempo</option>
                                 <option id="rangeConstraint-loudness" value="Loudness">Loudness</option>
-                                <option id="rangeConstraint-duration" value="Duration">Duration</option>
+                             @*   <option id="rangeConstraint-duration" value="Duration">Duration</option> *@
                                 <option id="rangeConstraint-acousticness" value="Acousticness">Acousticness</option>
                                 <option id="rangeConstraint-liveness" value="Liveness">Liveness</option>
                                 <option id="rangeConstraint-speechiness" value="Speechiness">Speechiness</option>
