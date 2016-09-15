@@ -1,8 +1,6 @@
 package model.genetic
 
-import model.music.{MusicCollection, Song}
-
-import scala.annotation.tailrec
+import model.music.MusicCollection
 
 /**
   *
@@ -19,14 +17,6 @@ object PlaylistsFactory {
     (for(n <- 1 to poolSize) yield { shuffleAndTake(db, length, f) }).toVector
   }
 
-  /**
-    * If DB is large, this method will be too slow, better to generate randomInt
-    *
-    * @param db
-    * @param size
-    * @param f
-    * @return
-    */
   def shuffleAndTake(db: MusicCollection, size: Int, f: FitnessFunction): Playlist = {
     new Playlist(scala.util.Random.shuffle(db.songs.distinct).take(size), f)
   }

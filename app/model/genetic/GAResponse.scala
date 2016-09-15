@@ -8,9 +8,9 @@ case class GAResponse(generation: Int, fitness: Double, distance: Double, unmatc
   val maxFitness = GASettings.maxFitness
 
   def prettyPrint() = {
-    println("=" * 20 + "GEN-" + generation + "=" * 20)
-    println("GENERATION " + generation + ", max fitness: " + fitness + ", distance: " + distance +
-      ", unmatched: " + unmatched.toString())
+    println("=" * 50)
+    println("GENERATION " + generation + ", max fitness: " + fitness + ", distance: " + distance)
+      //+ ", unmatched: " + unmatched.toString())
   }
 
 }

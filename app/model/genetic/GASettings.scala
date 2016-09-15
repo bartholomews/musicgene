@@ -5,7 +5,6 @@ package model.genetic
   */
 object GASettings {
 
-  // TODO with ScoreConstraint is probably impossible to estimate maxFitness
   val maxFitness = 1.0
 
   // number of candidate playlists

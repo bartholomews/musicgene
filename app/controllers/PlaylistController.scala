@@ -22,7 +22,7 @@ class PlaylistController @Inject() extends Controller {
         val db = new MusicCollection(
           p.ids.flatMap(id => MongoController.readByID(id))
         )
-        val (playlist, _) = GA.generatePlaylist(db, p.constraints, p.length)
+        val playlist = GA.generatePlaylist(db, p.constraints, p.length)
         val js = createJsonResponse(p.name, playlist)
         Ok(js)
     }

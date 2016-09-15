@@ -15,15 +15,9 @@ class MusicCollection(val songs: Vector[Song]) {
     * @return a new `MusicCollection` with the songs filtered by a predicate
     */
   def filter(p: Boolean) = new MusicCollection(this.songs.filter(s => p))
-  /**
-    * SHOULD CALL ALL DATA ONCE AND FOR ALL, STORING IT IN A NEW DATA STRUCTURE E.G. SONGS
-    *
-    * @see http://stackoverflow.com/a/9214822 for conversion from seconds to time format
-    * @return
-    */
+
   override def toString = songs.toString
 
-  // wtf is that
   def prettyPrintTitleArtist() = {
     songs.foreach(s => {
       s.attributes.foreach {

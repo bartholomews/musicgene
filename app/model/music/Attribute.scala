@@ -41,10 +41,6 @@ case class Preview_URL(value: String) extends TextAttribute
 
 case class Year(value: Int) extends Attribute
 
-case class Genre(value: GenreType) extends Attribute
-case class Language(value: LanguageType) extends Attribute
-case class Mood(value: MoodType) extends Attribute
-
 case class Duration(value: Double, min: Double = 0.0, max: Double = 1800000) extends AudioAttribute
 case class Loudness(value: Double, min: Double = -60.0, max: Double = 0.0) extends AudioAttribute
 case class Tempo(value: Double, min: Double = 0.0, max: Double = 240) extends AudioAttribute
@@ -53,16 +49,3 @@ case class Time_Signature(value: Int) extends TimeAttribute
 case class Mode(value: Int) extends TimeAttribute
 case class Key(value: Int) extends TimeAttribute
 
-trait GenreType
-case object Popular extends GenreType
-case object Rock extends GenreType
-case object HipHop extends GenreType
-
-trait LanguageType
-case object Mandarin extends LanguageType
-case object English extends LanguageType
-case object Italian extends LanguageType
-
-trait MoodType
-case object Happy extends MoodType
-case object Sad extends MoodType

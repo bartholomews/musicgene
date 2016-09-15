@@ -10,13 +10,6 @@ import controllers.SpotifyJavaController
 
 case class Song(id: String, attributes: Set[Attribute]) {
 
-  /*
-  def find(that: Attribute): Option[Attribute] = attributes.find(a => a.getClass == that.getClass) match {
-    case None => None
-    case Some(a) => Some(a)
-  }
-  */
-
   def getOrElse(that: Attribute): Attribute = attributes.find(a => a.getClass == that.getClass) match {
     case None => that
     case Some(a) => a
@@ -27,7 +20,6 @@ case class Song(id: String, attributes: Set[Attribute]) {
     case Some(a) => a.value.toString
   }
 
-  // should rename that
   def findValue(that: Attribute): Option[String] = attributes.find(a => a.getClass == that.getClass) match {
     case None => None
     case Some(a) => Some(a.value.toString)

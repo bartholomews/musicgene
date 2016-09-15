@@ -2,9 +2,6 @@ package model.genetic
 
 import model.music.MusicCollection
 
-/**
-  * Created by mba13 on 04/07/2016.
-  */
 object PopFactory {
 
   def sortByFitness(p: Population) = {
@@ -17,11 +14,6 @@ object PopFactory {
   /**
     * Generate a Population of `popSize` playlists each containing `size` songs from the db collection
     * in random order
-    *
-    * @param db
-    * @param f
-    * @param size
-    * @return
     */
   def generatePopulation(db: MusicCollection, f: FitnessFunction, size: Int) = {
     sortByFitness(new Population(
