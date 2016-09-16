@@ -7,7 +7,13 @@ import model.music.Song
 import play.api.mvc.{Action, Controller}
 
 @Singleton
-class HomeController @Inject() extends Controller {
+class HomeController @Inject()(configuration: play.api.Configuration) extends Controller {
+
+  val dbTracks = MongoController.getCollection(
+    configuration.underlying.getString("mongodb.uri"),
+    configuration.underlying.getString("mongodb.db"),
+    configuration.underlying.getString("mongodb.tracks")
+  )
 
   def index = Action {
     Ok(views.html.index("GEN"))
@@ -15,14 +21,14 @@ class HomeController @Inject() extends Controller {
 
   def getSampleTracks = Action {
     // retrieve 200 sample tracks from MongoDB
-    val songs = MongoController.read(200)
+    val songs = MongoController.read(dbTracks, 200)
     Ok(views.html.tracks("sample songs", Vector(("A list of unsorted tracks with different characteristics",
       songs))))
   }
 
   def getSpotifyTracks = Action {
     try {
-      val spotify = new SpotifyController
+      val spotify = new SpotifyController(configuration)
       val userName = spotify.getSpotifyName
       val playlists: Vector[(String, Vector[Song])] = spotify.getPlaylists
       Ok(views.html.tracks(userName, playlists))

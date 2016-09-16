@@ -11,7 +11,13 @@ import play.api.mvc.{Action, Controller}
   *
   */
 @Singleton
-class PlaylistController @Inject() extends Controller {
+class PlaylistController @Inject() (configuration: play.api.Configuration) extends Controller {
+
+  val dbTracks = MongoController.getCollection(
+    configuration.underlying.getString("mongodb.uri"),
+    configuration.underlying.getString("mongodb.db"),
+    configuration.underlying.getString("mongodb.tracks")
+  )
 
   // @see https://www.playframework.com/documentation/2.0/ScalaJsonRequests
   def generatePlaylist = Action(parse.json) { implicit request =>
@@ -20,7 +26,7 @@ class PlaylistController @Inject() extends Controller {
       case None => BadRequest("Json Request failed")
       case Some(p) =>
         val db = new MusicCollection(
-          p.ids.flatMap(id => MongoController.readByID(id))
+          p.ids.flatMap(id => MongoController.readByID(dbTracks, id))
         )
         val playlist = GA.generatePlaylist(db, p.constraints, p.length)
         val js = createJsonResponse(p.name, playlist)

@@ -15,8 +15,14 @@ import scala.collection.JavaConversions._
   *
  */
 @Singleton
-class SpotifyController @Inject() extends Controller {
+class SpotifyController @Inject()(configuration: play.api.Configuration) extends Controller {
   val spotify = SpotifyJavaController.getInstance()
+
+  val dbTracks = MongoController.getCollection(
+    configuration.underlying.getString("mongodb.uri"),
+    configuration.underlying.getString("mongodb.db"),
+    configuration.underlying.getString("mongodb.tracks")
+  )
 
   def auth = Action { Redirect(spotify.getAuthorizeURL) }
 
@@ -50,7 +56,7 @@ class SpotifyController @Inject() extends Controller {
   def getPlaylistCollection(playlist: SimplePlaylist): Option[(SimplePlaylist, Vector[Song])] = {
     try {
       val trackList: Vector[Track] = spotify.getPlaylistTracks(playlist).map(t => t.getTrack).toVector
-      val inDB: Vector[Song] = trackList.flatMap(t => MongoController.readByID(t.getId))
+      val inDB: Vector[Song] = trackList.flatMap(t => MongoController.readByID(dbTracks, t.getId))
       val outDB: Vector[Song] = MusicUtil.toSongs(
         trackList.filterNot(t => inDB.exists(s => s.id == t.getId))
           .flatMap(t => spotify.getAnalysis(t.getId) match {
@@ -58,7 +64,7 @@ class SpotifyController @Inject() extends Controller {
             case Some(analysis) => Some(t, analysis)
           }
       ))
-      MongoController.writeToDB(outDB)
+      MongoController.writeToDB(dbTracks, outDB)
       Some(playlist, inDB ++ outDB)
     } catch {
       case _: NullPointerException => None
