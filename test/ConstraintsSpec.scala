@@ -148,6 +148,42 @@ class ConstraintsSpec extends FlatSpec with Matchers {
 
   //====================================================================================================================
 
+  "IncludeSmaller" should " " in {
+    // TODO
+  }
+
+  "IncludeLarger" should "" in {
+    // TODO
+  }
+
+  "IncludeEquals" should "" in {
+    // TODO
+  }
+
+  //====================================================================================================================
+
+  "ConstantTransition" should " " in {
+    // TODO
+  }
+
+  "IncreasingTransition" should "" in {
+    // TODO
+  }
+
+  "DecreasingTransition" should "" in {
+    // TODO
+  }
+
+  //====================================================================================================================
+
+  "InRange" should " " in {
+    // TODO
+  }
+
+  "IncludeLarger" should "" in {
+    // TODO
+  }
+
 
 }
 /*

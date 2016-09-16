@@ -14,26 +14,18 @@ class FitnessSpec extends FlatSpec with Matchers with MockitoSugar {
 
   // Mocks
   val p = mock[Playlist]
+  val matched = Score(matched = true)
+  val unmatched = Score(matched = false)
   val threeOutOfThree = mock[Constraint]
   val noneOutOfThree = mock[Constraint]
   val twoOutOfFour = mock[Constraint]
   // Mocks setup
   when(threeOutOfThree.score(p)).thenReturn(Seq(
-    Score(matched = true),
-    Score(matched = true),
-    Score(matched = true)
-  ))
+    matched, matched, matched))
   when(noneOutOfThree.score(p)).thenReturn(Seq(
-    Score(matched = false),
-    Score(matched = false),
-    Score(matched = false)
-  ))
+    unmatched, unmatched, unmatched))
   when(twoOutOfFour.score(p)).thenReturn(Seq(
-    Score(matched = true),
-    Score(matched = false),
-    Score(matched = true),
-    Score(matched = false)
-  ))
+    matched, matched, unmatched, unmatched))
 
   val info1 = Some(Info(Tempo(140), 1, 1.0))
   val info2 = Some(Info(Tempo(140), 2, 2.0))
