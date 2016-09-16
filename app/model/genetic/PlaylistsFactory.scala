@@ -3,7 +3,7 @@ package model.genetic
 import model.music.MusicCollection
 
 /**
-  *
+  * Object which generates playlists given a MusicCollection and settings such as length and pool size
   */
 object PlaylistsFactory {
 

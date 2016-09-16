@@ -1,8 +1,5 @@
 package model.music
 
-/**
-  *
-  */
 trait Attribute {
   def value: Any
 }

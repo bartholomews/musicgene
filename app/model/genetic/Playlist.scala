@@ -6,7 +6,7 @@ import model.music.Song
 import scala.util.Random
 
 /**
-  *
+  * A candidate playlist which gets evaluated over a fitness function
   */
 class Playlist(val songs: Vector[Song], f: FitnessFunction) {
 
@@ -22,15 +22,25 @@ class Playlist(val songs: Vector[Song], f: FitnessFunction) {
   val matchedIndexes: Set[Int] = {
     matched.flatMap(s => s.info).map(i => i.index).toSet
   }
+  /**
+    * A Set of optional information about the unmatched indexes of this playlist
+    */
   val unmatchedIndexes: Set[Int] = {
     unmatched.flatMap(s => s.info).map(i => i.index).toSet
   }
+  /**
+    * The matched index with worst distance.
+    */
   val matchedWorst: Option[Int] = {
     val m = matched.flatMap(s => s.info)
     if (m.isEmpty) None
     else Some(m.maxBy(i => i.distance).index)
   }
 
+  /**
+    * @param n the index to retrieve
+    * @return the distance result for the index n on this playlist
+    */
   def distance(n: Int): Option[Double] = scores.flatMap(s => s.info).find(i => i.index == n) match {
     case None => None
     case Some(y) => Some(y.distance)

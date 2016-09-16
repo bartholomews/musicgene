@@ -2,6 +2,11 @@ package model.genetic
 
 import model.music.MusicCollection
 
+/**
+  * Object which generates Playlists already sorted by fitness.
+  * If more than one playlist has equally higher fitness, they will be
+  * additionally sorted by distance
+  */
 object PopFactory {
 
   def sortByFitness(p: Population) = {

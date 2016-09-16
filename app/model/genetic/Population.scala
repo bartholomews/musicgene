@@ -5,9 +5,8 @@ import scala.util.Random
 /**
   * A Population of `popSize` playlists each containing a random sequence
   * of `size` songs in the Music Collection.
+  * @see https://courses.cs.washington.edu/courses/cse473/06sp/GeneticAlgDemo/encoding.html
   */
-
-// @see https://courses.cs.washington.edu/courses/cse473/06sp/GeneticAlgDemo/encoding.html
 class Population(val playlists: Vector[Playlist], t_size: Int = 2) {
 
   // the number of the initial candidate playlists

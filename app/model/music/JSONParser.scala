@@ -7,8 +7,9 @@ import play.api.libs.json._
 object JSONParser {
 
   /**
-    *
-    * @return
+    * Parse a JSON Playlist request
+    * @return Some(PlaylistRequest) if parsing is successfull,
+    *         None otherwise
     */
   def parseRequest(js: JsValue): Option[PlaylistRequest] = {
     try {
@@ -24,16 +25,31 @@ object JSONParser {
     }
   }
 
+  /**
+    * Retrieve the name of the Playlist
+    */
   def parseName(js: JsValue): String = (js \ "name").asOpt[String].getOrElse("")
 
-
+  /**
+    * Retrieve the length of the Playlist
+   */
   def parseLength(js: JsValue): Int = (js \ "length").as[Int]
 
+  /**
+    * Retrieve the IDs of the tracks which make up the Playlist
+    */
   def parseIDS(js: JsValue): Vector[String] = {
     val ids = (js \ "ids").asOpt[Array[String]].getOrElse(Array())
     ids.toVector
   }
 
+  /**
+    * Retrieve the Set(Constraint) set by the request.
+    * A Constraint is instantiated with reflection
+    * checking the key of JSON request against class names
+    * in package model.constraints
+    * and construct an instance based on its constructor 'type'
+    */
   def parseConstraints(js: JsValue): Set[Constraint] = {
     val constraints = js \ "constraints"
     if (constraints.isInstanceOf[JsUndefined]) Set()
