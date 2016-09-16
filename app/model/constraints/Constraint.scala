@@ -3,41 +3,70 @@ package model.constraints
 import model.genetic.Playlist
 import model.music._
 
+/**
+  * Top-hierarchy trait for the Constraint module,
+  * enforcing to implement an instance of `Attribute`
+  * and the score method to evaluate a `Playlist`
+  */
 trait Constraint {
   val that: Attribute
   def score(p: Playlist): Seq[Score]
 }
 
+/**
+  * A Playlist should have at least one track with that Attribute value
+  *
+  * @param that the Attribute to be tested against the Playlist
+  */
 case class IncludeAny(that: Attribute) extends Constraint {
   def score(p: Playlist) = Seq(Score(p.songs.exists(s => s.attributes.contains(that))))
 }
 
+/**
+  * A Playlist should have all tracks with that Attribute value
+  *
+  * @param that the Attribute to be tested against the Playlist
+  */
 case class IncludeAll(that: Attribute) extends Constraint {
   def score(p: Playlist) = Seq(Score(p.songs.forall(s => s.attributes.contains(that))))
 }
 
+/**
+  * A Playlist should have at least one track without that Attribute value
+  *
+  * @param that the Attribute to be tested against the Playlist
+  */
 case class ExcludeAny(that: Attribute) extends Constraint {
   def score(p: Playlist) = Seq(Score(p.songs.exists(s => !s.attributes.contains(that))))
 }
 
+/**
+  * A Playlist should have all tracks without that Attribute value
+  *
+  * @param that the Attribute to be tested against the Playlist
+  */
 case class ExcludeAll(that: Attribute) extends Constraint {
   def score(p: Playlist) = Seq(Score(!p.songs.exists(s => s.attributes.contains(that))))
 }
 
+/**
+  * Constraint trait which enforces upper and lower bounds
+  */
 trait IndexedConstraint extends Constraint {
   val lo: Int; val hi: Int
+  // check if the bounds are within range for the playlist
   def inRange(p: Playlist): Boolean = {
     if (lo >= 0 && hi >= 0 && lo < p.size && hi < p.size && lo <= hi) true
     else throw new IndexOutOfBoundsException("Cannot get index range " + lo + "-" + hi + " of Playlist with size " + p.size)
   }
 }
 
-// ================================================================================================
-// UNARY CONSTRAINT: Can accept `Any` Attribute value
-// ================================================================================================
-
 /**
-  * Songs from `lo` to `hi` should include `that` Attribute with that.value
+  * Tracks from lo to hi should have that Attribute value
+  *
+  * @param lo the first index of the playlist to test
+  * @param hi the last index of the playlist to test
+  * @param that the Attribute to be tested against each index within the bounds
   */
 case class Include(lo: Int, hi: Int, that: Attribute) extends IndexedConstraint {
   override def score(p: Playlist) = {
@@ -48,7 +77,11 @@ case class Include(lo: Int, hi: Int, that: Attribute) extends IndexedConstraint 
 }
 
 /**
-  * Songs from `lo` to `hi` should exclude `that` Attribute with that.value
+  * Tracks from lo to hi should not have that Attribute value
+  *
+  * @param lo the first index of the playlist to test
+  * @param hi the last index of the playlist to test
+  * @param that the Attribute to be tested against each index within the bounds
   */
 case class Exclude(lo: Int, hi: Int, that: Attribute) extends IndexedConstraint {
   override def score(p: Playlist) = {
@@ -58,6 +91,14 @@ case class Exclude(lo: Int, hi: Int, that: Attribute) extends IndexedConstraint 
   }
 }
 
+/**
+  * Each subsequent track from lo to hi should have that Attribute with same value
+  * (the value passed as argument is discarded)
+  *
+  * @param lo the first index of the playlist to test
+  * @param hi the last index of the playlist to test
+  * @param that the Attribute to be tested against each index within the bounds
+  */
 case class AdjacentInclude(lo: Int, hi: Int, that: Attribute) extends IndexedConstraint {
   override def score(p: Playlist) = {
     for(index <- lo until hi) yield {
@@ -70,6 +111,14 @@ case class AdjacentInclude(lo: Int, hi: Int, that: Attribute) extends IndexedCon
   }
 }
 
+/**
+  * Each subsequent track from lo to hi should not have that Attribute with same value
+  * (the value passed as argument is discarded)
+  *
+  * @param lo the first index of the playlist to test
+  * @param hi the last index of the playlist to test
+  * @param that the Attribute to be tested against each index within the bounds
+  */
 case class AdjacentExclude(lo: Int, hi: Int, that: Attribute) extends IndexedConstraint {
   override def score(p: Playlist) = {
     for(index <- lo until hi) yield {
@@ -82,15 +131,19 @@ case class AdjacentExclude(lo: Int, hi: Int, that: Attribute) extends IndexedCon
   }
 }
 
-// ================================================================================================
-// MONOTONIC CONSTRAINT
-// ================================================================================================
-
+/**
+  * Constraint trait which enforces to implement an instance of AudioAttribute
+  */
 trait AudioConstraint extends IndexedConstraint {
-  val that: AudioAttribute
+  override val that: AudioAttribute
 }
 
+/**
+  * Constraint trait which evaluates a range of tracks against the same value
+  */
 trait MonotonicValue extends AudioConstraint {
+  // evaluate each track within bounds lo and hi (inherited from IndexedConstraint)
+  // of Playlist p against that AudioAttribute over the predicate function f
   def score(p: Playlist, f: (Double, Double) => Boolean): Seq[Score] = {
     assert(inRange(p))
     for(index <- lo to hi) yield {
@@ -101,7 +154,7 @@ trait MonotonicValue extends AudioConstraint {
 }
 
 /**
-  * Song at position `from` to `to` must include Attribute `y` with value < `that`
+  * Song at position from lo to hi must include Attribute y with value < that
   *
   * @param lo the lower bound index of the song in the playlist
   * @param hi the upper bound index of the song in the playlist
@@ -125,7 +178,7 @@ case class IncludeLarger(lo: Int, hi: Int, that: AudioAttribute) extends Monoton
 }
 
 /**
-  * Song at position `from` to `to` must include Attribute `y` with value == `that` +- `tolerance`
+  * Song at position from to to must include Attribute `y` with value == `that` +- `tolerance`
   *
   * @param lo the lower bound index of the song in the playlist
   * @param hi the upper bound index of the song in the playlist
@@ -142,17 +195,13 @@ case class IncludeEquals(lo: Int, hi: Int, that: AudioAttribute) extends Monoton
   }
 }
 
-// ================================================================================================
-//  MONOTONIC_TRANSITION CONSTRAINTS
-// ================================================================================================
-//
-
-
 /**
-  * Favours smoothness between tracks, as it compare each subsequent track value
+  * Trait which compares each adjacent track values
   */
 trait MonotonicTransition extends AudioConstraint {
-  // calculate monotonic distance as per f(Double => Boolean)
+  // evaluate each track within bounds lo and hi - 1 (inherited from IndexedConstraint)
+  // of Playlist p against the next track over the predicate function f
+  // (that AudioAttribute value is discarded)
   def score(p: Playlist, f: (Double, Double) => Boolean) = {
     assert(inRange(p))
     for (index <- lo until hi) yield {
@@ -168,10 +217,15 @@ trait MonotonicTransition extends AudioConstraint {
 
 /**
   * Songs from index i to index j should have that Attribute value as close as possible
+  *
+  * @param lo the lower bound index of the song in the playlist
+  * @param hi the upper bound index of the song in the playlist
+  * @param that the AudioAttribute on which each Song in the range is evaluated on
   */
 case class ConstantTransition(lo: Int, hi: Int, that: AudioAttribute) extends MonotonicTransition {
   override def score(p: Playlist) = {
     for (index <- lo until hi) yield {
+      // compare the two adjacent songs to have that Attribute value of distance within tolerance
       val t = ConstraintsUtil.compareWithTolerance(p.songs(index), p.songs(index + 1), that)
       Score(t._1, Some(Info(that, index, t._2)))
     }
@@ -179,28 +233,42 @@ case class ConstantTransition(lo: Int, hi: Int, that: AudioAttribute) extends Mo
 }
 
 /**
-  * Songs from index i to index j should have that Attribute value as close as possible to f(x, y)
+  * Songs from index i to index j should have that Attribute with increasing value
+  *
+  * @param lo the lower bound index of the song in the playlist
+  * @param hi the upper bound index of the song in the playlist
+  * @param that the AudioAttribute on which each Song in the range is evaluated on
   */
 case class IncreasingTransition(lo: Int, hi: Int, that: AudioAttribute) extends MonotonicTransition {
   override def score(p: Playlist): Seq[Score] = score(p, (x, y) => x < y)
 }
 
 /**
-  * Songs from index i to index j should have that Attribute value as close as possible to f(x, y)
+  * Songs from index i to index j should have that Attribute value with decreasing value
+  */
+/**
+  *
+  * @param lo the lower bound index of the song in the playlist
+  * @param hi the upper bound index of the song in the playlist
+  * @param that the AudioAttribute on which each Song in the range is evaluated on
   */
 case class DecreasingTransition(lo: Int, hi: Int, that: AudioAttribute) extends MonotonicTransition {
   override def score(p: Playlist): Seq[Score] = score(p, (x, y) => x > y)
 }
 
+/**
+  * All Songs in the playlist should have that Attribute with decreasing value
+  *
+  * @param that the AudioAttribute on which each Song in the range is evaluated on
+  */
 case class DecreasingTransitionAll(that: AudioAttribute) extends Constraint {
   override def score(p: Playlist): Seq[Score] = DecreasingTransition(0, p.songs.length, that).score(p)
 }
 
-
-// ================================================================================================
-// UNARY CONSTRAINT: Can accept `Any` Attribute value
-// ================================================================================================
-
+/**
+  * Constraint trait which compares each track within bounds with that AudioAttribute
+  * over the predicate function f
+  */
 trait RangeConstraint extends AudioConstraint {
   val from: Double
   val to: Double
@@ -215,10 +283,28 @@ trait RangeConstraint extends AudioConstraint {
   }
 }
 
+/**
+  * Tracks within lo and hi should have that AudioAttribute between from and to
+  *
+  * @param lo the lower bound index of the song in the playlist
+  * @param hi the upper bound index of the song in the playlist
+  * @param from the minimum AudioAttribute value of the range
+  * @param to the maximum AudioAttribute value of the range
+  * @param that the AudioAttribute on which each Song in the bounds is evaluated on
+  */
 case class InRange(lo: Int, hi: Int, from: Double, to: Double, that: AudioAttribute) extends RangeConstraint {
   override def score(p: Playlist) = score(p, x => x >= from && x <= to)
 }
 
+/**
+  *  Tracks within lo and hi should not have that AudioAttribute between from and to
+  *
+  * @param lo the lower bound index of the song in the playlist
+  * @param hi the upper bound index of the song in the playlist
+  * @param from the minimum AudioAttribute value of the range
+  * @param to the maximum AudioAttribute value of the range
+  * @param that the AudioAttribute on which each Song in the bounds is evaluated on
+  */
 case class OutRange(lo: Int, hi: Int, from: Double, to: Double, that: AudioAttribute) extends RangeConstraint {
   override def score(p: Playlist) = score(p, x => x < from || x > to)
 }

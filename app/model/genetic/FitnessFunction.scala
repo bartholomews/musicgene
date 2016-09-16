@@ -2,7 +2,9 @@ package model.genetic
 
 import model.constraints.{Constraint, Score}
 
-
+/**
+  * Trait to collect the Score values from a Playlist over a Set of Constraints
+  */
 trait FitnessFunction {
   val constraints: Set[Constraint]
   def score(playlist: Playlist): Seq[Score] = constraints.toSeq.flatMap(c => c.score(playlist))
@@ -10,6 +12,11 @@ trait FitnessFunction {
   def getDistance(playlist: Playlist): Double = 0.0
 }
 
+/**
+  * Calculate fitness as a decimal percentage value rounded to the nearest tenth
+  *
+  * @param constraints the Set of Constraints to evaluate over a Playlist
+  */
 case class CostBasedFitness(constraints: Set[Constraint]) extends FitnessFunction {
   override def getFitness(p: Playlist): Double = {
     if(constraints.isEmpty) 1.0
