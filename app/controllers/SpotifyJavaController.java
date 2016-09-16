@@ -17,6 +17,7 @@ import java.util.List;
 
 /**
  * Controller to interface the Java Spotify API wrapper
+ * This code is adapted from the wrapper's README on Github:
  * {@see https://github.com/thelinmichael/spotify-web-api-java}
  */
 public class SpotifyJavaController {
@@ -24,8 +25,8 @@ public class SpotifyJavaController {
     private static final Object lock = new Object();
     private static final String CLIENT_ID = "24c87b0353a141768e9b842eb7bd0f67";
     private static final String CLIENT_SECRET = "cc5d6ebca4b445c782b6aced791710ab";
-//    private static final String REDIRECT_URI = "http://localhost:9000/callback";
-    private static final String REDIRECT_URI = "https://musicgene.herokuapp.com/callback";
+    private static final String REDIRECT_URI = "http://localhost:9000/callback";
+//    private static final String REDIRECT_URI = "https://musicgene.herokuapp.com/callback";
 
     private SpotifyJavaController() {}
 
@@ -48,6 +49,9 @@ public class SpotifyJavaController {
         return instance;
     }
 
+    /**
+     * API endpoint instance of the Spotify wrapper
+     */
     private static final Api api = Api.builder()
             .clientId(CLIENT_ID)
             .clientSecret(CLIENT_SECRET)
@@ -55,30 +59,8 @@ public class SpotifyJavaController {
             .build();
 
     /**
-     * Client Credentials flow for requests which do not require user's permission.
-     * This flow doesn't return a refresh token, but it still benefits of higher rate limits
-     * when making requests.
+     * Set the necessary scopes that the application will need from the user
      */
-    public void clientCredentialsFlow() {
-        // create a request object
-        final ClientCredentialsGrantRequest request = api.clientCredentialsGrant().build();
-        // use the request object to make an asynchronous request
-        final SettableFuture<ClientCredentials> responseFuture = request.getAsync();
-        Futures.addCallback(responseFuture, new FutureCallback<ClientCredentials>() {
-            @Override
-            public void onSuccess(ClientCredentials clientCredentials) {
-                // set access token on the Api object
-                api.setAccessToken(clientCredentials.getAccessToken());
-            }
-            @Override
-            public void onFailure(Throwable t) {
-                // client id/secret is invalid
-            }
-        });
-    }
-
-
-    /* Set the necessary scopes that the application will need from the user */ // TODO
     private final List<String> scopes = Arrays.asList("user-read-private", "user-read-email",
             "user-library-read", "user-library-modify", "playlist-modify-public");
 
@@ -163,20 +145,10 @@ public class SpotifyJavaController {
     }
 
     /**
-     * {@see} https://developer.spotify.com/web-api/get-users-saved-tracks/
-     *
-     * @return a List of `LibraryTrack`s
+     * @return the user's Spotify ID
+     * @throws IOException
+     * @throws WebApiException
      */
-    public List<LibraryTrack> getSavedTracks(int offset, int pageSize) throws IOException, WebApiException {
-        try { // getAsync() returns a Settable<Future>, check that with Java 8
-            return sendTracks(offset, pageSize);
-        } catch (Exception e) {
-            // might be a 401 invalid credential: redirect to login?
-            System.out.println("Something went wrong: " + e.getMessage());
-            throw e;
-        }
-    }
-
     private String getID() throws IOException, WebApiException {
         try {
             return api.getMe().build().get().getId();
@@ -186,7 +158,11 @@ public class SpotifyJavaController {
         }
     }
 
-    // again check with getAsync and Java8
+    /**
+     * @return a list of the user's saved playlists
+     * @throws IOException
+     * @throws WebApiException
+     */
     public List<SimplePlaylist> getSavedPlaylists() throws IOException, WebApiException {
         return api.getPlaylistsForUser(getID()).build().get().getItems();
     }
@@ -197,26 +173,14 @@ public class SpotifyJavaController {
         return tracks.getItems();
     }
 
-    private List<LibraryTrack> sendTracks(int offset, int pageSize) throws IOException, WebApiException {
-        try {
-            Page<LibraryTrack> libraryTracksPage = api.getMySavedTracks().offset(offset).limit(pageSize).build().get();
-            return libraryTracksPage.getItems();
-        } catch (BadRequestException br) {
-            System.out.println(br.getMessage());
-            throw br;
-        }
-        // status code 429: too many requests (have a look in the Retry-After header, that is the
-        // seconds you have to wait before sending new requests)
-    }
-
-
     /**
+     * Get Audio analysis from the tracks.
      * Exception such as status code 429: too many requests will stop the retrieval and return None for that id
      *
      * @param id the string id
      * @return either Some(AudioFeature) for the string id or None an error occurs
      */
-    public Option<AudioFeature> getAnalysis(String id) { //throws IOException, WebApiException {
+    public Option<AudioFeature> getAnalysis(String id) {
         try {
             return Option.apply(api.getAudioFeature(id).build().get());
         } catch(Exception ex) {
