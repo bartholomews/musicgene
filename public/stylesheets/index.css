@@ -18,19 +18,3 @@ body {
 .container {
     padding: 0;
 }
-
-/* Default h1 */
-/* small screens */
-h1 {
-    font-family: Changa One, sans-serif;
-    font-size: 1.75em;
-    font-weight: normal;
-}
-
-/* Query h1 */
-/* large screens */
-@media screen and (min-width: 480px) {
-    h1 {
-        font-size: 2.5em;
-    }
-}

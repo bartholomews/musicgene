@@ -4,7 +4,7 @@
 
 @main("MIR") {
 
-    <html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+    <html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
 
         <head>
             <script src="@routes.Assets.versioned("javascripts/modals.js")" type="text/javascript"></script>
@@ -23,7 +23,6 @@
         </head>
 
         <body>
-
             <div class="jumbotron text-left white-transparent">
                 <h1 id="playlist-title">@title's playlists</h1>
                 <p>Select restriction on the playlist to be generated.
@@ -43,22 +42,10 @@
                         <p class="inline" id="constraints-firstLine-2">playlist with no constraints</p>
                     </div>
                     <div id="input-constraints" data-clean="true">
-                        <!-- here javaScript will dynamically add <p> elements
-                             with attributes:
-                             ==========================
-                             type: { indexed, simple }
-                             track-number: [n]
-                             constraint-name: {constraint-name}
-                             attribute-value: {attribute-value}
-                             ==========================
-                             and text:
-                                '#[n] having {indexed-constraint-name} {<|=|>} {attribute-value}'
-                                '#[n] having {simple-constraint-name}'
-                            -->
+                        <!-- here javaScript will dynamically add <p> elements -->
                     </div>
                 </div>
                 <br/>
-
                     <!-- Dropdown button Constraints modal -->
                 <div class="btn-group">
                         <!-- ValueConstraint (i.e. MonotonicValue, Unary) -->
@@ -225,34 +212,55 @@
                         </div>
 
                         <div class="modal-body">
-                            <strong>TRACK#:</strong>&nbsp;&nbsp;&nbsp;
-                            <div id="slider-valueConstraint-div">
-                            <label for="slider-valueConstraint"></label><input id="slider-valueConstraint" type="text">
-                            <input type="hidden" id="slider-valueConstraint-from" name="slider-from" value="1">
-                            <input type="hidden" id="slider-valueConstraint-to" name="slider-to" value="1">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <strong>TRACK#:</strong>&nbsp;&nbsp;&nbsp;
+                                    </div>
+                                    <div class="row">
+                                        <div class=col-lg-12>  @* "col-xs-8 col-sm-6"> *@
+                                            <div id="slider-valueConstraint-div">
+                                                <label for="slider-valueConstraint"></label><input id="slider-valueConstraint" type="text">
+                                                <input type="hidden" id="slider-valueConstraint-from" name="slider-from" value="1">
+                                                <input type="hidden" id="slider-valueConstraint-to" name="slider-to" value="1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br/>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <p class="italic" id="valueConstraint-description">
+                                            Tempo is the pace of a track. It is derived from
+                                            the beat duration, and calculated in beats per minute (BPM).
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="valueConstraint-attr-select"></label><select class="form-control" id="valueConstraint-attr-select">
+                                            <option id="valueConstraint-tempo" class="submitModal" value="Tempo">Tempo</option>
+                                            <option id="valueConstraint-loudness" value="Loudness">Loudness</option>
+                                            <option id="valueConstraint-acousticness" value="Acousticness">Acousticness</option>
+                                            <option id="valueConstraint-liveness" value="Liveness">Liveness</option>
+                                            <option id="valueConstraint-danceability" value="Danceability">Danceability</option>
+                                            <option id="valueConstraint-energy" value="Energy">Energy</option>
+                                        </select>
+                                        <br/>
+                                    </div>
+                                    <div class="col-xs-6">
+                                        <label for="radio-IncludeLarger" class="radio-inline"><input type="radio" id="radio-IncludeLarger" name="monotonicValue" value="IncludeLarger"> no less than</label>
+                                        <label for="radio-IncludeSmaller" class="radio-inline"><input type="radio" id="radio-IncludeSmaller" name="monotonicValue" value="IncludeSmaller"> no more than</label>
+                                        <label for="radio-IncludeEquals" class="radio-inline"><input type="radio" id="radio-IncludeEquals" name="monotonicValue" value="IncludeEquals" checked="checked"> about</label>
+                                        <label class="inline" for="unary-input">
+                                            <input type="number" class="inline" id="valueConstraint-input"
+                                            onkeypress="return isEnterKeyPressed(event, 'valueConstraint')">
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
-                            <br/>
-                            <label for="attr-select">@*HAVING*@</label>
-                            <select class="form-control" id="attr-select">
-                                <option id="valueConstraint-tempo" class="submitModal" value="Tempo">Tempo</option>
-                                <option id="valueConstraint-loudness" value="Loudness">Loudness</option>
-                              @*  <option id="valueConstraint-duration" value="Duration">Duration</option> *@
-                                <option id="valueConstraint-acousticness" value="Acousticness">Acousticness</option>
-                                <option id="valueConstraint-liveness" value="Liveness">Liveness</option>
-                                <option id="valueConstraint-danceability" value="Danceability">Danceability</option>
-                                <option id="valueConstraint-energy" value="Energy">Energy</option>
-                            </select>
-                            <br/>
-                            <label for="radio-IncludeLarger" class="radio-inline"><input type="radio" id="radio-IncludeLarger" name="monotonicValue" value="IncludeLarger">no less than</label>
-                            <label for="radio-IncludeSmaller" class="radio-inline"><input type="radio" id="radio-IncludeSmaller" name="monotonicValue" value="IncludeSmaller">no more than</label>
-                            <label for="radio-IncludeEquals" class="radio-inline"><input type="radio" id="radio-IncludeEquals" name="monotonicValue" value="IncludeEquals" checked="checked">about</label>
-                            <label class="inline" for="unary-input">
-                                @* class="form-control" *@
-                                <input type="number" class="inline" id="valueConstraint-input"
-                                onkeypress="return isEnterKeyPressed(event, 'valueConstraint')">
-                            </label>
                         </div>
-                           @* </form> *@
+
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
                             <button type="button" class="btn btn-primary" id="valueConstraint"
@@ -283,9 +291,9 @@
                             <input type="hidden" id="slider-rangeConstraint-to" name="slider-rangeConstraint-to" value="1">
                             </div>
                                 <br/>
-                            <label for="radio-ConstantRange" class="radio-inline"><input type="radio" id="radio-ConstantRange" name="rangeConstraint" value="ConstantTransition" checked="checked">constant</label>
-                            <label for="radio-IncreasingRange" class="radio-inline"><input type="radio" id="radio-IncreasingRange" name="rangeConstraint" value="IncreasingTransition">increasing</label>
-                            <label for="radio-DecreasingRange" class="radio-inline"><input type="radio" id="radio-DecreasingRange" name="rangeConstraint" value="DecreasingTransition">decreasing</label>
+                            <label for="radio-ConstantRange" class="radio-inline"><input type="radio" id="radio-ConstantRange" name="rangeConstraint" value="ConstantTransition" checked="checked"> constant</label>
+                            <label for="radio-IncreasingRange" class="radio-inline"><input type="radio" id="radio-IncreasingRange" name="rangeConstraint" value="IncreasingTransition"> increasing</label>
+                            <label for="radio-DecreasingRange" class="radio-inline"><input type="radio" id="radio-DecreasingRange" name="rangeConstraint" value="DecreasingTransition"> decreasing</label>
                             <label for="rangeConstraint-attr-select">@*HAVING*@</label>
                             <select class="form-control" id="rangeConstraint-attr-select">
                                 <option id="rangeConstraint-tempo" class="submitModal" value="Tempo">Tempo</option>
@@ -297,6 +305,14 @@
                                 <option id="valueConstraint-danceability" value="Danceability">Danceability</option>
                                 <option id="valueConstraint-energy" value="Energy">Energy</option>
                             </select> <br/>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <p class="italic" id="rangeConstraint-description">
+                                        Tempo is the pace of a track. It is derived from
+                                        the beat duration, and calculated in beats per minute (BPM).
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>

@@ -1,12 +1,12 @@
-body {
-    background-color: inherit;
-}
-
 /* http://stackoverflow.com/a/31184284 */
 .table td.fit,
 .table th.fit {
     white-space: nowrap;
     width: 1%;
+}
+
+p.italic {
+    font-style: italic;
 }
 
 .background-image {
