@@ -307,28 +307,33 @@ public class JsonUtil {
   }
 
   private static Track createTrack(JSONObject trackJson) {
-
     Track track = new Track();
 
-    track.setAlbum(createSimpleAlbum(trackJson.getJSONObject("album")));
-    track.setArtists(createSimpleArtists(trackJson.getJSONArray("artists")));
-    track.setAvailableMarkets(createAvailableMarkets(trackJson.getJSONArray("available_markets")));
-    track.setDiscNumber(trackJson.getInt("disc_number"));
-    track.setDuration(trackJson.getInt("duration_ms"));
-    track.setExplicit(trackJson.getBoolean("explicit"));
-    track.setExternalIds(createExternalIds(trackJson.getJSONObject("external_ids")));
-    track.setExternalUrls(createExternalUrls(trackJson.getJSONObject("external_urls")));
-    track.setHref(trackJson.getString("href"));
-    track.setId(trackJson.getString("id"));
-    track.setName(trackJson.getString("name"));
-    track.setPopularity(trackJson.getInt("popularity"));
-    track.setPreviewUrl(trackJson.getString("preview_url"));
-    track.setTrackNumber(trackJson.getInt(("track_number")));
-    track.setType(createSpotifyEntityType(trackJson.getString("type")));
-    track.setUri(trackJson.getString("uri"));
+    try {
+      track.setAlbum(createSimpleAlbum(trackJson.getJSONObject("album")));
+      track.setArtists(createSimpleArtists(trackJson.getJSONArray("artists")));
+      track.setAvailableMarkets(createAvailableMarkets(trackJson.getJSONArray("available_markets")));
+      track.setDiscNumber(trackJson.getInt("disc_number"));
+      track.setDuration(trackJson.getInt("duration_ms"));
+      track.setExplicit(trackJson.getBoolean("explicit"));
+      track.setExternalIds(createExternalIds(trackJson.getJSONObject("external_ids")));
+      track.setExternalUrls(createExternalUrls(trackJson.getJSONObject("external_urls")));
+      track.setHref(trackJson.getString("href"));
+      track.setId(trackJson.getString("id"));
+      track.setName(trackJson.getString("name"));
+      track.setPopularity(trackJson.getInt("popularity"));
+      track.setPreviewUrl(trackJson.getString("preview_url"));
+      track.setTrackNumber(trackJson.getInt(("track_number")));
+      track.setType(createSpotifyEntityType(trackJson.getString("type")));
+      track.setUri(trackJson.getString("uri"));
 
-    return track;
+      return track;
+    } catch (JSONException ex) {
+      System.out.println(ex);
+      return track;
+    }
   }
+
 
   public static List<Track> createTracks(String json) {
     return createTracks(JSONObject.fromObject(json));
