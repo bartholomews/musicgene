@@ -59,7 +59,7 @@ function parseConstraints(name, input) {
  * @returns {Element}
  */
 function parseValueConstraints(input) {
-    var selection = document.getElementById("attr-select");
+    var selection = document.getElementById("valueConstraint-attr-select");
     var attributeName = selection.options[selection.selectedIndex].value;
 
     var from = $('#slider-valueConstraint-from').val();
