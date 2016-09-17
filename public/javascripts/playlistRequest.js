@@ -4,7 +4,6 @@
 function createNewPlaylist() {
     clearNewPlaylist();
     $('#modal-playlistName').modal('hide');
-    console.log('Preparing JSON...');
     var js = {
         name: document.getElementById("generate-playlist").value,
         length: parseInt(document.getElementById('length').value),
@@ -13,8 +12,12 @@ function createNewPlaylist() {
     };
     pushTrackIds(js);
     pushConstraint(js);
-    console.log("Ready to push " + js.toString() + " via ajax");
+    playlistRequestDescription();
     sendConstraints(JSON.stringify(js));
+}
+
+function playlistRequestDescription() {
+    document.getElementById('playlist-paragraph').innerHTML = "Your playlist is being generated. It might take a few seconds."
 }
 
 /**

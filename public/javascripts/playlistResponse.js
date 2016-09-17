@@ -43,9 +43,9 @@ function isPlaying() {
  Object { name: "playlist-name", tracks: { id: "id", number: "index" } }
  */
 function getNewPlaylist(json) {
-    console.log("Ready to save new playlist to DOM");
-    console.log("Create eval object at /test endpoint");
-    //   console.log(json);
+    document.getElementById('playlist-paragraph').innerHTML =
+        "Select restriction on the playlist to be generated. Click on a track to listen to a short preview. " +
+        "After sending a request, a new playlist will return shortly, together with the plotting of its audio analysis features.";
     $('#playlist-title').text(json.name);
     createPlaylistTable(json.ids);
 }
