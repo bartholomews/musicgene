@@ -48,7 +48,7 @@
                 <br/>
                     <!-- Dropdown button Constraints modal -->
                 <div class="btn-group">
-                        <!-- ValueConstraint (i.e. MonotonicValue, Unary) -->
+                        <!-- ValueConstraint (i.e. MonotonicValue) -->
                     <button type="button" class="btn btn-primary" id="valueConstraint-constraints-button"
                     data-toggle="modal" data-target="#modal-valueConstraint">
                         VALUE CONSTRAINT</button>
@@ -70,7 +70,7 @@
                 <!-- Existing Music collection -->
             <div class="music-collection" id="music-collection">
             @tracks.map { t =>
-                <table class="table table-striped table-hover table-sm" id="music-collection-table">
+                <table class="table table-hover table-sm" id="music-collection-table">
                     <caption>@t._1</caption>
                     <thead>
                         <tr>
@@ -109,16 +109,12 @@
                 </table>
             }
             </div>
+                <!-- /Existing Music collection -->
 
-                <!--
-                Newly generated playlist: head via createNewPlaylistTable() in
-                -->
+                <!-- Newly generated playlist - via createNewPlaylistTable()-->
             <div class="new-playlist" id="new-playlist">
                 <table class="table table-responsive table-hover" id="new-playlist-table">
-                  @*  <caption align="top"></caption>   NOT WORKING WITH BOOTSRAP 4? *@
                     <thead>
-                        @* Should copy from main table to avoid duplicated code and change twice *@
-                        @* TODO dynamically copy <tr> from main table above to avoid code repetition*@
                         <tr>
                             <th>#</th>
                             <th>Title</th>
@@ -139,16 +135,15 @@
                     </tbody>
                 </table>
             </div>
+                <!-- /Newly generated playlist -->
 
                 <!-- Number of tracks modal -->
-            <div class="modal fade" id="modal-tracks" tabindex="-1"
-            role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal fade" id="modal-tracks" tabindex="-1" role="dialog">
                 <div class="modal-dialog" role="document">
                     <div class="modal-dialog modal-sm">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <a class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
                                     <span class="sr-only">Close</span>
                                 </a>
                                 <h4 class="modal-title" id="modal-label">Select number of tracks</h4>
@@ -168,6 +163,7 @@
                     </div>
                 </div>
             </div>
+                <!-- /Number of tracks modal -->
 
                 <!-- PlaylistName modal -->
             <div class="modal fade" id="modal-playlistName" tabindex="-1"
@@ -249,9 +245,9 @@
                                         <br/>
                                     </div>
                                     <div class="col-xs-6">
-                                        <label for="radio-IncludeLarger" class="radio-inline"><input type="radio" id="radio-IncludeLarger" name="monotonicValue" value="IncludeLarger"> no less than</label>
-                                        <label for="radio-IncludeSmaller" class="radio-inline"><input type="radio" id="radio-IncludeSmaller" name="monotonicValue" value="IncludeSmaller"> no more than</label>
-                                        <label for="radio-IncludeEquals" class="radio-inline"><input type="radio" id="radio-IncludeEquals" name="monotonicValue" value="IncludeEquals" checked="checked"> about</label>
+                                        <label for="radio-IncludeLarger" class="radio-inline"><input type="radio" id="radio-IncludeLarger" name="valueConstraint" value="IncludeLarger"> no less than</label>
+                                        <label for="radio-IncludeSmaller" class="radio-inline"><input type="radio" id="radio-IncludeSmaller" name="valueConstraint" value="IncludeSmaller"> no more than</label>
+                                        <label for="radio-IncludeEquals" class="radio-inline"><input type="radio" id="radio-IncludeEquals" name="valueConstraint" value="IncludeEquals" checked="checked"> about</label>
                                         <label class="inline" for="unary-input">
                                             <input type="number" class="inline" id="valueConstraint-input"
                                             onkeypress="return isEnterKeyPressed(event, 'valueConstraint')">

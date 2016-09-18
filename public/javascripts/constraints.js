@@ -11,6 +11,21 @@ function resetConstraints() {
 }
 
 /**
+ * @returns boolean true if no Constraint is present in 'div'
+ * (having 'data-clean' attribute set to true) and switch it to false,
+ * return false if data was already 'dirty'
+ */
+function isDataClean(div) {
+    switch (div.getAttribute('data-clean').toLowerCase()) {
+        case "true":
+            div.setAttribute('data-clean', 'false');
+            return true;
+        default:
+            return false;
+    }
+}
+
+/**
  * Function fired from the 'numberOfTracks' modal when a new number of track selection is submitted
  *
  * @returns {boolean}
@@ -37,7 +52,8 @@ function selectNumberOfTracks() {
  * // TODO make just one generified method!
  */
 function parseConstraints(name, input) {
-    var para;
+    var para = parseIndexedConstraint(name, input);
+    /*
     switch(name) {
         case "valueConstraint":
             para = parseValueConstraints(input);
@@ -46,74 +62,48 @@ function parseConstraints(name, input) {
             para = parseRangeConstraints(input);
             break;
     }
+    */
     var div = document.getElementById('input-constraints');
     if (isDataClean(div)) {
         document.getElementById("constraints-firstLine-2").innerHTML = "playlist with the following constraints:";
     }
     div.appendChild(para);
 }
+
+
 /**
- * create a new <p> element parsing values to form its attributes
+ * create a new <p> element for a Constraint setting constructor values as element attributes
  *
- * @param input
- * @returns {Element}
+ * @param type 'valueConstraint'/'rangeConstraint'
+ * @param input the input value
+ * @returns a <p> element
  */
-function parseValueConstraints(input) {
-    var selection = document.getElementById("valueConstraint-attr-select");
+function parseIndexedConstraint(type, input) {
+    var selection = document.getElementById(type + "-attr-select");
     var attributeName = selection.options[selection.selectedIndex].value;
-
-    var from = $('#slider-valueConstraint-from').val();
-    var to = $('#slider-valueConstraint-to').val();
-    console.log(from + " to " + to);
-    // if from == to Unary else Range(from, to)
-
+    var from = $('#slider-' + type + '-from').val();
+    var to = $('#slider-' + type + '-to').val();
     var para = document.createElement('p');
     para.setAttribute("type", "IndexedConstraint");
     para.setAttribute("from-index", (from - 1) + "");
     para.setAttribute("to-index", (to - 1) + "");
-
-    // TODO add here with more constraints
-    var constraintName = getRadioElementValue('monotonicValue');
+    var constraintName = getRadioElementValue(type);
     para.setAttribute("constraint-name", constraintName);
     para.setAttribute("attribute-name", attributeName);
     para.setAttribute("attribute-value", input);
-
     var trackN;
     if(from == to) trackN = '#' + from;
     else trackN = '#' + from + " to #" + to;
-    var text = trackN + " having " + attributeName + " " + getTextFromRadioValue(constraintName) + " " + getUnit(input, attributeName);
-
-    var node = document.createTextNode(text);
-    para.appendChild(node);
-    return para;
-}
-
-/**
- *
- * @param name the name of a Constraint
- * @param input the input value of a Constraint
- */
-function parseRangeConstraints(name) {
-    var selection = document.getElementById("rangeConstraint-attr-select");
-    var attributeName = selection.options[selection.selectedIndex].value;
-    var from = $('#slider-rangeConstraint-from').val();
-    var to = $('#slider-rangeConstraint-to').val();
-    console.log(from + " to " + to);
-
-    var para = document.createElement('p');
-    para.setAttribute("type", "IndexedConstraint");
-    para.setAttribute("from-index", (from - 1) + "");
-    para.setAttribute("to-index", (to - 1) + "");
-
-    var constraintName = getRadioElementValue('rangeConstraint');
-    para.setAttribute("constraint-name", constraintName);
-    para.setAttribute("attribute-name", attributeName);
-    var trackN;
-    if(from == to) trackN = '#' + from;
-    else trackN = '#' + from + " to #" + to;
-    var text = trackN + " having " + getTextFromRadioValue(constraintName) + " " + attributeName;
-    console.log("==> " + text);
-
+    var text = trackN + " having ";
+    switch(type) {
+        case "valueConstraint":
+            text += attributeName + " " + getTextFromRadioValue(constraintName) +
+                " " + getUnit(input, attributeName);
+            break;
+        case "rangeConstraint":
+            text += getTextFromRadioValue(constraintName) + " " + attributeName;
+            break;
+    }
     var node = document.createTextNode(text);
     para.appendChild(node);
     return para;
@@ -152,7 +142,7 @@ function getUnit(input, attribute) {
             return input + " dB";
             break;
         default:
-            return parseFloat(input) * 100 + "%";
+            return input; // parseFloat(input) * 100 + "%";
             break;
     }
 }
@@ -172,18 +162,4 @@ function getRadioElementValue(name) {
         }
     }
     return false;
-}
-
-/**
- * @returns true if no Constraint is present in 'div'
- * (having 'data-clean' attribute set to true) and switch it to false
- */
-function isDataClean(div) {
-    switch (div.getAttribute('data-clean').toLowerCase()) {
-        case "true":
-            div.setAttribute('data-clean', 'false');
-            return true;
-        default:
-            return false;
-    }
 }
