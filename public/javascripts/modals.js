@@ -62,7 +62,8 @@ function saveModal(name) {
     var from = trackSlider.slider('getValue')[0];
     var to = trackSlider.slider('getValue')[1];
 
-    window.alert(from + " - " + to);
+    console.log("from: " + from);
+    console.log("to: " + to);
 
     if(name == 'monotonicTransition') {
         if(from == to) {
@@ -71,16 +72,18 @@ function saveModal(name) {
         }
     }
 
+    var input = 0; // for constraint with irrelevant attribute value wrapped
+
     if(name == 'monotonicValue') {
-        var attrVal = document.getElementById(name + "-input").value;
+        input = document.getElementById(name + "-input").value;
         // check if value is empty
-        if (attrVal == "") {
+        if (input == "") {
             alert("Enter a valid value");
             return false;
-        } else parseConstraints(name, attrVal);
-    } else {
-        parseConstraints(name);
+        }
     }
+    appendConstraint(parseIndexedConstraint(name, input, from, to));
+
     $('#modal-' + name).modal('hide');
     return true;
 }

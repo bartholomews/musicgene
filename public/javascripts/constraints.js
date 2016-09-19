@@ -48,10 +48,9 @@ function selectNumberOfTracks() {
 }
 
 /**
- * build a Constraint String and add append a <p> element to the jumbotron
+ * append a <p> element (referencing a Constraint) to the jumbotron
  */
-function parseConstraints(name, input) {
-    var para = parseIndexedConstraint(name, input);
+function appendConstraint(para) {
     var div = document.getElementById('input-constraints');
     if (isDataClean(div)) { // first constraint to add: change the first line of the <div>
         document.getElementById("constraints-firstLine-2").innerHTML = "playlist with the following constraints:";
@@ -64,12 +63,13 @@ function parseConstraints(name, input) {
  *
  * @param type 'valueConstraint'/'rangeConstraint'
  * @param input the input value
+ * @param from the lower bound of the index range
+ * @param to the upper bound of the index range
  */
-function parseIndexedConstraint(type, input) {
+function parseIndexedConstraint(type, input, from, to) {
     var selection = document.getElementById(type + "-attr-select");
     var attributeName = selection.options[selection.selectedIndex].value;
-    var from = $('#slider-' + type + '-from').val();
-    var to = $('#slider-' + type + '-to').val();
+    console.log("from " + from + " to " + to);
     var para = document.createElement('p');
     para.setAttribute("type", "IndexedConstraint");
     para.setAttribute("from-index", (from - 1) + "");
