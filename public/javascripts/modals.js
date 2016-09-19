@@ -4,8 +4,8 @@
 $(document).ready(function () {
     playPreviewTable();  // listen for mouse click on track rows
     resetModal(); // listen for a closed modal
-    valueConstraintOnChange();
-    rangeConstraintOnChange();
+    updateDescriptionListener("monotonicValue");
+    updateDescriptionListener("monotonicTransition");
     initSliders(1, parseInt(document.getElementById('length').value));
     focusInputOnOpenModal();
 });
@@ -19,54 +19,12 @@ function focusInputOnOpenModal() {
     })
 }
 
-function valueConstraintOnChange() {
-    $("#valueConstraint-attr-select").change(function () {
-        document.getElementById("valueConstraint-description").innerHTML = getAudioDescription($(this).val());
+function updateDescriptionListener(constraintName) {
+    $('#' + constraintName + "-attr-select").change(function () {
+        document.getElementById(constraintName + "-description").innerHTML = getAudioDescription($(this).val());
     });
 }
 
-function rangeConstraintOnChange() {
-    $("#rangeConstraint-attr-select").change(function () {
-        document.getElementById("rangeConstraint-description").innerHTML = getAudioDescription($(this).val());
-    });
-}
-
-function getAudioDescription(attribute) {
-    switch(attribute) {
-        case "Tempo":
-            return "Tempo is the pace of a track. It is derived from the beat duration, " +
-                "and calculated in beats per minute (BPM). The values range are about 40 to 240 BPM.";
-        case "Loudness":
-            return "Loudness defines physical strength (amplitude) and is calculated in decibels (dB), " +
-                "with values assigned between -60 dB (silence) and 0 dB (extremely loud).";
-        case "Acousticness":
-            return "Acousticness is the likelihood a track was recorded only by acoustic means (with values closer to 0.0) " +
-                "as opposed to tracks which has been synthesized, amplified or recorded with electronic instruments " +
-                "(with values closer to 1.0)";
-        case "Liveness":
-            return "Liveness detects the presence of an audience in the recording. The more confident that the track is live, " +
-                "the closer to 1.0 the attribute value. A value above 0.8 provides strong likelihood that the track is live. " +
-                "Tracks with values between 0.6 and 0.8 may or may not be live or contain simulated audience sounds. " +
-                "Values below 0.6 most likely represent studio recordings.";
-        case "Danceability":
-            return "Combining beat strength, tempo stability, overall tempo and regularity " +
-                "in order to estimate how likely a track could be perceived as 'danceable' (the more suitable for dancing, " +
-                "the closer to 1.0 the value).";
-        case "Energy":
-            return "Energy represents a perceptual measure of intensity, describing how fast, loud " +
-                "and noisy a track is. Perceptual features contributing to this attribute include dynamic range, " +
-                "perceived loudness, timbre, onset rate, and general entropy. The closer to 1.0, the more energetic the track is.";
-        case "Speechiness":
-            return "Speechiness detects the presence of spoken words in a track. The more exclusively speech-like the recording " +
-                "(e.g. audio book, stand-up), the closer to 1.0 the attribute value. A track above 0.66 is probably made entirely " +
-                "of spoken words, between 0.33 and 0.66 may contain both music and speech (e.g. rap music).";
-        case "Valence":
-            return "Valence describes the musical positiveness conveyed by a track: a high-valence value (closer to 1.0) defines more positive sounds " +
-                "(e.g. happy, cheerful, euphoric). This attribute in combination with energy is a strong indicator of acoustic mood.";
-        default:
-            return "";
-    }
-}
 /**
  * On each input box in a modal,
  * if 'Enter' is pressed the 'Save' button will be triggered.
@@ -83,7 +41,7 @@ function isEnterKeyPressed(e, id) {
 }
 
 /**
- * Triggered when a modal is closed: TODO empty text input field
+ * Triggered when a modal is closed
  */
 function resetModal() {
     $('body').on('hidden.bs.modal', '.modal', function(){
@@ -103,23 +61,23 @@ function saveModal(name) {
     var trackSlider = $('#slider-' + name).slider();
     var from = trackSlider.slider('getValue')[0];
     var to = trackSlider.slider('getValue')[1];
-    if(name == 'rangeConstraint') {
+
+    window.alert(from + " - " + to);
+
+    if(name == 'monotonicTransition') {
         if(from == to) {
             alert("Please enter a range with 1 as minimum step");
             return false;
         }
     }
-    $('#slider-' + name + '-from').val(trackSlider.slider('getValue')[0]);
-    $('#slider-' + name + '-to').val(trackSlider.slider('getValue')[1]);
-    if(name == 'valueConstraint') {
+
+    if(name == 'monotonicValue') {
         var attrVal = document.getElementById(name + "-input").value;
         // check if value is empty
         if (attrVal == "") {
             alert("Enter a valid value");
             return false;
-        } else {
-            parseConstraints(name, attrVal);
-        }
+        } else parseConstraints(name, attrVal);
     } else {
         parseConstraints(name);
     }
@@ -171,7 +129,7 @@ function checkAttributeFireSlider() {
  */
 function initSliders(minRange, maxRange) {
 
-    $('#slider-valueConstraint').slider({
+    $('#slider-monotonicValue').slider({
         min: minRange, max: maxRange, value: [1, maxRange], focus: true, step: 1,
         start: function (event, ui) {
             event.stopPropagation();
@@ -180,8 +138,7 @@ function initSliders(minRange, maxRange) {
             return "range: " + value;
         }
     });
-    // TODO should enforce two values NOT to be same: it has to be a range of min step 1
-    $('#slider-rangeConstraint').slider({
+    $('#slider-monotonicTransition').slider({
         min: minRange, max: maxRange, value: [1, maxRange], focus: true, step: 1,
         start: function (event, ui) {
             event.stopPropagation();
@@ -193,8 +150,8 @@ function initSliders(minRange, maxRange) {
 }
 
 function changeSlidersMaxValue(maxValue) {
-    changeSliderMaxValue('slider-rangeConstraint', maxValue);
-    changeSliderMaxValue('slider-valueConstraint', maxValue);
+    changeSliderMaxValue('slider-monotonicTransition', maxValue);
+    changeSliderMaxValue('slider-monotonicValue', maxValue);
 }
 
 function changeSliderMaxValue(name, maxValue) {
@@ -240,3 +197,40 @@ function createModal(name) {}
  $('#slider-to').val(ui.values[1]);
  }
  */
+
+function getAudioDescription(attribute) {
+    switch(attribute) {
+        case "Tempo":
+            return "Tempo is the pace of a track. It is derived from the beat duration, " +
+                "and calculated in beats per minute (BPM). The values range are about 40 to 240 BPM.";
+        case "Loudness":
+            return "Loudness defines physical strength (amplitude) and is calculated in decibels (dB), " +
+                "with values assigned between -60 dB (silence) and 0 dB (extremely loud).";
+        case "Acousticness":
+            return "Acousticness is the likelihood a track was recorded only by acoustic means (with values closer to 0.0) " +
+                "as opposed to tracks which has been synthesized, amplified or recorded with electronic instruments " +
+                "(with values closer to 1.0)";
+        case "Liveness":
+            return "Liveness detects the presence of an audience in the recording. The more confident that the track is live, " +
+                "the closer to 1.0 the attribute value. A value above 0.8 provides strong likelihood that the track is live. " +
+                "Tracks with values between 0.6 and 0.8 may or may not be live or contain simulated audience sounds. " +
+                "Values below 0.6 most likely represent studio recordings.";
+        case "Danceability":
+            return "Combining beat strength, tempo stability, overall tempo and regularity " +
+                "in order to estimate how likely a track could be perceived as 'danceable' (the more suitable for dancing, " +
+                "the closer to 1.0 the value).";
+        case "Energy":
+            return "Energy represents a perceptual measure of intensity, describing how fast, loud " +
+                "and noisy a track is. Perceptual features contributing to this attribute include dynamic range, " +
+                "perceived loudness, timbre, onset rate, and general entropy. The closer to 1.0, the more energetic the track is.";
+        case "Speechiness":
+            return "Speechiness detects the presence of spoken words in a track. The more exclusively speech-like the recording " +
+                "(e.g. audio book, stand-up), the closer to 1.0 the attribute value. A track above 0.66 is probably made entirely " +
+                "of spoken words, between 0.33 and 0.66 may contain both music and speech (e.g. rap music).";
+        case "Valence":
+            return "Valence describes the musical positiveness conveyed by a track: a high-valence value (closer to 1.0) defines more positive sounds " +
+                "(e.g. happy, cheerful, euphoric). This attribute in combination with energy is a strong indicator of acoustic mood.";
+        default:
+            return "";
+    }
+}

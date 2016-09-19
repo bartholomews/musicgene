@@ -49,12 +49,12 @@
                     <!-- Dropdown button Constraints modal -->
                 <div class="btn-group">
                         <!-- ValueConstraint (i.e. MonotonicValue) -->
-                    <button type="button" class="btn btn-primary" id="valueConstraint-constraints-button"
-                    data-toggle="modal" data-target="#modal-valueConstraint">
+                    <button type="button" class="btn btn-primary" id="monotonicValue-constraints-button"
+                    data-toggle="modal" data-target="#modal-monotonicValue">
                         VALUE CONSTRAINT</button>
                         <!-- RangeConstraint (i.e. MonotonicRange) -->
-                    <button type="button" class="btn btn-primary" id="rangeConstraint-constraints-button"
-                    data-toggle="modal" data-target="#modal-rangeConstraint">
+                    <button type="button" class="btn btn-primary" id="monotonicTransition-constraints-button"
+                    data-toggle="modal" data-target="#modal-monotonicTransition">
                         SORT CONSTRAINT</button>
                 </div>
                 <br/><br/>
@@ -194,8 +194,8 @@
                 </div>
             </div>
 
-                <!-- #valueConstraint modal -->
-            <div class="modal fade" id="modal-valueConstraint" tabindex="-1"
+                <!-- #monotonicValue modal -->
+            <div class="modal fade" id="modal-monotonicValue" tabindex="-1"
             role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -215,10 +215,10 @@
                                     </div>
                                     <div class="row">
                                         <div class=col-lg-12>  @* "col-xs-8 col-sm-6"> *@
-                                            <div id="slider-valueConstraint-div">
-                                                <label for="slider-valueConstraint"></label><input id="slider-valueConstraint" type="text">
-                                                <input type="hidden" id="slider-valueConstraint-from" name="slider-from" value="1">
-                                                <input type="hidden" id="slider-valueConstraint-to" name="slider-to" value="1">
+                                            <div id="slider-monotonicValue-div">
+                                                <label for="slider-monotonicValue"></label><input id="slider-monotonicValue" type="text">
+                                                <input type="hidden" id="slider-monotonicValue-from" name="slider-from" value="1">
+                                                <input type="hidden" id="slider-monotonicValue-to" name="slider-to" value="1">
                                             </div>
                                         </div>
                                     </div>
@@ -226,7 +226,7 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <p class="italic" id="valueConstraint-description">
+                                        <p class="italic" id="monotonicValue-description">
                                             Tempo is the pace of a track. It is derived from the beat duration, " +
                                             "and calculated in beats per minute (BPM). The values range are about 40 to 240 BPM.
                                         </p>
@@ -234,23 +234,23 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <label for="valueConstraint-attr-select"></label><select class="form-control" id="valueConstraint-attr-select">
-                                            <option id="valueConstraint-tempo" class="submitModal" value="Tempo">Tempo</option>
-                                            <option id="valueConstraint-loudness" value="Loudness">Loudness</option>
-                                            <option id="valueConstraint-acousticness" value="Acousticness">Acousticness</option>
-                                            <option id="valueConstraint-liveness" value="Liveness">Liveness</option>
-                                            <option id="valueConstraint-danceability" value="Danceability">Danceability</option>
-                                            <option id="valueConstraint-energy" value="Energy">Energy</option>
+                                        <label for="monotonicValue-attr-select"></label><select class="form-control" id="monotonicValue-attr-select">
+                                            <option id="monotonicValue-tempo" class="submitModal" value="Tempo">Tempo</option>
+                                            <option id="monotonicValue-loudness" value="Loudness">Loudness</option>
+                                            <option id="monotonicValue-acousticness" value="Acousticness">Acousticness</option>
+                                            <option id="monotonicValue-liveness" value="Liveness">Liveness</option>
+                                            <option id="monotonicValue-danceability" value="Danceability">Danceability</option>
+                                            <option id="monotonicValue-energy" value="Energy">Energy</option>
                                         </select>
                                         <br/>
                                     </div>
                                     <div class="col-xs-6">
-                                        <label for="radio-IncludeLarger" class="radio-inline"><input type="radio" id="radio-IncludeLarger" name="valueConstraint" value="IncludeLarger"> no less than</label>
-                                        <label for="radio-IncludeSmaller" class="radio-inline"><input type="radio" id="radio-IncludeSmaller" name="valueConstraint" value="IncludeSmaller"> no more than</label>
-                                        <label for="radio-IncludeEquals" class="radio-inline"><input type="radio" id="radio-IncludeEquals" name="valueConstraint" value="IncludeEquals" checked="checked"> about</label>
+                                        <label for="radio-IncludeLarger" class="radio-inline"><input type="radio" id="radio-IncludeLarger" name="monotonicValue" value="IncludeLarger"> no less than</label>
+                                        <label for="radio-IncludeSmaller" class="radio-inline"><input type="radio" id="radio-IncludeSmaller" name="monotonicValue" value="IncludeSmaller"> no more than</label>
+                                        <label for="radio-IncludeEquals" class="radio-inline"><input type="radio" id="radio-IncludeEquals" name="monotonicValue" value="IncludeEquals" checked="checked"> about</label>
                                         <label class="inline" for="unary-input">
-                                            <input type="number" class="inline" id="valueConstraint-input"
-                                            onkeypress="return isEnterKeyPressed(event, 'valueConstraint')">
+                                            <input type="number" class="inline" id="monotonicValue-input"
+                                            onkeypress="return isEnterKeyPressed(event, 'monotonicValue')">
                                         </label>
                                     </div>
                                 </div>
@@ -259,15 +259,15 @@
 
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
-                            <button type="button" class="btn btn-primary" id="valueConstraint"
-                            onclick="saveModal('valueConstraint')">Save</button>
+                            <button type="button" class="btn btn-primary" id="monotonicValue"
+                            onclick="saveModal('monotonicValue')">Save</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-                <!-- #rangeConstraint modal -->
-            <div class="modal fade" id="modal-rangeConstraint" tabindex="-1"
+                <!-- #monotonicTransition modal -->
+            <div class="modal fade" id="modal-monotonicTransition" tabindex="-1"
             role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -281,29 +281,29 @@
 
                         <div class="modal-body">
                             <strong>TRACK#:</strong>&nbsp;&nbsp;&nbsp;
-                            <div id="slider-rangeConstraint-div">
-                            <label for="slider-rangeConstraint"></label><input id="slider-rangeConstraint" type="text">
-                            <input type="hidden" id="slider-rangeConstraint-from" name="slider-rangeConstraint-from" value="1">
-                            <input type="hidden" id="slider-rangeConstraint-to" name="slider-rangeConstraint-to" value="1">
+                            <div id="slider-monotonicTransition-div">
+                            <label for="slider-monotonicTransition"></label><input id="slider-monotonicTransition" type="text">
+                            <input type="hidden" id="slider-monotonicTransition-from" name="slider-monotonicTransition-from" value="1">
+                            <input type="hidden" id="slider-monotonicTransition-to" name="slider-monotonicTransition-to" value="1">
                             </div>
                                 <br/>
-                            <label for="radio-ConstantRange" class="radio-inline"><input type="radio" id="radio-ConstantRange" name="rangeConstraint" value="ConstantTransition" checked="checked"> constant</label>
-                            <label for="radio-IncreasingRange" class="radio-inline"><input type="radio" id="radio-IncreasingRange" name="rangeConstraint" value="IncreasingTransition"> increasing</label>
-                            <label for="radio-DecreasingRange" class="radio-inline"><input type="radio" id="radio-DecreasingRange" name="rangeConstraint" value="DecreasingTransition"> decreasing</label>
-                            <label for="rangeConstraint-attr-select">@*HAVING*@</label>
-                            <select class="form-control" id="rangeConstraint-attr-select">
-                                <option id="rangeConstraint-tempo" class="submitModal" value="Tempo">Tempo</option>
-                                <option id="rangeConstraint-loudness" value="Loudness">Loudness</option>
+                            <label for="radio-ConstantTransition" class="radio-inline"><input type="radio" id="radio-ConstantRange" name="monotonicTransition" value="ConstantTransition" checked="checked"> constant</label>
+                            <label for="radio-IncreasingTransition" class="radio-inline"><input type="radio" id="radio-IncreasingRange" name="monotonicTransition" value="IncreasingTransition"> increasing</label>
+                            <label for="radio-DecreasingTransition" class="radio-inline"><input type="radio" id="radio-DecreasingRange" name="monotonicTransition" value="DecreasingTransition"> decreasing</label>
+                            <label for="monotonicTransition-attr-select">@*HAVING*@</label>
+                            <select class="form-control" id="monotonicTransition-attr-select">
+                                <option id="monotonicTransition-tempo" class="submitModal" value="Tempo">Tempo</option>
+                                <option id="monotonicTransition-loudness" value="Loudness">Loudness</option>
                              @*   <option id="rangeConstraint-duration" value="Duration">Duration</option> *@
-                                <option id="rangeConstraint-acousticness" value="Acousticness">Acousticness</option>
-                                <option id="rangeConstraint-liveness" value="Liveness">Liveness</option>
-                                <option id="rangeConstraint-speechiness" value="Speechiness">Speechiness</option>
-                                <option id="valueConstraint-danceability" value="Danceability">Danceability</option>
-                                <option id="valueConstraint-energy" value="Energy">Energy</option>
+                                <option id="monotonicTransition-acousticness" value="Acousticness">Acousticness</option>
+                                <option id="monotonicTransition-liveness" value="Liveness">Liveness</option>
+                                <option id="monotonicTransition-speechiness" value="Speechiness">Speechiness</option>
+                                <option id="monotonicTransition-danceability" value="Danceability">Danceability</option>
+                                <option id="monotonicTransition-energy" value="Energy">Energy</option>
                             </select> <br/>
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <p class="italic" id="rangeConstraint-description">
+                                    <p class="italic" id="monotonicTransition-description">
                                         Tempo is the pace of a track. It is derived from the beat duration, " +
                                         "and calculated in beats per minute (BPM). The values range are about 40 to 240 BPM.
                                     </p>
@@ -313,7 +313,7 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
                             <button type="button" class="btn btn-primary" id="unary"
-                            onclick="saveModal('rangeConstraint')">Save</button>
+                            onclick="saveModal('monotonicTransition')">Save</button>
                         </div>
                     </div>
                 </div>

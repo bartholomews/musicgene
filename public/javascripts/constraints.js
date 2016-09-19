@@ -1,5 +1,5 @@
 /**
- * Clear the div with the constraints paragraphs its original status
+ * Clear the div with the constraints paragraphs' original status
  */
 function resetConstraints() {
     // create fresh firstLine
@@ -13,7 +13,7 @@ function resetConstraints() {
 /**
  * @returns boolean true if no Constraint is present in 'div'
  * (having 'data-clean' attribute set to true) and switch it to false,
- * return false if data was already 'dirty'
+ * return false if a constraint is already appended to the <div>
  */
 function isDataClean(div) {
     switch (div.getAttribute('data-clean').toLowerCase()) {
@@ -49,34 +49,21 @@ function selectNumberOfTracks() {
 
 /**
  * build a Constraint String and add append a <p> element to the jumbotron
- * // TODO make just one generified method!
  */
 function parseConstraints(name, input) {
     var para = parseIndexedConstraint(name, input);
-    /*
-    switch(name) {
-        case "valueConstraint":
-            para = parseValueConstraints(input);
-            break;
-        case "rangeConstraint":
-            para = parseRangeConstraints(input);
-            break;
-    }
-    */
     var div = document.getElementById('input-constraints');
-    if (isDataClean(div)) {
+    if (isDataClean(div)) { // first constraint to add: change the first line of the <div>
         document.getElementById("constraints-firstLine-2").innerHTML = "playlist with the following constraints:";
     }
     div.appendChild(para);
 }
-
 
 /**
  * create a new <p> element for a Constraint setting constructor values as element attributes
  *
  * @param type 'valueConstraint'/'rangeConstraint'
  * @param input the input value
- * @returns a <p> element
  */
 function parseIndexedConstraint(type, input) {
     var selection = document.getElementById(type + "-attr-select");
@@ -96,11 +83,11 @@ function parseIndexedConstraint(type, input) {
     else trackN = '#' + from + " to #" + to;
     var text = trackN + " having ";
     switch(type) {
-        case "valueConstraint":
+        case "monotonicValue":
             text += attributeName + " " + getTextFromRadioValue(constraintName) +
                 " " + getUnit(input, attributeName);
             break;
-        case "rangeConstraint":
+        case "monotonicTransition":
             text += getTextFromRadioValue(constraintName) + " " + attributeName;
             break;
     }
