@@ -25,8 +25,8 @@ public class SpotifyJavaController {
     private static final Object lock = new Object();
     private static final String CLIENT_ID = "24c87b0353a141768e9b842eb7bd0f67";
     private static final String CLIENT_SECRET = "cc5d6ebca4b445c782b6aced791710ab";
-    private static final String REDIRECT_URI = "http://localhost:9000/callback";
-//    private static final String REDIRECT_URI = "https://musicgene.herokuapp.com/callback";
+//    private static final String REDIRECT_URI = "http://localhost:9000/callback";
+    private static final String REDIRECT_URI = "https://musicgene.herokuapp.com/callback";
 
     private SpotifyJavaController() {}
 
