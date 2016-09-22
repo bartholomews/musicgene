@@ -69,8 +69,8 @@ function appendConstraint(para) {
 function parseIndexedConstraint(type, input, from, to) {
     var selection = document.getElementById(type + "-attr-select");
     var attributeName = selection.options[selection.selectedIndex].value;
-    console.log("from " + from + " to " + to);
-    var para = document.createElement('p');
+    // console.log("from " + from + " to " + to);
+    var para = document.createElement('li');
     para.setAttribute("type", "IndexedConstraint");
     para.setAttribute("from-index", (from - 1) + "");
     para.setAttribute("to-index", (to - 1) + "");
@@ -93,7 +93,28 @@ function parseIndexedConstraint(type, input, from, to) {
     }
     var node = document.createTextNode(text);
     para.appendChild(node);
+    para.appendChild(getRemoveGlyph());
     return para;
+}
+
+function getRemoveGlyph() {
+    var button = document.createElement('button');
+    button.setAttribute('type', 'button');
+    button.className = "btn btn-link btn-sm";
+    button.addEventListener("click", deleteConstraint, false);
+    var span = document.createElement('span');
+    span.className = 'fa fa-trash-o';
+    button.appendChild(span);
+    return button;
+}
+
+function deleteConstraint() {
+    $("li").click(function() {
+        $(this).remove();
+        if ($('#input-constraints').find('li').length == 0) {
+            resetConstraints();
+        }
+    });
 }
 
 // NO NEED TO SWITCH, YOU CAN USE THE TEXT PARA IN THIS CASE

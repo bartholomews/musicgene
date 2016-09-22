@@ -41,7 +41,7 @@ function pushTrackIds(js) {
 function pushConstraint(js) {
     // var array = document.getElementById("query").getElementsByTagName("*");
     // get all <p> elements in div <input-constraints>
-    var constraints = document.getElementById('input-constraints').getElementsByTagName('p');
+    var constraints = document.getElementById('input-constraints').getElementsByTagName('li');
     for (var i = 0; i < constraints.length; i++) {
         var c = getConstraint(constraints[i]);
         var obj = {};
