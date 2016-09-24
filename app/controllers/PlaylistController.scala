@@ -2,8 +2,9 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 
-import model.music.{JSONParser, MusicCollection}
+import model.music.{JSONParser, MusicCollection, Song}
 import model.genetic.{GA, Playlist}
+import play.api.cache.redis.CacheApi
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, Controller}
 
@@ -13,7 +14,7 @@ import play.api.mvc.{Action, Controller}
   * @param configuration the MongoDB server configuration injected from .conf file when the application starts
   */
 @Singleton
-class PlaylistController @Inject() (configuration: play.api.Configuration) extends Controller {
+class PlaylistController @Inject() (configuration: play.api.Configuration, cache: CacheApi) extends Controller {
 
   /**
     * The 'tracks' collection at injected MongoDB server
@@ -46,7 +47,18 @@ class PlaylistController @Inject() (configuration: play.api.Configuration) exten
         val db = new MusicCollection(
           // Song instances are retrieved from MongoDB looking up their ids
           // which is stored in the PlaylistRequest
-          p.ids.flatMap(id => MongoController.readByID(dbTracks, id))
+          // p.ids.flatMap(id => MongoController.readByID(dbTracks, id))
+
+          for(id <- p.ids) yield {
+            cache.get[Song](id) match {
+              case Some(song) => song
+              case None => {
+                val song = MongoController.readByID(dbTracks, id).get
+                cache.set(id, song)
+                song
+              }
+            }
+          }
         )
         // call the playlist generation algorithm with (MusicCollection, Set[Constraint], Int) args
         val playlist = GA.generatePlaylist(db, p.constraints, p.length)

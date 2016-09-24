@@ -4,6 +4,7 @@ import javax.inject.{Inject, Singleton}
 
 import com.wrapper.spotify.exceptions.BadRequestException
 import model.music.Song
+import play.api.cache.redis.CacheApi
 import play.api.mvc.{Action, Controller}
 
 /**
@@ -13,7 +14,7 @@ import play.api.mvc.{Action, Controller}
   * @param configuration the MongoDB server configuration injected from .conf file when the application starts
   */
 @Singleton
-class HomeController @Inject()(configuration: play.api.Configuration) extends Controller {
+class HomeController @Inject()(configuration: play.api.Configuration, cache: CacheApi) extends Controller {
 
   /**
     * The 'tracks' collection at injected MongoDB server
@@ -62,7 +63,7 @@ class HomeController @Inject()(configuration: play.api.Configuration) extends Co
     */
   def getSpotifyTracks = Action {
     try {
-      val spotify = new SpotifyController(configuration)
+      val spotify = new SpotifyController(configuration, cache)
       val userName = spotify.getSpotifyName
       val playlists: Vector[(String, Vector[Song])] = spotify.getPlaylists
       Ok(views.html.tracks(userName, playlists))

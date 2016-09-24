@@ -5,6 +5,7 @@ import javax.inject._
 import com.wrapper.spotify.exceptions.BadRequestException
 import com.wrapper.spotify.models.{SimplePlaylist, Track}
 import model.music._
+import play.api.cache.redis.CacheApi
 import play.api.mvc._
 
 import scala.collection.JavaConversions._
@@ -16,7 +17,7 @@ import scala.collection.JavaConversions._
   * @param configuration the MongoDB server configuration injected from .conf file when the application starts
   */
 @Singleton
-class SpotifyController @Inject()(configuration: play.api.Configuration) extends Controller {
+class SpotifyController @Inject()(configuration: play.api.Configuration, cache: CacheApi) extends Controller {
   // Singleton instance of the SpotifyJavaController which interface with the Spotify API Java wrapper
   val spotify = SpotifyJavaController.getInstance()
 
@@ -96,21 +97,35 @@ class SpotifyController @Inject()(configuration: play.api.Configuration) extends
     try {
       // get each playlist's tracks (only ids and basic access data)
       val trackList: Vector[Track] = spotify.getPlaylistTracks(playlist).map(t => t.getTrack).toVector
+
       // retrieve those which are already stored in MongoDB
-      val inDB: Vector[Song] = trackList.flatMap(t => MongoController.readByID(dbTracks, t.getId))
+      // val inDB: Vector[Song] = trackList.flatMap(t => MongoController.readByID(dbTracks, t.getId))
+
+      // retrieve those which are already stored in Redis cache
+      val inCache: Vector[Song] = trackList.flatMap(t => cache.get[Song](t.getId))
+      // tracks not stored in cache but stored in MongoDB
+      val inDB: Vector[Song] = trackList.filterNot(t => inCache.exists(s => s.id == t.getId))
+                          .flatMap(t => MongoController.readByID(dbTracks, t.getId))
+      inDB.foreach(s => cache.set(s.id, s))
+      val retrieved = inCache ++ inDB
       // create a sequence of Song with those retrieved from MongoDB
       // and getting the others from the Spotify API
       val outDB: Vector[Song] = MusicUtil.toSongs(
-        trackList.filterNot(t => inDB.exists(s => s.id == t.getId))
+        trackList.filterNot(t => retrieved.exists(s => s.id == t.getId))
           .flatMap(t => spotify.getAnalysis(t.getId) match {
             case None => None
             case Some(analysis) => Some(t, analysis)
           }
       ))
-      // write to MongoDB those Song instances which weren't there
-      MongoController.writeToDB(dbTracks, outDB)
+
+      outDB.foreach(s => {
+        // write to MongoDB those Song instances which weren't there
+        MongoController.writeToDB(dbTracks, outDB)
+        // write to Redis cache
+        cache.set(s.id, s)
+      })
       // return the playlist and its tracks
-      Some(playlist, inDB ++ outDB)
+      Some(playlist, retrieved ++ outDB)
     } catch {
       // return None if an error occurred during the operation
       case _: NullPointerException => None
