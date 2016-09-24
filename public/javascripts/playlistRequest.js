@@ -17,7 +17,11 @@ function createNewPlaylist() {
 }
 
 function playlistRequestDescription() {
-    document.getElementById('playlist-paragraph').innerHTML = "Your playlist is being generated. It might take a few seconds."
+    var para = document.getElementById('playlist-paragraph');
+    para.innerHTML = "Your playlist is being generated. It might take a few seconds. ";
+    var span = document.createElement('span');
+    span.className = 'fa fa-2x fa-spin fa-cog';
+    para.appendChild(span);
 }
 
 /**
