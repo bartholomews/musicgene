@@ -95,6 +95,14 @@ caption {
     display: inline;
 }
 
+.upright {
+    margin-top: 1px;
+    margin-right: 2px;
+    position:absolute;
+    top: 0;
+    right: 0;
+}
+
 /* path.domain { stroke: white; } */
 /* .tick text { stroke: white; } */
 /* .c3-legend-item text { stroke: white; } */
