@@ -11,7 +11,7 @@ object GASettings {
   val popSize = 2048
 
   // Maximum number of generations
-  val maxGen = 128
+  val maxGen = 64
 
   // The probability of crossover for any member of the population,
   // where 0.0 <= crossoverRatio <= 1.0
