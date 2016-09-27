@@ -8,7 +8,7 @@ object GASettings {
   val maxFitness = 1.0
 
   // number of candidate playlists
-  val popSize = 2048
+  val popSize = 1024
 
   // Maximum number of generations
   val maxGen = 64
