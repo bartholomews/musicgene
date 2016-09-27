@@ -47,7 +47,7 @@ class HomeController @Inject()(configuration: play.api.Configuration, cache: Cac
   def getSampleTracks = Action {
     // retrieve 200 sample tracks from MongoDB
     val songs = MongoController.read(dbTracks, 200)
-    Ok(views.html.tracks("sample songs",
+    Ok(views.html.tracks("sample",
       Vector(("A list of unsorted tracks with different characteristics", songs)))
     )
   }
