@@ -97,10 +97,6 @@ class SpotifyController @Inject()(configuration: play.api.Configuration, cache: 
     try {
       // get each playlist's tracks (only ids and basic access data)
       val trackList: Vector[Track] = spotify.getPlaylistTracks(playlist).map(t => t.getTrack).toVector
-
-      // retrieve those which are already stored in MongoDB
-      // val inDB: Vector[Song] = trackList.flatMap(t => MongoController.readByID(dbTracks, t.getId))
-
       // retrieve those which are already stored in Redis cache
       val inCache: Vector[Song] = trackList.flatMap(t => cache.get[Song](t.getId))
       // tracks not stored in cache but stored in MongoDB
@@ -117,7 +113,6 @@ class SpotifyController @Inject()(configuration: play.api.Configuration, cache: 
             case Some(analysis) => Some(t, analysis)
           }
       ))
-
       outDB.foreach(s => {
         // write to MongoDB those Song instances which weren't there
         MongoController.writeToDB(dbTracks, outDB)
@@ -130,6 +125,22 @@ class SpotifyController @Inject()(configuration: play.api.Configuration, cache: 
       // return None if an error occurred during the operation
       case _: NullPointerException => None
       case _: BadRequestException => None
+    }
+  }
+
+  def retrieveSong(t: Track): Option[Song] = {
+    MongoController.readByID(dbTracks, t.getId) match {
+      case Some(s) => Some(s)
+      case None => {
+        spotify.getAnalysis(t.getId) match {
+          case Some(analysis) => {
+            val song = MusicUtil.toSong(t, analysis)
+            MongoController.writeToDB(dbTracks, song)
+            Some(song)
+          }
+          case None => None
+        }
+      }
     }
   }
 
