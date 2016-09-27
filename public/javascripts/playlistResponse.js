@@ -39,13 +39,17 @@ function isPlaying() {
     return !audio.get(0).paused;
 }
 
+function revertPlaylistParagraph() {
+    document.getElementById('playlist-paragraph').innerHTML =
+        "Select restriction on the playlist to be generated. Click on a track to listen to a short preview. " +
+        "After sending a request, a new playlist will return shortly, together with the plotting of its audio analysis features.";
+}
+
 /*
  Object { name: "playlist-name", tracks: { id: "id", number: "index" } }
  */
 function getNewPlaylist(json) {
-    document.getElementById('playlist-paragraph').innerHTML =
-        "Select restriction on the playlist to be generated. Click on a track to listen to a short preview. " +
-        "After sending a request, a new playlist will return shortly, together with the plotting of its audio analysis features.";
+   revertPlaylistParagraph();
     $('#playlist-title').text(json.name);
     createPlaylistTable(json.ids);
 }

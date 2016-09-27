@@ -92,7 +92,7 @@ function sendConstraints(obj) {
         error: function (xhr, ajaxOptions, thrownError) {
             console.log("Error");
             alert("There was a problem generating you playlist. xhr status: " + xhr.status);
-            alert(thrownError)
+            revertPlaylistParagraph();
         }
     });
 }
