@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 
-import model.music.{JSONParser, MusicCollection, Song}
+import model.music.{JSONParser, MusicCollection, PlaylistRequest, Song}
 import model.genetic.{GA, Playlist}
 import play.api.cache.redis.CacheApi
 import play.api.libs.json.{JsValue, Json}
@@ -43,29 +43,34 @@ class PlaylistController @Inject() (configuration: play.api.Configuration, cache
         // the request is not parsed correctly: return an HTTP 400 Bad Request
       case None => BadRequest("Json Request failed")
       case Some(p) =>
-        // create a MusicCollection with the Song instances requested
-        val db = new MusicCollection(
-          // Song instances are retrieved from MongoDB looking up their ids
-          // which is stored in the PlaylistRequest
-          // p.ids.flatMap(id => MongoController.readByID(dbTracks, id))
-
-          for(id <- p.ids) yield {
-            cache.get[Song](id) match {
-              case Some(song) => song
-              case None => {
-                val song = MongoController.readByID(dbTracks, id).get
-                cache.set(id, song)
-                song
-              }
-            }
-          }
-        )
+        val db = getFromRedisThenMongo(p)
         // call the playlist generation algorithm with (MusicCollection, Set[Constraint], Int) args
         val playlist = GA.generatePlaylist(db, p.constraints, p.length)
         // the JSON response with the playlist name and the returned playlist
         val js = createJsonResponse(p.name, playlist)
         Ok(js)
     }
+  }
+
+  def getFromMongo(p: PlaylistRequest): MusicCollection = {
+    new MusicCollection(
+      p.ids.flatMap(id => MongoController.readByID(dbTracks, id))
+    )
+  }
+
+  def getFromRedisThenMongo(p: PlaylistRequest): MusicCollection = {
+   new MusicCollection(
+     for(id <- p.ids) yield {
+       cache.get[Song](id) match {
+         case Some(song) => song
+         case None => {
+           val song = MongoController.readByID(dbTracks, id).get
+           cache.set(id, song)
+           song
+         }
+       }
+     }
+   )
   }
 
   /**
