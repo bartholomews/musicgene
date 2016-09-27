@@ -56,6 +56,10 @@ object MongoController {
     }
   }
 
+  def writeToDB(collection: MongoCollection, song: Song) = {
+    collection.insert(com.mongodb.util.JSON.parse(MusicUtil.toJson(song).toString).asInstanceOf[DBObject])
+  }
+
   /**
     * Look for a specific "spotify_id": if found, is converted
     * and returned as Some(Song), otherwise it will return None
