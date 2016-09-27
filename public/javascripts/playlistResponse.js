@@ -90,7 +90,6 @@ function createPlaylistTable(tracks) {
 }
 
 function pushGraphData(obj, ID) {
-    console.log("pushing track " + ID);
     obj.name.push(($('#'+ID+"-title").text()));
     obj.tempo.push(($('#'+ID+"-tempo").text()));
     obj.loudness.push(($('#'+ID+"-loudness").text()));

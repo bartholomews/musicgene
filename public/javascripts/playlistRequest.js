@@ -84,7 +84,6 @@ function sendConstraints(obj) {
         dataType: 'json',
         data: obj,
         success: function (json) {
-            console.log('//playlist POST successful');
             // playlistResponse.js
             getNewPlaylist(json);
         },
