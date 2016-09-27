@@ -15,7 +15,10 @@ function generateFloatChart(obj) {
                 liveness: '#000066',
                 speechiness: '#7335FA'
             },
-
+            axes: {
+                'acousticness': 'y',
+                'energy': 'y2'
+            },
             // smooth plotting
             type: 'spline',
             onclick: function (d) {
@@ -36,13 +39,13 @@ function generateFloatChart(obj) {
                 //    position: 'outer-middle',
                 max: 1.0,
                 min: 0.0,
-                padding: {top: 0, bottom: 0},
                 show: true
             },
             y2: {
+                //    label: '0 (min) to 1 (max)',
+                //    position: 'outer-middle',
                 max: 1.0,
                 min: 0.0,
-                padding: {top: 0, bottom: 0},
                 show: true
             }
         },
