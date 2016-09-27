@@ -37,15 +37,15 @@ function generateFloatChart(obj) {
             y: {
                 //    label: '0 (min) to 1 (max)',
                 //    position: 'outer-middle',
-                max: 1.0,
-                min: 0.0,
+                max: 1.00,
+                min: 0.01,
                 show: true
             },
             y2: {
                 //    label: '0 (min) to 1 (max)',
                 //    position: 'outer-middle',
-                max: 1.0,
-                min: 0.0,
+                max: 1.00,
+                min: 0.01,
                 show: true
             }
         },
