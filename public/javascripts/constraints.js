@@ -81,14 +81,17 @@ function parseIndexedConstraint(type, input, from, to) {
     var trackN;
     if(from == to) trackN = '#' + from;
     else trackN = '#' + from + " to #" + to;
-    var text = trackN + " having ";
+    var text = trackN;
     switch(type) {
         case "monotonicValue":
-            text += attributeName + " " + getTextFromRadioValue(constraintName) +
+            text += " having " + attributeName + " " + getTextFromRadioValue(constraintName) +
                 " " + getUnit(input, attributeName);
             break;
         case "monotonicTransition":
-            text += getTextFromRadioValue(constraintName) + " " + attributeName;
+            text += " having " + getTextFromRadioValue(constraintName) + " " + attributeName;
+            break;
+        case "indexedConstraint":
+            text += " " + getTextFromRadioValue(constraintName) + " " + attributeName + " '" + input + "'";
             break;
     }
     var node = document.createTextNode(text);
@@ -138,6 +141,10 @@ function getTextFromRadioValue(text) {
         case "DecreasingTransition":
             return "decreasing";
             break;
+        case "Include":
+            return "having";
+        case "Exclude":
+            return "not having";
     }
 }
 

@@ -10,6 +10,26 @@ $(document).ready(function () {
     focusInputOnOpenModal();
 });
 
+function initSliders(min, max) {
+    initSlider('monotonicValue', min, max);
+    initSlider('monotonicTransition', min, max);
+    initSlider('indexedConstraint', min, max);
+}
+
+function changeSlidersMaxValue(maxValue) {
+    changeSliderMaxValue('slider-monotonicTransition', maxValue);
+    changeSliderMaxValue('slider-monotonicValue', maxValue);
+    changeSliderMaxValue('slider-indexedConstraint', maxValue)
+}
+
+function changeSliderMaxValue(name, maxValue) {
+    //  $('#' + 'slider-monotonic').slider("remove");
+    $('#' + name + "-div").after("<input id="+name + "type='text' style='display: none'/>");
+    initSliders(1, maxValue);
+    $slider = $('#' + name);
+    $slider.slider('refresh');
+}
+
 /**
  * http://stackoverflow.com/a/23571595
  */
@@ -62,9 +82,6 @@ function saveModal(name) {
     var from = trackSlider.slider('getValue')[0];
     var to = trackSlider.slider('getValue')[1];
 
-    console.log("from: " + from);
-    console.log("to: " + to);
-
     if(name == 'monotonicTransition') {
         if(from == to) {
             alert("Please enter a range with 1 as minimum step");
@@ -72,29 +89,19 @@ function saveModal(name) {
         }
     }
 
-    var input = 0; // for constraint with irrelevant attribute value wrapped
-
+    var input = document.getElementById(name + "-input");
+    if(input == null) input = 0; // for constraint with irrelevant attribute value wrapped (i.e. no input element)
+    else input = input.value;
     if(name == 'monotonicValue') {
-        input = document.getElementById(name + "-input").value;
-        // check if value is empty
         if (input == "") {
             alert("Enter a valid value");
             return false;
         }
     }
     appendConstraint(parseIndexedConstraint(name, input, from, to));
-
     $('#modal-' + name).modal('hide');
     return true;
 }
-
-/*
- <!-- Menu Toggle Script -->
- $("#menu-toggle").click(function(e) {
- e.preventDefault();
- $("#wrapper").toggleClass("toggled");
- });
-*/
 
 /*
  function initSwitches() {
@@ -130,18 +137,8 @@ function checkAttributeFireSlider() {
  *
  * @returns {boolean}
  */
-function initSliders(minRange, maxRange) {
-
-    $('#slider-monotonicValue').slider({
-        min: minRange, max: maxRange, value: [1, maxRange], focus: true, step: 1,
-        start: function (event, ui) {
-            event.stopPropagation();
-        },
-        formatter: function (value) {
-            return "range: " + value;
-        }
-    });
-    $('#slider-monotonicTransition').slider({
+function initSlider(name, minRange, maxRange) {
+    $('#slider-' + name).slider({
         min: minRange, max: maxRange, value: [1, maxRange], focus: true, step: 1,
         start: function (event, ui) {
             event.stopPropagation();
@@ -151,55 +148,6 @@ function initSliders(minRange, maxRange) {
         }
     });
 }
-
-function changeSlidersMaxValue(maxValue) {
-    changeSliderMaxValue('slider-monotonicTransition', maxValue);
-    changeSliderMaxValue('slider-monotonicValue', maxValue);
-}
-
-function changeSliderMaxValue(name, maxValue) {
-  //  $('#' + 'slider-monotonic').slider("remove");
-    $('#' + name + "-div").after("<input id="+name + "type='text' style='display: none'/>");
-    initSliders(1, maxValue);
-    $slider = $('#' + name);
-    $slider.slider('refresh');
-}
-
-function createModal(name) {}
-
-
-//}
-        /*
-        $slider = $('#slider-monotonic');
-        var value = $slider.data('slider').getValue();
-        $slider.data('slider').max = 500;
-        $slider.slider('setValue', value);
-        $slider.slider('refresh');
-        console.log("slider set?");
-    });
-    */
-    /*
-    $('#slider-value).html(
-    $('#slider).slider('value');
-    )
-     */
-
-/*
- slide: function (event, ui) {
- console.log("SLIDE");
- $('#slider-from').val(ui.values[0]);
- $('#slider-to').val(ui.values[1]);
- console.log("[0]: " + ui.values[0]);
- console.log('[1]: ' + ui.values[1]);
- },
- change: function (event, ui) {
- console.log("CHANGE");
- console.log("[0]: " + ui.values[0]);
- console.log('[1]: ' + ui.values[1]);
- $('#slider-from').val(ui.values[0]);
- $('#slider-to').val(ui.values[1]);
- }
- */
 
 function getAudioDescription(attribute) {
     switch(attribute) {
