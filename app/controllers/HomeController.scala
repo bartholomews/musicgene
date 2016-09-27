@@ -35,7 +35,7 @@ class HomeController @Inject()(configuration: play.api.Configuration, cache: Cac
   and `Result` is an HTTP response.
   */
   def index = Action {
-    Ok(views.html.index("GEN"))
+    Ok(views.html.index("musicgene"))
   }
 
   /**
