@@ -30,12 +30,12 @@
                             <p>Automatic playlist generation</p>
                             <p>from content-based audio analysis features</p>
                             <form action = "@routes.SpotifyController.auth" method = "get">
-                                <button class="btn btn-success btn-lg">Login with Spotify</button>
+                                <button class="btn btn-success btn-lg" id="login-button">Login with Spotify</button>
                             </form>
                             <br>
                             <p>or use sample tracks (no login required)</p>
                             <form action = "@routes.HomeController.getSampleTracks" method = "get">
-                                <button class="btn btn-success btn-lg">Try the App</button>
+                                <button class="btn btn-success btn-lg" id="try-button">Try the App</button>
                             </form>
                             <br>
                         </div>
