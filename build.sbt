@@ -33,7 +33,8 @@ libraryDependencies ++= Seq(
   // "org.reactivemongo" %% "play2-reactivemongo" % reactiveMongoVer,
   "org.mongodb" %% "casbah" % "3.0.0",
   "com.github.karelcemus" %% "play-redis" % "1.3.0-M1",
-  PlayImport.cache exclude("net.sf.ehcache", "ehcache-core")
+  PlayImport.cache exclude("net.sf.ehcache", "ehcache-core"),
+  "org.seleniumhq.selenium" % "selenium-java" % "2.53.1"
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
