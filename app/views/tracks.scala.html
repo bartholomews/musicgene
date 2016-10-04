@@ -25,139 +25,147 @@
 
         <body>
 
-
             <nav class="navbar navbar-default">
                 <div class="container">
                     <div class="navbar-header">
-                        <a class="navbar-brand" href="https://musicgene.herokuapp.com">
+                        <a class="navbar-brand bright-white" href="https://musicgene.herokuapp.com">
                             musicgene_.
                         </a>
                     </div>
-
                     <div class="collapse navbar-collapse" id="app-navbar-collapse">
                         <ul class="nav navbar-nav navbar-right"></ul>
                     </div>
                 </div>
             </nav>
 
-            <div class="jumbotron text-left white-transparent">
-                <form action = "@routes.HomeController.index" method = "get">
-                <h1>
-                    <span id="playlist-title">@title's playlists</span>
-                    <button class="btn btn-danger pull-right">Exit</button>
-                </h1>
-                </form>
-                <p id="playlist-paragraph">Select restriction on the playlist to be generated.
-                    Click on a track to listen to a short preview.
-                    After sending a request, a new playlist will return shortly,
-                    together with the plotting of its audio analysis features.
-                </p>
-                <button type="button" class="btn btn-success btn-lg" data-toggle="modal"
-                data-target="#modal-playlistName">GENE-RATE</button>
-                <br/><br/>
-                    <!-- Constraints area: an inline div  -->
-                <div class="constraints">
-                    <div id="constraints-firstLine" class="inline">
-                        <p class="inline" id="constraints-firstLine-1">A</p>
-                        <button type="button" class="btn btn-secondary btn-lg" id="length" value="5"
-                        data-toggle="modal" data-target="#modal-tracks">5 tracks</button>
-                        <p class="inline" id="constraints-firstLine-2">playlist with no constraints</p>
+
+            <div class="container">
+                <div class="jumbotron text-left white-transparent">
+                    <form action = "@routes.HomeController.index" method = "get">
+                        <h1>
+                            <span id="playlist-title">@title playlists</span>
+                            <button class="btn btn-danger pull-right">Exit</button>
+                        </h1>
+                    </form>
+                    <p id="playlist-paragraph">Select restriction on the playlist to be generated.
+                        Click on a track to listen to a short preview.
+                        After sending a request, a new playlist will return shortly,
+                        together with the plotting of its audio analysis features.
+                    </p>
+                    <button type="button" class="btn btn-success btn-lg" data-toggle="modal"
+                    data-target="#modal-playlistName">GENE-RATE</button>
+                    <br/><br/>
+                        <!-- Constraints area: an inline div  -->
+                    <div class="constraints">
+                        <div id="constraints-firstLine" class="inline">
+                            <p class="inline" id="constraints-firstLine-1">A</p>
+                            <button type="button" class="btn btn-secondary btn-lg" id="length" value="5"
+                            data-toggle="modal" data-target="#modal-tracks">5 tracks</button>
+                            <p class="inline" id="constraints-firstLine-2">playlist with no constraints</p>
+                        </div>
+                        <ul id="input-constraints" data-clean="true">
+                                <!-- here javaScript will dynamically add <p> elements -->
+                        </ul>
                     </div>
-                    <ul id="input-constraints" data-clean="true">
-                        <!-- here javaScript will dynamically add <p> elements -->
-                    </ul>
+                    <br/>
+                        <!-- Dropdown button Constraints modal -->
+                        <!-- MonotonicValue constraints -->
+                    <button type="button" class="btn btn-primary" id="monotonicValue-constraints-button"
+                    data-toggle="modal" data-target="#modal-monotonicValue">
+                        VALUE CONSTRAINTS</button>
+                        <!-- MonotonicTransition constraints -->
+                    <button type="button" class="btn btn-primary" id="monotonicTransition-constraints-button"
+                    data-toggle="modal" data-target="#modal-monotonicTransition">
+                        SORT CONSTRAINTS</button>
+                        <!--  IndexedConstraint (e.g. Include, Exclude) -->
+                    <button type="button" class="btn btn-primary" id="indexedConstraint-constraints-button"
+                    data-toggle="modal" data-target="#modal-indexedConstraint">
+                        TEXTUAL CONSTRAINTS</button>
+                    <br/><br/>
+                    <button type="button" class="btn btn-primary" id="reset-constraints"
+                    onclick="resetConstraints()">CLEAR CONSTRAINTS</button>
                 </div>
-                <br/>
-                    <!-- Dropdown button Constraints modal -->
-                    <!-- MonotonicValue constraints -->
-                <button type="button" class="btn btn-primary" id="monotonicValue-constraints-button"
-                data-toggle="modal" data-target="#modal-monotonicValue">
-                    VALUE CONSTRAINTS</button>
-                    <!-- MonotonicTransition constraints -->
-                <button type="button" class="btn btn-primary" id="monotonicTransition-constraints-button"
-                data-toggle="modal" data-target="#modal-monotonicTransition">
-                    SORT CONSTRAINTS</button>
-                    <!--  IndexedConstraint (e.g. Include, Exclude) -->
-                <button type="button" class="btn btn-primary" id="indexedConstraint-constraints-button"
-                data-toggle="modal" data-target="#modal-indexedConstraint">
-                    TEXTUAL CONSTRAINTS</button>
-                <br/><br/>
-                <button type="button" class="btn btn-primary" id="reset-constraints"
-                onclick="resetConstraints()">CLEAR CONSTRAINTS</button>
             </div>
 
-            <!-- Generated playlist chart with C3.js -->
-            <div id="playlist-chart"></div>
-                <!-- Generated playlist float chart with C3.js -->
-            <div id="playlist-float-chart"></div>
+
+            <div class="container">
+                    <!--Generated playlist chart with C3.js -->
+                <div id="playlist-chart"></div>
+                    <!-- Generated playlist float chart with C3.js -->
+                <div id="playlist-float-chart"></div>
+            </div>
 
                 <!-- Existing Music collection -->
-            <div class="music-collection" id="music-collection">
-            @tracks.map { t =>
-                <table class="table table-hover table-sm" id="music-collection-table">
-                    <caption>@t._1</caption>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Title</th>
-                            <th>Duration</th>
-                            <th>Artist</th>
-                            <th>Album</th>
-                            <th>Loudness</th>
-                            <th>Tempo</th>
-                            <th>Energy</th>
-                            <th>Acousticness</th>
-                            <th>Danceability</th>
-                            <th>Liveness</th>
-                            <th>Speechiness</th>
+            <div class="container">
+                <div class="music-collection" id="music-collection">
+                @tracks.map { t =>
+                    <table class="table table-responsive table-hover table-sm" id="music-collection-table">
+                        <caption>@t._1</caption>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Title</th>
+                                <th>Duration</th>
+                                <th>Artist</th>
+                                <th>Album</th>
+                                <th>Loudness</th>
+                                <th>Tempo</th>
+                                <th>Energy</th>
+                                <th>Acousticness</th>
+                                <th>Danceability</th>
+                                <th>Liveness</th>
+                                <th>Speechiness</th>
+                            </tr>
+                        </thead>
+                        <tbody class="music-collection-tbody">
+                        @t._2.zip(Stream from 1).map { case (track, index) =>
+                        <tr class="playable" id="@track.id" data-preview="@track.preview_url">
+                            <th scope="row">@index</th>
+                            <td id="@track.id-title">@track.title</td>
+                            <td id="@track.id-duration">@track.stringDuration</td>
+                            <td id="@track.id-artist">@track.artist</td>
+                            <td id="@track.id-album">@track.album</td>
+                            <td id="@track.id-loudness">@track.loudness</td>
+                            <td id="@track.id-tempo">@track.tempo</td>
+                            <td id="@track.id-energy">@track.energy</td>
+                            <td id="@track.id-acousticness">@track.acousticness</td>
+                            <td id="@track.id-danceability">@track.danceability</td>
+                            <td id="@track.id-liveness">@track.liveness</td>
+                            <td id="@track.id-speechiness">@track.speechiness</td>
                         </tr>
-                    </thead>
-                    <tbody class="music-collection-tbody">
-                    @t._2.zip(Stream from 1).map { case (track, index) =>
-                    <tr class="playable" id="@track.id" data-preview="@track.preview_url">
-                        <th scope="row">@index</th>
-                        <td id="@track.id-title">@track.title</td>
-                        <td id="@track.id-duration">@track.stringDuration</td>
-                        <td id="@track.id-artist">@track.artist</td>
-                        <td id="@track.id-album">@track.album</td>
-                        <td id="@track.id-loudness">@track.loudness</td>
-                        <td id="@track.id-tempo">@track.tempo</td>
-                        <td id="@track.id-energy">@track.energy</td>
-                        <td id="@track.id-acousticness">@track.acousticness</td>
-                        <td id="@track.id-danceability">@track.danceability</td>
-                        <td id="@track.id-liveness">@track.liveness</td>
-                        <td id="@track.id-speechiness">@track.speechiness</td>
-                    </tr>
-                    }
-                    </tbody>
-                </table>
-            }
+                        }
+                        </tbody>
+                    </table>
+                }
+                </div>
             </div>
                 <!-- /Existing Music collection -->
 
                 <!-- Newly generated playlist - via createNewPlaylistTable()-->
-            <div class="new-playlist" id="new-playlist">
-                <table class="table table-responsive table-hover" id="new-playlist-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Title</th>
-                            <th>Duration</th>
-                            <th>Artist</th>
-                            <th>Album</th>
-                            <th>Loudness</th>
-                            <th>Tempo</th>
-                            <th>Energy</th>
-                            <th>Acousticness</th>
-                            <th>Danceability</th>
-                            <th>Liveness</th>
-                            <th>Speechiness</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                            <!-- Append generated songs here -->
-                    </tbody>
-                </table>
+            <div class="container">
+                <div class="new-playlist" id="new-playlist">
+                    <table class="table table-responsive table-hover" id="new-playlist-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Title</th>
+                                <th>Duration</th>
+                                <th>Artist</th>
+                                <th>Album</th>
+                                <th>Loudness</th>
+                                <th>Tempo</th>
+                                <th>Energy</th>
+                                <th>Acousticness</th>
+                                <th>Danceability</th>
+                                <th>Liveness</th>
+                                <th>Speechiness</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                                <!-- Append generated songs here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
                 <!-- /Newly generated playlist -->
 
