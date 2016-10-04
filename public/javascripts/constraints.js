@@ -32,8 +32,8 @@ function isDataClean(div) {
  */
 function selectNumberOfTracks() {
     var length = document.getElementById('input-length').value;
-    if(length < 5 || length > 20) {
-        alert("A new playlist can have between 5 and 20 tracks;");
+    if(length < 5 || length > 30) {
+        alert("A new playlist can have between 5 and 30 tracks;");
         return false;
     } else {
         var n = document.getElementById('length');

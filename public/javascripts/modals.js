@@ -92,7 +92,7 @@ function saveModal(name) {
     var input = document.getElementById(name + "-input");
     if(input == null) input = 0; // for constraint with irrelevant attribute value wrapped (i.e. no input element)
     else input = input.value;
-    if(name == 'monotonicValue') {
+    if(name == 'monotonicValue' || name == 'indexedConstraint') {
         if (input == "") {
             alert("Enter a valid value");
             return false;

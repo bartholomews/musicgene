@@ -4,10 +4,14 @@ html, body {
 }
 
 @media (max-width: 780px) {
-    body.custom-background {
+    body {
         background-image: none;
-        background-color: black;
+        background-color: whitesmoke;
     }
+}
+
+.fa-btn {
+    margin-right: 6px;
 }
 
 .wrap {
@@ -22,7 +26,6 @@ html, body {
 .footer, .push {
     height:160px;
 }
-
 
 .footer {
     position: absolute;
