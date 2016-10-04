@@ -3,6 +3,13 @@ html, body {
     height: 100%;
 }
 
+@media (max-width: 780px) {
+    body.custom-background {
+        background-image: none;
+        background-color: black;
+    }
+}
+
 .wrap {
     height: auto;
     margin: 0 auto -80px; /* footer height + space */
@@ -49,14 +56,6 @@ html, body {
 
 p.italic {
     font-style: italic;
-}
-
-.background-image {
-    /* make jumbotron full height (viewport height) */
-    height: 100vh;
-    background-image: url("/assets/images/string-555070.jpg");
-    background-size: cover;
-    background-color: transparent;
 }
 
 .white-semitransparent {
