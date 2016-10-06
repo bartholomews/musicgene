@@ -8,6 +8,10 @@ $(document).ready(function () {
     updateDescriptionListener("monotonicTransition");
     initSliders(1, parseInt(document.getElementById('length').value));
     focusInputOnOpenModal();
+    // make tooltip active
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    })
 });
 
 function initSliders(min, max) {
