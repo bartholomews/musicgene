@@ -1,13 +1,16 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
+# controllers.SpotifyController.callback
 
 GET     /                        controllers.HomeController.index
 GET     /auth                    controllers.SpotifyController.auth
-GET     /callback                controllers.SpotifyController.callback
+GET     /callback                controllers.wrapper.SpotifyAPI.callback
 GET     /tracks                  controllers.HomeController.getSpotifyTracks
 GET     /alltracks               controllers.HomeController.getSampleTracks
 POST    /playlist                controllers.PlaylistController.generatePlaylist
 
+GET     /test                    controllers.wrapper.SpotifyAPI.test
+GET     /test2                   controllers.wrapper.SpotifyAPI.test2
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file            controllers.Assets.versioned(path="/public", file: Asset)
