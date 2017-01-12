@@ -1,0 +1,30 @@
+@(message: String)
+
+@main("MIR") {
+    <html xmlns="http://www.w3.org/1999/html">
+
+        <head>
+            <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/index.css")">
+            <script src="@routes.Assets.versioned("javascripts/callback.js")" type="text/javascript"></script>
+        </head>
+
+        <body>
+            <div class="content wrap">
+
+                <nav class="navbar navbar-static-top" role="navigation">
+                    <div class="container-fluid">
+                        <ul class="nav nav-pills pull-left">
+                            @*<li class="active"><a href="#">About</a></li> *@
+                        </ul>
+                    </div>
+                </nav>
+
+                <div class="jumbotron text-center white-semitransparent">
+                    <h2>@message</h2>
+                </div>
+
+            </div>
+        </body>
+
+    </html>
+}
