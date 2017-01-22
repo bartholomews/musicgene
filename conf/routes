@@ -5,12 +5,11 @@
 
 GET     /                               controllers.HomeController.index
 GET     /auth                           controllers.SpotifyController.auth
-GET     /callback                       controllers.wrapper.SpotifyAPI.callback
 GET     /tracks                         controllers.HomeController.getSpotifyTracks
 GET     /alltracks                      controllers.HomeController.getSampleTracks
 POST    /playlist                       controllers.PlaylistController.generatePlaylist
 
-GET     /test                           controllers.wrapper.SpotifyAPI.test
+GET     /callback                       controllers.wrapper.SpotifyAPI.callback
 GET     /browse/featured-playlists      controllers.wrapper.Browse.featuredPlaylists
 
 # Map static resources from the /public folder to the /assets URL path

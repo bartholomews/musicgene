@@ -1,13 +1,16 @@
 package model.entities
 
+import play.api.libs.json.{JsPath, Reads}
+import play.api.libs.functional.syntax._
+
 case class Album
 (
-album_type: AlbumType,
+album_type: String,
 artists: List[SimpleArtist],
 available_markets: List[String],
-copyrights: List[(String, String)],
-external_ids: (String, String),
-external_urls: (String, String),
+copyrights: List[Copyright],
+external_ids: ExternalURL, // ExternalID TODO Reads {"key"} {"value"}
+external_urls: ExternalURL,
 genres: List[String],
 href: String,
 id: String,
@@ -20,3 +23,25 @@ release_date_precision: String,
 tracks: Page[SimpleTrack],
 uri: String
 ) { val objectType = "album" }
+
+object Album {
+  implicit val albumReads: Reads[Album] = (
+    (JsPath \ "album_type").read[String] and
+      (JsPath \ "artists").read[List[SimpleArtist]] and
+      (JsPath \ "available_markets").read[List[String]] and
+      (JsPath \ "copyrights").read[List[Copyright]] and
+      (JsPath \ "external_ids").read[ExternalURL] and
+      (JsPath \ "external_urls").read[ExternalURL] and
+      (JsPath \ "genres").read[List[String]] and
+      (JsPath \ "href").read[String] and
+      (JsPath \ "id").read[String] and
+      (JsPath \ "images").read[List[Image]] and
+      (JsPath \ "label").read[String] and
+      (JsPath \ "name").read[String] and
+      (JsPath \ "popularity").read[Int] and
+      (JsPath \ "release_date").read[String] and
+      (JsPath \ "release_date_precision").read[String] and
+      (JsPath \ "tracks").read[Page[SimpleTrack]] and
+      (JsPath \ "uri").read[String]
+    )(Album.apply _)
+}

@@ -1,6 +1,6 @@
 package model.entities
 
-sealed trait AlbumType {
+sealed trait AlbumType extends Enumeration {
 
   case object Album extends AlbumType
 

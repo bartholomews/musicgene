@@ -18,6 +18,8 @@ total: Int
 
 object Page {
 
+  // TODO SIMPLIFY !!!
+
   implicit val featuredPlaylistsReads: Reads[Page[SimplePlaylist]] = (
     (JsPath \ "href").read[String] and
       (JsPath \ "items").read[List[SimplePlaylist]] and
@@ -27,6 +29,16 @@ object Page {
       (JsPath \ "previous").readNullable[String] and
       (JsPath \ "total").read[Int]
     ) (Page.apply[SimplePlaylist] _)
+
+  implicit val simpleTracksReads: Reads[Page[SimpleTrack]] = (
+    (JsPath \ "href").read[String] and
+      (JsPath \ "items").read[List[SimpleTrack]] and
+      (JsPath \ "limit").read[Int] and
+      (JsPath \ "next").readNullable[String] and
+      (JsPath \ "offset").read[Int] and
+      (JsPath \ "previous").readNullable[String] and
+      (JsPath \ "total").read[Int]
+    ) (Page.apply[SimpleTrack] _)
 
   /*
   implicit def pageReads[T](implicit fmt: Reads[T]): Reads[Page[T]] = new Reads[Page[T]] {
