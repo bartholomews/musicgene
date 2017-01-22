@@ -12,7 +12,7 @@ case class SimplePlaylist
   id: String,
   images: List[Image],
   name: String,
-  owner: List[User],
+  owner: User,
   public: Option[Boolean],
   snapshot_id: String,
   tracks: TracksURL,
@@ -28,11 +28,11 @@ object SimplePlaylist {
       (JsPath \ "id").read[String] and
       (JsPath \ "images").read[List[Image]] and
       (JsPath \ "name").read[String] and
-      (JsPath \ "owner").read[List[User]] and
+      (JsPath \ "owner").read[User] and
       (JsPath \ "public").readNullable[Boolean] and
       (JsPath \ "snapshot_id").read[String] and
       (JsPath \ "tracks").read[TracksURL] and
-      (JsPath \ "object").read[String] and
+      (JsPath \ "type").read[String] and
       (JsPath \ "uri").read[String]
     )(SimplePlaylist.apply _)
 }

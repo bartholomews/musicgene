@@ -1,38 +1,70 @@
 package controllers.wrapper
 
+import play.api.Logger
+import java.net.URI
+import java.util.concurrent.CompletionStage
 import javax.inject.Inject
 
-import play.api.libs.ws._
-
+import com.typesafe.scalalogging.StrictLogging
 import logging.AccessLogging
-import model.entities.{NO_SCOPE, Scope}
+import model.entities._
 import play.api.libs.json.{JsError, _}
-import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
-import play.api.mvc.{Action, Controller, Result}
+import play.api.libs.ws.{WSClient, WSRequest, WSRequestFilter, WSResponse}
+import play.api.mvc.{Action, Controller, Request, Result}
 import utils.ConversionUtils
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
-class SpotifyAPI @Inject()(configuration: play.api.Configuration, wSClient: WSClient) extends Controller with AccessLogging {
+class SpotifyAPI @Inject()(configuration: play.api.Configuration, ws: WSClient) extends Controller with AccessLogging {
   private val CLIENT_ID = configuration.underlying.getString("CLIENT_ID")
   private val CLIENT_SECRET = configuration.underlying.getString("CLIENT_SECRET")
   private val REDIRECT_URI = configuration.underlying.getString("REDIRECT_URI")
-  private val API_BASE_URL = configuration.underlying.getString("API_BASE_URL")
+  val API_BASE_URL = configuration.underlying.getString("API_BASE_URL")
   val AUTHORIZE_ENDPOINT = configuration.underlying.getString("AUTHORIZE_ENDPOINT")
   val TOKEN_ENDPOINT = configuration.underlying.getString("TOKEN_ENDPOINT")
 
-  def test = Action { Redirect(authorizeURL) }
+  val logger = Logger("application")
 
-  def featuredPlaylists() = Action.async {
-    withLogger(clientCredentials) { response =>
-      Ok("")
+  var access_token: Option[Future[Token]] = None
+
+  def refresh: Future[Token] = getToken(logRequest(clientCredentials))
+
+  def featuredPlaylist2(token: String): Future[SpotifyObject] = null
+
+  def test = Action.async {
+    tryWithToken(logRequest(clientCredentials)) {
+      token => Ok("OKOK: " + token.token_type)
     }
   }
 
+  def withToken(request: Token => Future[Result]): Future[Result] = {
+    access_token match {
+      case None => access_token = Some(refresh); withToken(request)
+      case Some(t) => t flatMap  { token =>
+          access_token = if (token.expired) Some(refresh) else access_token
+          request(token)
+      }
+    }
+  }
+
+  //def withAuthCode(token: String)(action: Token => Result) = tryWithToken { accessToken(token) }
+  private def tryWithToken(f: Future[WSResponse])(action: Token => Result): Future[Result] = {
+    f map { response =>
+      val a: Result = response.json.validate[Token] match {
+        case JsSuccess(t: Token, _) => action(t)
+        case JsError(errors) => throw new Exception(errors.head._2.toList.head.message)
+      }
+      a
+    }
+  }
+
+    //Redirect(authorizeURL)
+
   def callback = Action.async {
     request => request.getQueryString("code") match {
-      case Some(code) => tryWithRequest { accessToken(code) }
+      case Some(code) => withLogger(accessToken(code)) { response: WSResponse => Ok("OKOKOKOK") }
       case None => request.getQueryString("error") match {
         case Some("access_denied") => Future(BadRequest("You need to authorize permissions in order to use the App."))
         case Some(error) => Future(BadRequest(error))
@@ -41,60 +73,56 @@ class SpotifyAPI @Inject()(configuration: play.api.Configuration, wSClient: WSCl
     }
   }
 
-  val token: Future[String] = clientCredentials map {
-    response: WSResponse => (response.json \ "access_token").as[String]
-  }
-
-  def withClientCredentials(action: Token => Result): Future[Result] = {
-    withLogger(clientCredentials) { response =>
+  def getToken(request: Future[WSResponse]): Future[Token] = {
+    request map { response =>
       response.json.validate[Token] match {
-        case t: Token => action(t)
-        case _ => throw new Exception("WTF")
-      }
-    }
-  }
-
-  def test2 = Action.async {
-    withClientCredentials(token => Ok(token.access_token))
-  }
-
-  def test3 = Action.async {
-    withLogger(clientCredentials) { response =>
-      Ok(views.html.test { (response.json \ "access_token").as[String] })
-    }
-  }
-
-  def OkTest(s: String) = Ok(views.html.test(s))
-
-  def tokenFlow(token: Future[Token]): Future[Result] = token map {
-    response => {
-      Ok(views.html.test(response.access_token))
-    }
-  }
-
-  def tryWithRequest(request: Future[WSResponse]): Future[Result] = {
-    withLogger(request) { response =>
-      response.json.validate[Token] match {
-        case JsSuccess(t: Token, _) => Ok(views.html.test(t.access_token))
+        case JsSuccess(t: Token, _) => t
         case JsError(errors) => throw new Exception(errors.head._2.toList.head.message)
       }
     }
   }
 
-  def play = Action.async {
-    withLogger(clientCredentials) { _ => Ok("") }
+  def clientCredentials: Future[WSResponse] = {
+    ws.url(TOKEN_ENDPOINT)
+      .withHeaders(auth_headers)
+      .post(Map("grant_type" -> Seq("client_credentials")))
   }
 
-  val BROWSE_FEATURED_PLAYLISTS = "/browse/featured-playlists"
-  def featuredPlaylist(implicit token: String): Future[WSResponse] = {
-    wSClient.url(API_BASE_URL + BROWSE_FEATURED_PLAYLISTS)
-      .withHeaders(auth_bearer(token))
-      .withQueryString(
-        "" -> ""
-      )
-      .get()
+  def accessToken(code: String): Future[WSResponse] = {
+    ws.url(TOKEN_ENDPOINT)
+      .withHeaders(auth_headers)
+      .post(Map(
+        "grant_type" -> Seq("authorization_code"),
+        "code" -> Seq(code),
+        "redirect_uri" -> Seq(REDIRECT_URI)
+      ))
   }
-  // HTTP/1.1 400 Bad Request
+
+  def refreshToken(refreshToken: String): Future[WSResponse] = {
+    ws.url(TOKEN_ENDPOINT)
+      .withHeaders(auth_headers)
+      .post(Map(
+        "grant_type" -> Seq("refresh_token"),
+        "refresh_token" -> Seq(refreshToken)
+      ))
+  }
+
+  def tokenFlow(token: Future[Token]): Future[Result] = token map {
+    response => Ok(views.html.test(response.access_token))
+  }
+
+  val auth_headers = {
+    val base64_secret = ConversionUtils.base64(s"$CLIENT_ID:$CLIENT_SECRET")
+    //"Accept" -> "application/json"
+    "Authorization" -> s"Basic $base64_secret"
+  }
+
+  def auth_bearer(token: String) = {
+    "Authorization" -> s"Bearer $token"
+  }
+
+  // SHOULD GO IN SEPARATE CONTROLLER, THIS CLASS SHOULD BE A WRAPPER NOT A CONTROLLER
+  def authorizeURL: String = authorizeURL(CLIENT_ID, REDIRECT_URI, None, List()).uri.toString
 
   /**
     * @see https://developer.spotify.com/web-api/authorization-guide/
@@ -126,7 +154,7 @@ class SpotifyAPI @Inject()(configuration: play.api.Configuration, wSClient: WSCl
   def authorizeURL(client_id: String, redirect_uri: String, state: Option[String],
                    scopes: List[Scope] = List(NO_SCOPE), show_dialog: Boolean = true): WSRequest = {
 
-    wSClient.url(AUTHORIZE_ENDPOINT)
+    ws.url(AUTHORIZE_ENDPOINT)
       .withHeaders(auth_headers)
       .withQueryString(
         "client_id" -> client_id,
@@ -138,58 +166,6 @@ class SpotifyAPI @Inject()(configuration: play.api.Configuration, wSClient: WSCl
       )
   }
 
-  def clientCredentials: Future[WSResponse] = {
-    wSClient.url(TOKEN_ENDPOINT)
-      .withHeaders(auth_headers)
-      .post(Map("grant_type" -> Seq("client_credentials")))
-  }
 
-  def accessToken(code: String): Future[WSResponse] = {
-    wSClient.url(TOKEN_ENDPOINT)
-      .withHeaders(auth_headers)
-      .post(Map(
-        "grant_type" -> Seq("authorization_code"),
-        "code" -> Seq(code),
-        "redirect_uri" -> Seq(REDIRECT_URI)
-      ))
-  }
-
-  def refreshToken(refreshToken: String): Future[WSResponse] = {
-    wSClient.url(TOKEN_ENDPOINT)
-      .withHeaders(auth_headers)
-      .post(Map(
-        "grant_type" -> Seq("refresh_token"),
-        "refresh_token" -> Seq(refreshToken)
-      ))
-  }
-
-
-  /*
-  // WSResponse wrapped in a Future, @see https://www.playframework.com/documentation/2.5.x/ScalaWS
-  def withToken(token: Option[Token] = None)(implicit f: Future[Token] => SpotifyObject): SpotifyObject = {
-    f(token match {
-      case None => tryWithTokenRequest(clientCredentials)
-      case Some(t) =>
-        if (!t.expired) Future(t)
-        else t.refresh_token match {
-          // token is a refresh token
-          case None => tryWithTokenRequest(refreshToken(t.access_token))
-          // token is an auth_token
-          case Some(refresh_token) => tryWithTokenRequest(refreshToken(refresh_token))
-        }
-    })
-  }
-  */
-
-  private val auth_headers = {
-    val base64_secret = ConversionUtils.base64(s"$CLIENT_ID:$CLIENT_SECRET")
-    "Accept" -> "application/json"
-    "Authorization" -> s"Basic $base64_secret"
-  }
-
-  private def auth_bearer(token: String) = { "Authorization" -> s"Bearer $token" }
-
-  // SHOULD GO IN SEPARATE CONTROLLER, THIS CLASS SHOULD BE A WRAPPER NOT A CONTROLLER
-  private def authorizeURL: String = authorizeURL(CLIENT_ID, REDIRECT_URI, None, List()).uri.toString
-
+  // HTTP/1.1 400 Bad Request
 }

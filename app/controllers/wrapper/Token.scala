@@ -7,7 +7,8 @@ case class Token(access_token: String, token_type: String, scope: Option[String]
                  expires_in: Int, refresh_token: Option[String]) {
 
   val createdAt = System.currentTimeMillis()
-  def expired: Boolean = System.currentTimeMillis() > (createdAt + expires_in / 1000)
+
+  def expired: Boolean = System.currentTimeMillis() > (createdAt + expires_in)
 
 }
 

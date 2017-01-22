@@ -37,6 +37,12 @@ libraryDependencies ++= Seq(
   "org.seleniumhq.selenium" % "selenium-java" % "2.53.1"
 )
 
+/*
+ https://www.playframework.com/documentation/2.4.0/ScalaRouting#Dependency-Injection
+ http://reactivemongo.org/releases/0.11/documentation/tutorial/play2.html
+ */
+routesGenerator := InjectedRoutesGenerator
+
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
 
 scalacOptions in Test ++= Seq("-Yrangepos")
@@ -48,12 +54,6 @@ when packaging the application as a jar.
 DOESN'T PLAY WELL WITH HEROKU
 */
 // pipelineStages := Seq(rjs)
-
-/*
- https://www.playframework.com/documentation/2.4.0/ScalaRouting#Dependency-Injection
- http://reactivemongo.org/releases/0.11/documentation/tutorial/play2.html
- */
-// routesGenerator := InjectedRoutesGenerator
 
 // http://stackoverflow.com/a/22978218
 sources in doc in Compile := List()

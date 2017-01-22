@@ -10,7 +10,7 @@ case class User
   followers: Option[Followers],
   href: String,
   id: String,
-  images: List[Image],
+  images: Option[List[Image]],
   objectType: String,
   uri: String
 )
@@ -22,8 +22,8 @@ object User {
       (JsPath \ "followers").readNullable[Followers] and
       (JsPath \ "href").read[String] and
       (JsPath \ "id").read[String] and
-      (JsPath \ "images").read[List[Image]] and
-      (JsPath \ "object").read[String] and
+      (JsPath \ "images").readNullable[List[Image]] and
+      (JsPath \ "type").read[String] and
       (JsPath \ "uri").read[String]
     )(User.apply _)
 }

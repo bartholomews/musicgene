@@ -7,7 +7,7 @@ case class TracksURL(href: String, total: Long)
 
 object TracksURL {
   implicit val tracksURLReads: Reads[TracksURL] = (
-    (JsPath \ "key").read[String] and
-      (JsPath \ "value").read[Long]
+    (JsPath \ "href").read[String] and
+      (JsPath \ "total").read[Long]
     )(TracksURL.apply _)
 }

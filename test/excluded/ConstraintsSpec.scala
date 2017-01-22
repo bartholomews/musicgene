@@ -1,3 +1,5 @@
+package excluded
+
 import model.constraints._
 import model.genetic.{CostBasedFitness, Playlist}
 import model.music._
