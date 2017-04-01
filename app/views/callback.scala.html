@@ -22,7 +22,7 @@
 
                 <div class="jumbotron text-center white-semitransparent">
                     <h2>@message</h2>
-                    <form action = "@routes.HomeController.getSpotifyTracks" method = "get">
+                    <form action = "@routes.SpotifyApiController.allPlaylistsAction()" method = "get">
                         <button class="btn btn-success" onclick="addWaitingPara('get-tracks')">Get Your Tracks</button>
                     </form>
                     <br/>

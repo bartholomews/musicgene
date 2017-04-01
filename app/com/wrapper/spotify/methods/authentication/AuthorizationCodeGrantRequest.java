@@ -66,6 +66,8 @@ public class AuthorizationCodeGrantRequest extends AbstractRequest {
 
       String idSecret = clientId + ":" + clientSecret;
       String idSecretEncoded = new String(Base64.encodeBase64(idSecret.getBytes()));
+      System.out.println(idSecret);
+      System.out.println(idSecretEncoded);
 
       return header("Authorization", "Basic " + idSecretEncoded);
     }

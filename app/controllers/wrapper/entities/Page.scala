@@ -1,4 +1,4 @@
-package model.entities
+package controllers.wrapper.entities
 
 import play.api.libs.json.Reads
 import play.api.libs.json._ // JSON library
@@ -8,37 +8,44 @@ import play.api.libs.functional.syntax._ // Combinator syntax
 case class Page[T]
 (
 href: String,
-items: List[T],
 limit: Int,
 next: Option[String],
 offset: Int,
 previous: Option[String],
-total: Int
+total: Int,
+items: List[T]
 )
 
 object Page {
 
-  // TODO SIMPLIFY !!!
-
-  implicit val featuredPlaylistsReads: Reads[Page[SimplePlaylist]] = (
+  private val jsPage = {
     (JsPath \ "href").read[String] and
-      (JsPath \ "items").read[List[SimplePlaylist]] and
       (JsPath \ "limit").read[Int] and
       (JsPath \ "next").readNullable[String] and
       (JsPath \ "offset").read[Int] and
       (JsPath \ "previous").readNullable[String] and
       (JsPath \ "total").read[Int]
+  }
+
+  implicit val featuredPlaylistsReads: Reads[Page[SimplePlaylist]] = (
+    jsPage and (JsPath \ "items").read[List[SimplePlaylist]]
     ) (Page.apply[SimplePlaylist] _)
 
   implicit val simpleTracksReads: Reads[Page[SimpleTrack]] = (
-    (JsPath \ "href").read[String] and
-      (JsPath \ "items").read[List[SimpleTrack]] and
-      (JsPath \ "limit").read[Int] and
-      (JsPath \ "next").readNullable[String] and
-      (JsPath \ "offset").read[Int] and
-      (JsPath \ "previous").readNullable[String] and
-      (JsPath \ "total").read[Int]
+    jsPage and (JsPath \ "items").read[List[SimpleTrack]]
     ) (Page.apply[SimpleTrack] _)
+
+  implicit val albumReads: Reads[Page[SimpleAlbum]] = (
+    jsPage and (JsPath \ "items").read[List[SimpleAlbum]]
+    ) (Page.apply[SimpleAlbum] _)
+
+  implicit val trackReads: Reads[Page[Track]] = (
+    jsPage and (JsPath \ "items").read[List[Track]]
+    ) (Page.apply[Track] _)
+
+  implicit val playlistTrackReads: Reads[Page[PlaylistTrack]] = (
+    jsPage and (JsPath \ "items").read[List[PlaylistTrack]]
+    ) (Page.apply[PlaylistTrack] _)
 
   /*
   implicit def pageReads[T](implicit fmt: Reads[T]): Reads[Page[T]] = new Reads[Page[T]] {

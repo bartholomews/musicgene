@@ -1,4 +1,4 @@
-package model.entities
+package controllers.wrapper.entities
 
 import play.api.libs.json.{JsPath, Reads}
 import play.api.libs.functional.syntax._
@@ -9,7 +9,7 @@ album_type: String,
 artists: List[SimpleArtist],
 available_markets: List[String],
 copyrights: List[Copyright],
-external_ids: ExternalURL, // ExternalID TODO Reads {"key"} {"value"}
+external_ids: ExternalID,
 external_urls: ExternalURL,
 genres: List[String],
 href: String,
@@ -30,7 +30,7 @@ object Album {
       (JsPath \ "artists").read[List[SimpleArtist]] and
       (JsPath \ "available_markets").read[List[String]] and
       (JsPath \ "copyrights").read[List[Copyright]] and
-      (JsPath \ "external_ids").read[ExternalURL] and
+      (JsPath \ "external_ids").read[ExternalID] and
       (JsPath \ "external_urls").read[ExternalURL] and
       (JsPath \ "genres").read[List[String]] and
       (JsPath \ "href").read[String] and

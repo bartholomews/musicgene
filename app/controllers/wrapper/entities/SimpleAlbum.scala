@@ -1,4 +1,4 @@
-package model.entities
+package controllers.wrapper.entities
 
 import play.api.libs.json.{JsPath, Reads}
 import play.api.libs.functional.syntax._
@@ -12,6 +12,7 @@ case class SimpleAlbum
   href: String,
   id: String,
   images: List[Image],
+  name: String,
   uri: String
 ) extends SpotifyObject { override val objectType = "album" }
 
@@ -24,6 +25,7 @@ object SimpleAlbum {
       (JsPath \ "href").read[String] and
       (JsPath \ "id").read[String] and
       (JsPath \ "images").read[List[Image]] and
+      (JsPath \ "name").read[String] and
       (JsPath \ "uri").read[String]
     )(SimpleAlbum.apply _)
 }

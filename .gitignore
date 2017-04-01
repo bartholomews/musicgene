@@ -35,6 +35,7 @@ project/plugins/project/
 .worksheet
 ### PlayFramework template
 # Ignore Play! working directory #
+conf/application.conf
 bin/
 /db
 .eclipse
@@ -54,3 +55,6 @@ server.pid
 #/public/stylesheets/c3.css
 #/public/stylesheets/c3.min.css
 ###
+/app/controllers/wrapper/SpotifyAPI.scala
+app/converters/
+project/project/

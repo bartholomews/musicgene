@@ -1,4 +1,4 @@
-package model.entities
+package controllers.wrapper.entities
 
 trait SpotifyObject {
   val objectType: String

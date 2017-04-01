@@ -1,9 +1,11 @@
-package model.entities
+package controllers.wrapper.entities
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsPath, Reads}
 
-
+/**
+  * @see https://developer.spotify.com/web-api/object-model/#playlist-object-simplified
+  */
 case class SimplePlaylist
 (
   collaborative: Boolean,

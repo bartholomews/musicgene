@@ -4,13 +4,18 @@
 # controllers.SpotifyController.callback
 
 GET     /                               controllers.HomeController.index
-GET     /auth                           controllers.SpotifyController.auth
-GET     /tracks                         controllers.HomeController.getSpotifyTracks
+GET     /zzzzz                          controllers.SpotifyController.auth
+GET     /bleah                          controllers.HomeController.getSpotifyTracks
 GET     /alltracks                      controllers.HomeController.getSampleTracks
 POST    /playlist                       controllers.PlaylistController.generatePlaylist
 
-GET     /callback                       controllers.wrapper.SpotifyAPI.callback
-GET     /browse/featured-playlists      controllers.wrapper.Browse.featuredPlaylists
+GET     /auth                           controllers.SpotifyApiController.auth
+GET     /callback                       controllers.SpotifyApiController.callback
+GET     /tracks/sample                  controllers.SpotifyApiController.getSampleTracks()
+GET     /playlists/all                  controllers.SpotifyApiController.allPlaylistsAction()
+
+#GET     /browse/featured-playlists      controllers.wrapper.Browse.featuredPlaylistsAction(_)
+#GET     /browse/new-releases            controllers.wrapper.Browse.newReleasesActionAsync
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file            controllers.Assets.versioned(path="/public", file: Asset)
