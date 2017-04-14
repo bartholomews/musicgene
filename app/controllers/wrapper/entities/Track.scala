@@ -14,8 +14,8 @@ disc_number: Int,
 duration_ms: Int,
 explicit: Option[Boolean],
 external_urls: ExternalURL,
-href: String,
-id: String,
+href: Option[String],
+id: Option[String],
 is_playable: Option[Boolean], // track relinking
 linked_from: Option[String], // TODO object, track relinking
 name: String,
@@ -25,7 +25,6 @@ objectType: String,
 uri: String
 )
 
-
 object Track {
   implicit val trackReads: Reads[Track] = (
     (JsPath \ "artists").read[List[SimpleArtist]] and
@@ -34,8 +33,8 @@ object Track {
       (JsPath \ "duration_ms").read[Int] and
       (JsPath \ "explicit").readNullable[Boolean] and
       (JsPath \ "external_urls").read[ExternalURL] and
-      (JsPath \ "href").read[String] and
-      (JsPath \ "id").read[String] and
+      (JsPath \ "href").readNullable[String] and
+      (JsPath \ "id").readNullable[String] and
       (JsPath \ "is_playable").readNullable[Boolean] and
       (JsPath \ "linked_from").readNullable[String] and
       (JsPath \ "name").read[String] and

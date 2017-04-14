@@ -1,0 +1,73 @@
+@import controllers.wrapper.entities.Track
+
+@(title: String, tracks: List[Track])
+@main("MIR") {
+
+  <html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+
+    <head></head>
+
+    <body>
+
+      <nav class="navbar navbar-dark bg-inversed">
+        <a class="navbar-brand" href="#">musicgene</a>t
+        <ul class="nav navbar-nav">
+          <li class="nav-item active">
+            <a class="nav-link" href="#"> <i class="fa fa-music"></i>Tracks</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="@routes.SpotifyApiController.myPlaylists"><i class="fa fa-list"></i>Playlists</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="mailto:fbarto01@@mail.bbk.ac.uk"><i class="fa fa-envelope-o"></i>
+              Support</a>
+          </li>
+        </ul>
+        <ul class="nav navbar-nav pull-right">
+          <li class="nav-item active">
+            <a class="nav-link" href="https://musicgene.herokuapp.com"> <i class="fa fa-sign-out"></i>
+              Logout</a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="container">
+        <div class="jumbotron text-left white-transparent">
+          <h1>
+            <span id="playlist-title">@title's tracks</span>
+          </h1>
+          <p id="playlist-paragraph">TRACK~</p>
+        </div>
+      </div>
+
+        <!-- Playlists -->
+      <div class="container">
+        <div class="music-collection" id="music-collection">
+        @tracks.map { case (t) =>
+        <table class="table table-responsive table-hover table-sm" id="music-collection-table">
+        <caption>@t.name</caption>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Artist</th>
+            <th>Href</th>
+            <th>Uri</th>
+          </tr>
+        </thead>
+        <tbody class="music-collection-tbody">
+          <tr>
+            <th scope="row">@index</th>
+            <td>@t.track_number.getOrElse('?')</td>
+            <td>@t.artists</td>
+            <td>@t.href</td>
+            <td>@t.uri</td>
+        </tr>
+        </tbody>
+        </table>
+        }
+        </div>
+      </div>
+
+    </body>
+  </html>
+}

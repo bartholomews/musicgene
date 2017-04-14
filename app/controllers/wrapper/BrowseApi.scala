@@ -6,7 +6,7 @@ import logging.AccessLogging
 import controllers.wrapper.entities._
 import play.api.Logger
 import play.api.libs.ws.{WSClient, WSResponse}
-import play.api.mvc.{Action, Controller, Result}
+import play.api.mvc.{Action, AnyContent, Controller, Result}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -16,8 +16,8 @@ import scala.concurrent.Future
   */
 class BrowseApi @Inject()(configuration: play.api.Configuration, ws: WSClient, api: BaseApi) extends AccessLogging {
 
-  val BASE_URL = configuration.underlying.getString("API_BASE_URL")
-  private final val BROWSE = s"$BASE_URL/browse"
+  private val BASE_URL = configuration.underlying.getString("API_BASE_URL")
+  private val BROWSE = s"$BASE_URL/browse"
 
   val logger = Logger("application")
 
@@ -27,22 +27,11 @@ class BrowseApi @Inject()(configuration: play.api.Configuration, ws: WSClient, a
     */
   private final val FEATURED_PLAYLISTS = s"$BROWSE/featured-playlists"
 
-  def featuredPlaylistsAction(action: FeaturedPlaylists => Result) = Action.async {
+  def featuredPlaylists(action: FeaturedPlaylists => Result): Action[AnyContent] = Action.async {
     featuredPlaylists map { p: FeaturedPlaylists => action(p) }
   }
 
   def featuredPlaylists: Future[FeaturedPlaylists] = api.get[FeaturedPlaylists](FEATURED_PLAYLISTS)
-
-/*
-  private def browseFeaturedPlaylists(token: String): Future[WSResponse] = {
-    ws.url(FEATURED_PLAYLISTS)
-      .withHeaders(api.auth_bearer(token))
-      .withQueryString(
-        "" -> "" // TODO
-      )
-      .get()
-  }
-  */
 
   // ===================================================================================================================
   /**

@@ -6,8 +6,9 @@ package controllers.wrapper
 import javax.inject.{Inject, Singleton}
 
 import logging.AccessLogging
-import controllers.wrapper.entities.{NO_SCOPE, Page, Scope, USER_FOLLOW_READ}
+import controllers.wrapper.entities._
 import play.api.Logger
+import play.api.data.validation.ValidationError
 import play.api.libs.json.{JsError, _}
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.mvc.{Action, AnyContent, Controller, Result}
@@ -125,14 +126,25 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
 
   def validate[T](f: Future[WSResponse])(implicit fmt: Reads[T]): Future[T] = {
     f map { response =>
-//      accessLogger.debug(response.json.toString())
       response.json.validate[T](fmt) match {
         case JsSuccess(obj, _) => obj
-        case JsError(errors) =>
+        case JsError(errors) => throw new Exception(handleError(response, errors))
           // accessLogger.debug(errors.toString)
           // val error = response.json \ "error"//.validate[String].get
           // val error_description = response.json \ "error_description"//.validate[String].get
-          throw new Exception("Diocane")
+      }
+    }
+  }
+
+  // TODO Future.failed[T] instead of Exception, ALSO should be able to detect from the first JsError above
+  // path which kind of error is that instead of try-matching blindly
+  def handleError[T](response: WSResponse, errors: Seq[(JsPath, Seq[ValidationError])]): String = {
+    accessLogger.debug(response.json.toString)
+    response.json.validate[AuthError] match {
+      case JsSuccess(obj, _) => obj.error
+      case JsError(_) => response.json.validate[RegularError] match {
+        case JsSuccess(obj, _) => obj.message
+        case JsError(_) => errors.head.toString
       }
     }
   }
@@ -144,7 +156,7 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
         case JsError(errors) =>
           //val error = (response.json \ "error").validate[String].get
           //val error_description = (response.json \ "error_description").validate[String].get
-          throw new Exception("Dio cane") // (s"$error: $error_description")
+          throw new Exception(errors.head.toString) // (s"$error: $error_description")
       }
     }
   }
@@ -195,7 +207,7 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
     authorization_code match {
       case Some(t) => t flatMap {
         token => authorization_code = {
-          if (token.expired) Some(refresh(token.refresh_token.getOrElse(throw new Exception("No refresh token found"))))
+          if (token.expired) Some(refresh(token)) //refresh(token.refresh_token)) // .getOrElse(throw new Exception("No refresh token found"))))
           else authorization_code
         }
           request(token)
@@ -206,12 +218,12 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
     }
   }
 
-  private def access(code: String): Future[Token] = validate[Token] { accessToken(code) }
-  private def refresh(code: String): Future[Token] = validate[Token] { refreshToken(code) }
-  /*
+  private def refresh(oldToken: Token): Future[Token] = refresh(oldToken.refresh_token.get) map {
+    newToken => Token(oldToken.access_token, newToken.token_type, newToken.scope, newToken.expires_in, oldToken.refresh_token)
+  }
+
   private def access(code: String): Future[Token] = validate[Token] { logRequest { accessToken(code) } }
   private def refresh(code: String): Future[Token] = validate[Token] { logRequest { refreshToken(code) } }
-  */
 
   private def accessToken(code: String): Future[WSResponse] = {
     ws.url(TOKEN_ENDPOINT)

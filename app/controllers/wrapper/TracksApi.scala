@@ -26,13 +26,16 @@ class TracksApi @Inject()(configuration: play.api.Configuration, ws: WSClient, a
     */
   def getTrack(id: String): Future[Track] = api.get[Track](ENDPOINT(id))
 
-  def getTracks(href: String): Future[Page[Track]] = {
-    logger.debug(s"getTracks($href)")
-    api.getWithOAuth[Page[Track]](href)
-  }
-
   def getPlaylistTracks(href: String): Future[Page[PlaylistTrack]] = {
     api.getWithOAuth[Page[PlaylistTrack]](href)
+  }
+
+  def allTracks(href: String): Future[List[Track]] = allPlaylistTracks(href) map {
+    p => p.map(pt => pt.track)
+  }
+
+  def allPlaylistTracks(href: String): Future[List[PlaylistTrack]] = {
+    api.getAll[PlaylistTrack](href => getPlaylistTracks(href))(ENDPOINT(href))
   }
 
   // ===================================================================================================================

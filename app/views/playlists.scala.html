@@ -1,0 +1,78 @@
+@import controllers.wrapper.entities.SimplePlaylist
+
+@(title: String, playlists: List[SimplePlaylist])
+@main("MIR") {
+
+    <html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+
+        <head></head>
+
+        <body>
+
+            <nav class="navbar navbar-dark bg-inversed">
+                <a class="navbar-brand" href="#">musicgene</a>t
+                <ul class="nav navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link"
+                        href="@routes.SpotifyApiController.playlistTracks(playlists.head.tracks.href)">
+                            <i class="fa fa-music"></i>Tracks</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#"><i class="fa fa-list"></i>Playlists</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="mailto:fbarto01@@mail.bbk.ac.uk">
+                            <i class="fa fa-envelope-o"></i>Support</a>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav pull-right">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="https://musicgene.herokuapp.com">
+                            <i class="fa fa-sign-out"></i>Logout</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="container">
+                <div class="jumbotron text-left white-transparent">
+                    <h1>
+                        <span id="playlist-title">@title</span>
+                    </h1>
+                    <p id="playlist-paragraph">Select a playlist</p>
+                </div>
+            </div>
+
+                <!-- Playlists -->
+            <div class="container">
+                <div class="music-collection" id="music-collection">
+                @playlists.zip(Stream from 1).map { case (p, index) =>
+                <table class="table table-responsive table-hover table-sm" id="music-collection-table">
+                    <caption>@p.name</caption>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Title</th>
+                            <th>Href</th>
+                        </tr>
+                    </thead>
+                    <tbody class="music-collection-tbody">
+                        <tr>
+                            <th scope="row">@index</th>
+                            <td href="@routes.SpotifyApiController.playlistTracks(p.href)">@p.owner.display_name.getOrElse("N/A")</td>
+                            <td>@p.name</td>
+                            <td>@p.href</td>
+                            <td>
+                                <form action = "@routes.SpotifyApiController.playlistTracks(p.tracks.href)" method = "get">
+                                    <button class="btn btn-success btn-lg" id="try-button">Go to tracks</button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                }
+                </div>
+            </div>
+
+        </body>
+    </html>
+}

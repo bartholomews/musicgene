@@ -33,13 +33,11 @@ class PlaylistsApi @Inject()(configuration: play.api.Configuration, ws: WSClient
     }
   }
 
-  /*
   def allMyPlaylists: Future[List[SimplePlaylist]] = {
     profiles.me.flatMap {
-      my => api.getAll[SimplePlaylist](href => api.getWithOAuth[Page[SimplePlaylist]](href, false))(ENDPOINT(my.id))
+      my => api.getAll[SimplePlaylist](href => api.getWithOAuth[Page[SimplePlaylist]](href))(ENDPOINT(my.id))
     }
   }
-  */
 
   // ===================================================================================================================
   /**

@@ -11,8 +11,10 @@ POST    /playlist                       controllers.PlaylistController.generateP
 
 GET     /auth                           controllers.SpotifyApiController.auth
 GET     /callback                       controllers.SpotifyApiController.callback
-GET     /tracks/sample                  controllers.SpotifyApiController.getSampleTracks()
-GET     /playlists/all                  controllers.SpotifyApiController.allPlaylistsAction()
+GET     /myPlaylists                    controllers.SpotifyApiController.myPlaylists
+GET     /playlists:user                 controllers.SpotifyApiController.playlists(user)
+GET     /playlists/tracks:href          controllers.SpotifyApiController.playlistTracks(href)
+GET     /tracks/sample                  controllers.SpotifyApiController.sampleTracks
 
 #GET     /browse/featured-playlists      controllers.wrapper.Browse.featuredPlaylistsAction(_)
 #GET     /browse/new-releases            controllers.wrapper.Browse.newReleasesActionAsync
