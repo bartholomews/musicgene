@@ -1,14 +1,10 @@
-package controllers
+package controllers.excluded
 
 import javax.inject._
 
-import com.wrapper.spotify.exceptions.BadRequestException
-import com.wrapper.spotify.models.{SimplePlaylist, Track}
-import model.music._
+import controllers.MongoController
 import play.api.cache.redis.CacheApi
 import play.api.mvc._
-
-import scala.collection.JavaConversions._
 
 /**
   * Controller which redirects the user to authenticate with Spotify,

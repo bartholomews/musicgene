@@ -39,6 +39,7 @@ class BrowseApi @Inject()(configuration: play.api.Configuration, ws: WSClient, a
     */
   private final val NEW_RELEASES = s"$BROWSE/new-releases"
 
+  /*
   def newReleases: Future[List[SimpleAlbum]] = {
     def loop(call: String, acc: List[SimpleAlbum]): Future[List[SimpleAlbum]] = {
       api.get[NewReleases](call) flatMap {
@@ -51,6 +52,7 @@ class BrowseApi @Inject()(configuration: play.api.Configuration, ws: WSClient, a
     }
     loop(NEW_RELEASES, List())
   }
+  */
 
   /*
   private def getNewReleasesList(token: String, query: Option[String] = None): Future[WSResponse] = {

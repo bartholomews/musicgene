@@ -1,7 +1,5 @@
 package model.music
 
-import com.wrapper.spotify.models.{Track, AudioFeature}
-
 /**
   *
   */
@@ -9,7 +7,7 @@ class MusicCollection(val songs: Vector[Song]) {
 
   def apply(i: Int) = songs(i)
   def size = songs.size
-  def IDs: Vector[String] = songs.map(t => t.id)
+  def IDs: Vector[Option[String]] = songs.map(t => t.id)
   /**
     * @param p the predicate which filter out songs
     * @return a new `MusicCollection` with the songs filtered by a predicate

@@ -6,7 +6,7 @@ import play.api.libs.functional.syntax._
 case class SimpleArtist
 (
 external_urls: ExternalURL,
-href: Option[String],
+href: Option[String], // link to full object Artist
 id: Option[String],
 name: String,
 uri: Option[String]

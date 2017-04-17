@@ -1,14 +1,10 @@
 package model.music
 
-import java.util.concurrent.TimeUnit
-
-import controllers.SpotifyJavaController
-
 /**
   *
   */
 
-case class Song(id: String, attributes: Set[Attribute]) {
+case class Song(id: Option[String], attributes: Set[Attribute]) {
 
   def getOrElse(that: Attribute): Attribute = attributes.find(a => a.getClass == that.getClass) match {
     case None => that
@@ -46,7 +42,7 @@ case class Song(id: String, attributes: Set[Attribute]) {
   }
 
   val title = findValue(Title(""))
-  val preview_url = findValue(Preview_URL(""))
+  val preview_url = findValue(Preview_URL())
   val artist = findValue(Artist(""))
   val album = findValue(Album(""))
   val tempo = findValue(Tempo(0))

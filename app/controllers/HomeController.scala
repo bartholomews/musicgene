@@ -2,7 +2,6 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 
-import com.wrapper.spotify.exceptions.BadRequestException
 import controllers.wrapper.SpotifyAPI
 import logging.AccessLogging
 import controllers.wrapper.entities.{Page, SimpleAlbum, SimplePlaylist, Track}
@@ -96,6 +95,8 @@ class HomeController @Inject()(configuration: play.api.Configuration,
     *         with the playlist tracks belonging to the Spotify user account
     *         or a HTTP Bad Request 400 if a problem occurred
     */
+
+  /*
   def getSpotifyTracks = Action {
     try {
       val spotify = new SpotifyController(configuration, cache)
@@ -111,5 +112,6 @@ class HomeController @Inject()(configuration: play.api.Configuration,
       case _: NullPointerException => BadRequest("Something went wrong.")
     }
   }
+  */
 
 }

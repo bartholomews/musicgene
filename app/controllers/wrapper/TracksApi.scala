@@ -39,7 +39,6 @@ class TracksApi @Inject()(configuration: play.api.Configuration, ws: WSClient, a
   }
 
   // ===================================================================================================================
-
   /*
   private def getNewReleasesList(token: String, query: Option[String] = None): Future[WSResponse] = {
     ws.url(query.getOrElse(NEW_RELEASES))
@@ -52,5 +51,35 @@ class TracksApi @Inject()(configuration: play.api.Configuration, ws: WSClient, a
   */
 
   // ===================================================================================================================
+
+  /**
+    *
+    * @param track the Spotify ID for a track
+    *           (@see https://developer.spotify.com/web-api/user-guide/#spotify-uris-and-ids)
+    *
+    * @return an AudioFeatures object for the track
+    */
+  def getAudioFeatures(track: String): Future[AudioFeatures] = api.getWithOAuth[AudioFeatures] {
+    s"${api.BASE_URL}/audio-features/$track"
+  }
+
+  /*
+  def getAudioFeatures(track: Track): Future[AudioFeatures] = track.id match {
+    case Some(id) => getAudioFeatures(id)
+    case None => Future.failed(new Exception("Track does not have a Spotify ID."))
+  }
+  */
+
+  /**
+    * tracks the Spotify ID for several tracks
+    *            (@see https://developer.spotify.com/web-api/get-several-audio-features/)
+    *
+    * @return a List of AudioFeatures objects for the tracks
+    */
+  /* TODO
+  def getAudioFeatures(tracks: List[String]): Future[List[AudioFeatures]] = api.get("audio_features") {
+    s"${api.BASE_URL}/audio-features/?ids=${tracks.mkString(",")}"
+  }
+  */
 
 }

@@ -84,7 +84,7 @@ object MongoController {
     */
   def readIDs(collection: MongoCollection): Vector[String] = {
     val spotify_id = "spotify_id" $exists true
-    collection.find(spotify_id).map(e => getID(e)).toVector
+    collection.find(spotify_id).flatMap(e => getID(e)).toVector
   }
 
   /**
@@ -110,8 +110,8 @@ object MongoController {
     * @param obj the DBObject representing a Song instance
     * @return the Spotify ID of that object
     */
-  def getID(obj: DBObject): String = {
-    obj.get("spotify_id").asInstanceOf[String]
+  def getID(obj: DBObject): Option[String] = {
+    obj.get("spotify_id").asInstanceOf[Option[String]]
   }
 
   /**

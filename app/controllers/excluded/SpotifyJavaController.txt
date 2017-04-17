@@ -1,14 +1,8 @@
-package controllers;
+package controllers.excluded;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.SettableFuture;
-import com.wrapper.spotify.Api;
-import com.wrapper.spotify.exceptions.BadRequestException;
-import com.wrapper.spotify.exceptions.WebApiException;
-import com.wrapper.spotify.methods.CurrentUserRequest;
-import com.wrapper.spotify.methods.authentication.ClientCredentialsGrantRequest;
-import com.wrapper.spotify.models.*;
 import scala.Option;
 
 import java.io.IOException;
@@ -20,6 +14,8 @@ import java.util.List;
  * This code is adapted from the wrapper's README on Github:
  * {@see https://github.com/thelinmichael/spotify-web-api-java}
  */
+
+/*
 public class SpotifyJavaController {
     private static volatile SpotifyJavaController instance;
     private static final Object lock = new Object();
@@ -52,12 +48,13 @@ public class SpotifyJavaController {
     /**
      * API endpoint instance of the Spotify wrapper
      */
+
+    /*
     private static final Api api = Api.builder()
             .clientId(CLIENT_ID)
             .clientSecret(CLIENT_SECRET)
             .redirectURI(REDIRECT_URI)
             .build();
-
     /**
      * Set the necessary scopes that the application will need from the user
      */

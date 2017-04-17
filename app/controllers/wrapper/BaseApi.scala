@@ -90,11 +90,34 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
     }(fmt))
   }
 
+  def get[T](key: String)(endpoint: String)(implicit fmt: Reads[T]): Future[T] = {
+    withToken[T](t => validate[T] {
+      ws.url(endpoint)
+        .withHeaders(auth_bearer(t.access_token))
+        .get()
+    }(fmt))
+  }
+
+  /*
   def getList[T](endpoints: List[String])(implicit fmt: Reads[T]): Future[List[T]] = {
     val list: List[Future[T]] = endpoints map (e => get[T](e))
     val listTry: List[Future[Try[T]]] = list.map(futureToFutureTry)
     // TODO log failures
     Future.sequence(listTry).map(_.collect { case Success(x) => x })
+  }
+  */
+
+  /**
+    * Collect disregarding failures
+    * @see http://stackoverflow.com/questions/20874186/scala-listfuture-to-futurelist-disregarding-failed-futures
+    * @param list
+    * @tparam T
+    * @return
+    */
+  def getFutureList[T](list: List[Future[T]]): Future[List[T]] = {
+    Future.sequence(
+      list.map(futureToFutureTry)
+    ).map(_.collect { case Success(x) => x })
   }
 
   // @see http://stackoverflow.com/a/20874404
@@ -135,6 +158,17 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
       }
     }
   }
+
+  /*
+  def validate[T](key: String)(f: Future[WSResponse])(implicit fmt: Reads[T]): Future[T] = {
+    f map { response =>
+      (response.json \ key).validate[T](fmt) match {
+        case JsSuccess(obj, _) => obj
+        case JsError(errors) => throw new Exception(handleError(response, errors))
+      }
+    }
+  }
+  */
 
   // TODO Future.failed[T] instead of Exception, ALSO should be able to detect from the first JsError above
   // path which kind of error is that instead of try-matching blindly

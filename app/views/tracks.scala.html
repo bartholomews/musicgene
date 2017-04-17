@@ -1,6 +1,6 @@
 @import model.music.Song
 
-@(title: String, tracks: Vector[(String, Vector[Song])])
+@(title: String, tracks: Seq[(String, Seq[Song])])
 
 @main("MIR") {
 
@@ -32,9 +32,9 @@
                         <a class="nav-link" href="#"> <i class="fa fa-music"></i> Tracks</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" data-toggle="tooltip"
-                        data-placement="bottom" title="The functionality to retain and save playlists
-                        will be available soon">
+                        <a class="nav-link" href="@routes.SpotifyApiController.myPlaylists()"
+                        data-toggle="tooltip" data-placement="bottom">
+                        <!--title="The functionality to retain and save playlists will be available soon"-->
                             <i class="fa fa-list"></i> Playlists</a>
                     </li>
                     <li class="nav-item">

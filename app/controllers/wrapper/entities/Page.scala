@@ -49,18 +49,18 @@ object Page {
 
   /*
   implicit def pageReads[T](implicit fmt: Reads[T]): Reads[Page[T]] = new Reads[Page[T]] {
-    def reads(json: JsValue): Page[T] = new Page[T](
+    override def reads(json: JsValue): JsResult[Page[T]] = JsSuccess(new Page[T](
       (json \ "href").as[String],
-      (json \ "items") match {
-        case JsDefined(JsArray(ts)) => ts.map(t => json.as[T](fmt)).toList
-        case _ => throw new RuntimeException("Page items object must be a List")
-      },
       (json \ "limit").as[Int],
       (json \ "next").asOpt[String],
       (json \ "offset").as[Int],
       (json \ "previous").asOpt[String],
-      (json \ "total").as[Int]
-    )
+      (json \ "total").as[Int],
+      json \ "items" match {
+        case JsDefined(JsArray(ts)) => ts.map(t => json.as[T](fmt)).toList
+        case _ => throw new RuntimeException("Page items object must be a List")
+      }
+    ))
   }
   */
 

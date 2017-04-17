@@ -1,6 +1,6 @@
 package model.music
 
-import com.wrapper.spotify.models.{AudioFeature, Track}
+import controllers.wrapper.entities.{AudioFeatures, Track}
 import play.api.libs.json.{JsNumber, JsObject, JsString, JsValue}
 
 /**
@@ -11,7 +11,7 @@ object MusicUtil {
   def toJson(songs: Seq[Song]): Seq[JsValue] = songs.map(s => toJson(s))
 
   def toJson(song: Song): JsValue = JsObject(Seq(
-    "spotify_id" -> JsString(song.id),
+    "spotify_id" -> JsString(song.id.orNull),
     "attributes" -> JsObject(toJsonAttribute(song.attributes))
   ))
 
@@ -63,28 +63,30 @@ object MusicUtil {
     try { value.toDouble } catch { case _: Throwable => Double.MaxValue }
   }
 
-  def toSongs(songs: Vector[(Track, AudioFeature)]): Vector[Song] = songs.map(t => toSong(t))
+  def toSongs(songs: Seq[(Track, AudioFeatures)]): Seq[Song] = songs.map(t => toSong(t))
 
-  def toSong(t: (Track, AudioFeature)): Song = {
-    Song(t._1.getId,
+  def personalSong(t: Track): Song = Song(None, Set())
+
+  def toSong(t: (Track, AudioFeatures)): Song = {
+    Song(t._1.id,
       Set[Attribute](
-        Preview_URL(t._1.getPreviewUrl),
-        Title(t._1.getName),
-        Album(t._1.getAlbum.getName),
-        Artist(t._1.getArtists.get(0).getName),
-        Duration(t._1.getDuration),
-        Acousticness(t._2.getAcousticness),
-        Danceability(t._2.getDanceability),
-        Energy(t._2.getEnergy),
-        Instrumentalness(t._2.getInstrumentalness),
-        Liveness(t._2.getLiveness),
-        Loudness(t._2.getLoudness),
-        Speechiness(t._2.getSpeechiness),
-        Tempo(t._2.getTempo),
-        Valence(t._2.getValence),
-        Time_Signature(t._2.getTimeSignature),
-        Mode(t._2.getMode),
-        Key(t._2.getKey)
+        Preview_URL(t._1.preview_url.getOrElse("")),
+        Title(t._1.name),
+        Album(t._1.album.name),
+        Artist(t._1.artists.head.name),
+        Duration(t._1.duration_ms),
+        Acousticness(t._2.acousticness),
+        Danceability(t._2.danceability),
+        Energy(t._2.energy),
+        Instrumentalness(t._2.instrumentalness),
+        Liveness(t._2.liveness),
+        Loudness(t._2.loudness),
+        Speechiness(t._2.speechiness),
+        Tempo(t._2.tempo),
+        Valence(t._2.valence),
+        Time_Signature(t._2.time_signature),
+        Mode(t._2.mode),
+        Key(t._2.key)
       )
     )
   }

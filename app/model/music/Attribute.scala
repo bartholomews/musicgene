@@ -34,8 +34,7 @@ case class Title(override val value: String) extends TextAttribute
 case class Album(override val value: String) extends TextAttribute
 case class Artist(override val value: String) extends TextAttribute
 case class SongType(value: String) extends TextAttribute
-case class Preview_URL(value: String) extends TextAttribute
-
+case class Preview_URL(value: String = "") extends TextAttribute
 case class Year(value: Int) extends Attribute
 
 case class Duration(value: Double, min: Double = 0.0, max: Double = 1800000) extends AudioAttribute

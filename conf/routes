@@ -1,20 +1,18 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
-# controllers.SpotifyController.callback
+# controllers.excluded.SpotifyController.callback
 
-GET     /                               controllers.HomeController.index
-GET     /zzzzz                          controllers.SpotifyController.auth
-GET     /bleah                          controllers.HomeController.getSpotifyTracks
-GET     /alltracks                      controllers.HomeController.getSampleTracks
-POST    /playlist                       controllers.PlaylistController.generatePlaylist
+GET     /                                            controllers.HomeController.index
+GET     /alltracks                                   controllers.HomeController.getSampleTracks
+POST    /playlist                                    controllers.PlaylistController.generatePlaylist
 
-GET     /auth                           controllers.SpotifyApiController.auth
-GET     /callback                       controllers.SpotifyApiController.callback
-GET     /myPlaylists                    controllers.SpotifyApiController.myPlaylists
-GET     /playlists:user                 controllers.SpotifyApiController.playlists(user)
-GET     /playlists/tracks:href          controllers.SpotifyApiController.playlistTracks(href)
-GET     /tracks/sample                  controllers.SpotifyApiController.sampleTracks
+GET     /auth                                        controllers.SpotifyApiController.auth
+GET     /callback                                    controllers.SpotifyApiController.callback
+GET     /sample/tracks/                              controllers.SpotifyApiController.sampleTracks
+GET     /me/playlists                                controllers.SpotifyApiController.myPlaylists
+GET     /:user_id/playlists/                         controllers.SpotifyApiController.playlists(user_id)
+GET     /:user_id/playlists/:playlist_id/tracks      controllers.SpotifyApiController.songs(user_id, playlist_id)
 
 #GET     /browse/featured-playlists      controllers.wrapper.Browse.featuredPlaylistsAction(_)
 #GET     /browse/new-releases            controllers.wrapper.Browse.newReleasesActionAsync
