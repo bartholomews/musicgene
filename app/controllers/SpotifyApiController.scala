@@ -136,8 +136,9 @@ class SpotifyApiController @Inject() (api: BaseApi,
   def songs(user_id: String, playlist_id: String): Action[AnyContent] = handleAsync {
     playlistsApi.playlist(user_id, playlist_id) flatMap { p =>
       val f: List[Future[Song]] = p.tracks.items.map(pt =>
-        tracksApi.getAudioFeatures(pt.track.id.get) map {
-          af => MusicUtil.toSong(pt.track, af)
+        pt.track.id match {
+          case Some(id) => tracksApi.getAudioFeatures(id) map { af => MusicUtil.toSong(pt.track, af) }
+          case None => Future(MusicUtil.toSong(pt.track))
         })
       api.getFutureList[Song](f) map {
         s => Ok(views.html.tracks(s"${p.name}'s tracks", List((p.name, s))))

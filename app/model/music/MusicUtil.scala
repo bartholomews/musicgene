@@ -91,4 +91,15 @@ object MusicUtil {
     )
   }
 
+  def toSong(t: Track): Song = {
+    Song(t.id,
+      Set[Attribute](
+        Preview_URL(t.preview_url.getOrElse("")),
+        Title(t.name),
+        Album(t.album.name),
+        Artist(t.artists.head.name),
+        Duration(t.duration_ms)
+      ))
+  }
+
 }

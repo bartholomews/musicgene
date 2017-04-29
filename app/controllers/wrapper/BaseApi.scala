@@ -7,11 +7,9 @@ import javax.inject.{Inject, Singleton}
 
 import logging.AccessLogging
 import controllers.wrapper.entities._
-import play.api.Logger
 import play.api.data.validation.ValidationError
 import play.api.libs.json.{JsError, _}
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
-import play.api.mvc.{Action, AnyContent, Controller, Result}
 import utils.ConversionUtils
 
 import scala.annotation.tailrec
@@ -151,24 +149,16 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
     f map { response =>
       response.json.validate[T](fmt) match {
         case JsSuccess(obj, _) => obj
-        case JsError(errors) => throw new Exception(handleError(response, errors))
-          // accessLogger.debug(errors.toString)
-          // val error = response.json \ "error"//.validate[String].get
+        case JsError(errors) => // throw new Exception(handleError(response, errors))
+          accessLogger.debug(errors.toString)
+          val error = response.json \ "error"//.validate[String].get
+          // TODO CATCH PROPERLY (ALSO THERE ARE 2 DIFFERENT TYPES OF JSON ERROR RESPONSES, SEE ENTITIES)
           // val error_description = response.json \ "error_description"//.validate[String].get
+          val error_message = (error \ "message").validate[String].get
+          throw new Exception(error_message)
       }
     }
   }
-
-  /*
-  def validate[T](key: String)(f: Future[WSResponse])(implicit fmt: Reads[T]): Future[T] = {
-    f map { response =>
-      (response.json \ key).validate[T](fmt) match {
-        case JsSuccess(obj, _) => obj
-        case JsError(errors) => throw new Exception(handleError(response, errors))
-      }
-    }
-  }
-  */
 
   // TODO Future.failed[T] instead of Exception, ALSO should be able to detect from the first JsError above
   // path which kind of error is that instead of try-matching blindly
@@ -296,13 +286,16 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
 
   /**
     * @see https://developer.spotify.com/web-api/authorization-guide/
+    *
     * @param client_id    Required. The client ID provided to you by Spotify when you register your application.
+    *
     * @param redirect_uri Required. The URI to redirect to after the user grants/denies permission.
     *                     This URI needs to have been entered in the Redirect URI whitelist
     *                     that you specified when you registered your application.
     *                     The value of redirect_uri here must exactly match one of the values
     *                     you entered when you registered your application,
     *                     including upper/lowercase, terminating slashes, etc.
+    *
     * @param state        Optional, but strongly recommended. The state can be useful for correlating requests and responses.
     *                     Because your redirect_uri can be guessed, using a state value can increase your assurance
     *                     that an incoming connection is the result of an authentication request.
@@ -310,15 +303,19 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
     *                     in this state variable, you can validate the response to additionally ensure
     *                     that the request and response originated in the same browser.
     *                     This provides protection against attacks such as cross-site request forgery.
-    * @see RFC-6749 [https://tools.ietf.org/html/rfc6749#section-10.12]
+    *
+    * @see               RFC-6749 [https://tools.ietf.org/html/rfc6749#section-10.12]
+    *
     * @param scopes      Optional. A space-separated list of scopes: @see `Scope`
     *                    If no scopes are specified, authorization will be granted only
     *                    to access publicly available information: that is, only information
     *                    normally visible in the Spotify desktop, web and mobile players.
+    *
     * @param show_dialog Optional. Whether or not to force the user to approve the app again if they’ve already done so.
     *                    If false (default), a user who has already approved the application
     *                    may be automatically redirected to the URI specified by redirect_uri.
     *                    If true, the user will not be automatically redirected and will have to approve the app again.
+    *
     * @return the Spotify URL where the user can grant/deny permissions.
     */
   private def requestAuthoriseURL(client_id: String, redirect_uri: String, state: Option[String],

@@ -6,6 +6,8 @@ import play.api.libs.functional.syntax._
 /**
   * @see https://developer.spotify.com/web-api/object-model/#audio-features-object
   *
+  * @param objectType Spotify type ("audio_features")
+  *
   * @param acousticness A confidence measure from 0.0 to 1.0 of whether the track is acoustic.
   *                     1.0 represents high confidence the track is acoustic.
   *
@@ -73,9 +75,10 @@ import play.api.libs.functional.syntax._
   * @param uri The Spotify URI for the track.
 
   * @param valence A measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry).
+  *
   */
 case class AudioFeatures
-(
+( override val objectType: String,
   acousticness: Float,
   analysis_url: String,
   danceability: Float,
@@ -92,12 +95,12 @@ case class AudioFeatures
   time_signature: Int,
   track_href: String,
   uri: String,
-  valence: Float
-) { val objectType = "audio_features" }
+  valence: Float) extends SpotifyObject
 
 object AudioFeatures {
   implicit val audioFeaturesReads: Reads[AudioFeatures] = (
-    (JsPath \ "acousticness").read[Float] and
+    (JsPath \ "type").read[String] and
+      (JsPath \ "acousticness").read[Float] and
       (JsPath \ "analysis_url").read[String] and
       (JsPath \ "danceability").read[Float] and
       (JsPath \ "duration_ms").read[Float] and
@@ -115,4 +118,5 @@ object AudioFeatures {
       (JsPath \ "uri").read[String] and
       (JsPath \ "valence").read[Float]
     )(AudioFeatures.apply _)
+
 }

@@ -54,12 +54,13 @@ class PlaylistsApi @Inject()(configuration: play.api.Configuration, ws: WSClient
   }
 
   def myPlaylists: Future[Page[SimplePlaylist]] = {
-    api.getWithOAuth[Page[SimplePlaylist]](s"${api.BASE_URL}/me/playlists")
+    api.get[Page[SimplePlaylist]](s"${api.BASE_URL}/me/playlists")
   }
 
   def allMyPlaylists: Future[List[SimplePlaylist]] = {
-    profiles.me.flatMap { my => api.getAll[SimplePlaylist](
-      href => api.getWithOAuth[Page[SimplePlaylist]](href))(s"${api.BASE_URL}/users/${my.id}/playlists"
+    profiles.me.flatMap {
+      my => api.getAll[SimplePlaylist](
+        s => api.getWithOAuth[Page[SimplePlaylist]](s))(s"${api.BASE_URL}/users/${my.id}/playlists"
     )}
   }
 
