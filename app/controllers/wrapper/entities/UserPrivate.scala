@@ -8,18 +8,18 @@ import play.api.libs.functional.syntax._
   */
 case class UserPrivate
 (
-birthdate: Option[String],  // field available if `user-read-birthdate` scope is granted
-country: Option[String], // ISO 3166-1 alpha-2 field available if `user-read-private` scope is granted
-display_name: Option[String],
-email: Option[String], // field available if `user-read-email` scope is granted
-external_urls: ExternalURL,
-followers: Followers,
-href: String,
-id: String,
-images: List[Image],
-product: String, // field available if `user-read-private` is granted
-objectType: String,
-uri: String
+  birthdate: Option[String], // field available if `user-read-birthdate` scope is granted
+  country: Option[String], // ISO 3166-1 alpha-2 field available if `user-read-private` scope is granted
+  display_name: Option[String],
+  email: Option[String], // field available if `user-read-email` scope is granted
+  external_urls: ExternalURL,
+  followers: Followers,
+  href: String,
+  id: String,
+  images: List[Image],
+  product: Option[String], // field available only if `user-read-private` is granted
+  objectType: String,
+  uri: String
 )
 
 object UserPrivate {
@@ -33,7 +33,7 @@ object UserPrivate {
       (JsPath \ "href").read[String] and
       (JsPath \ "id").read[String] and
       (JsPath \ "images").read[List[Image]] and
-      (JsPath \ "product").read[String] and
+      (JsPath \ "product").readNullable[String] and
       (JsPath \ "type").read[String] and
       (JsPath \ "uri").read[String]
     )(UserPrivate.apply _)

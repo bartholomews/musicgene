@@ -27,7 +27,7 @@ case class RegularError(status: Int, message: String) extends Exception with Web
 
 object RegularError {
   implicit val errorReads: Reads[RegularError] = (
-    (JsPath \ "status").read[Int] and
-      (JsPath \ "message").read[String]
+    (JsPath \ "error" \ "status").read[Int] and
+      (JsPath \ "error" \ "message").read[String]
     ) (RegularError.apply _)
 }

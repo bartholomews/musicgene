@@ -52,9 +52,30 @@ class SpotifyApiController @Inject() (api: BaseApi,
   }
 
   def myPlaylists: Action[AnyContent] = handleAsync {
-    playlistsApi.myPlaylists map {
-      p => Ok(views.html.playlists("My Playlists", p.items))
+    profilesApi.me flatMap {
+      me => playlistsApi.playlists(me.id) map { p => Ok(views.html.playlists(s"${me.id} playlists", p.items)) }
     }
+    /*
+  // TODO This throws either 401 Unauthorised or 429 Too many requests, while playlists(user_id) below works ok
+  // maybe it depends on the grant requested which are not enough?
+  playlistsApi.myPlaylists map {
+    p => Ok(views.html.playlists("My Playlists", p.items))
+  }
+  */
+  }
+
+  /**
+    * @param user_id the ID of the logged-in user
+    * @return the FIRST PAGE of a user playlists
+    */
+  def playlists(user_id: String): Action[AnyContent] = handleAsync {
+    // TODO lookup for a User stored in local db for that spotifyID and fallback to profilesApi
+    // profilesApi.me flatMap { me =>
+    playlistsApi.playlists(user_id).map(p =>
+      // TODO store playlist href-name-listOfTracksID for later retrieval
+      Ok(views.html.playlists("Playlists", p.items))
+    )
+    // }
   }
 
   /*
@@ -68,20 +89,6 @@ class SpotifyApiController @Inject() (api: BaseApi,
     }
   }
   */
-
-  /**
-    * @param user_id the ID of the logged-in user
-    * @return
-    */
-  def playlists(user_id: String): Action[AnyContent] = handleAsync {
-    // TODO lookup for a User stored in local db for that spotifyID and fallback to profilesApi
-    // profilesApi.me flatMap { me =>
-      playlistsApi.playlists(user_id).map(p =>
-        // TODO store playlist href-name-listOfTracksID for later retrieval
-        Ok(views.html.playlists("Playlists", p.items))
-      )
-   // }
-  }
 
   /*
   def songTest(href: String): Action[AnyContent] = handleAsync {

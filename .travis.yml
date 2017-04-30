@@ -1,0 +1,12 @@
+# https://travis-ci.org/
+
+language: scala
+scala:
+  - 2.11.7
+  - 2.10.4
+  - 2.9.3
+jdk:
+  - oraclejdk7
+  - openjdk6
+
+script: sbt ++$TRAVIS_SCALA_VERSION test

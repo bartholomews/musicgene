@@ -145,30 +145,36 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
     }(fmt))
   }
 
+  def what[T]: Future[T] = {
+    Future.failed(new Exception(""))
+  }
+
   def validate[T](f: Future[WSResponse])(implicit fmt: Reads[T]): Future[T] = {
     f map { response =>
       response.json.validate[T](fmt) match {
         case JsSuccess(obj, _) => obj
-        case JsError(errors) => // throw new Exception(handleError(response, errors))
+        case JsError(_) => throw webApiException(response.json)
+      }
+    } recoverWith { case ex => Future.failed(ex) }
+    /*
           accessLogger.debug(errors.toString)
           val error = response.json \ "error"//.validate[String].get
           // TODO CATCH PROPERLY (ALSO THERE ARE 2 DIFFERENT TYPES OF JSON ERROR RESPONSES, SEE ENTITIES)
           // val error_description = response.json \ "error_description"//.validate[String].get
-          val error_message = (error \ "message").validate[String].get
-          throw new Exception(error_message)
-      }
-    }
+          accessLogger.debug(error.toString)
+          throw new Exception(error.toString)
+          */
   }
 
-  // TODO Future.failed[T] instead of Exception, ALSO should be able to detect from the first JsError above
-  // path which kind of error is that instead of try-matching blindly
-  def handleError[T](response: WSResponse, errors: Seq[(JsPath, Seq[ValidationError])]): String = {
-    accessLogger.debug(response.json.toString)
-    response.json.validate[AuthError] match {
-      case JsSuccess(obj, _) => obj.error
-      case JsError(_) => response.json.validate[RegularError] match {
-        case JsSuccess(obj, _) => obj.message
-        case JsError(_) => errors.head.toString
+  // TODO Should be able to detect from the first JsError above; path which kind of error is that instead of try-matching blindly
+  def webApiException(json: JsValue): WebApiException = {
+    accessLogger.debug(json.toString)
+    json.validate[AuthError] match {
+      case JsSuccess(obj, _) => obj
+      case JsError(_) => json.validate[RegularError] match {
+        // TODO          [Exception: Unknown exception: {"error":{"status":429,"message":"API rate limit exceeded"}}]
+        case JsSuccess(obj, _) => obj
+        case JsError(_) => throw new Exception(s"Unknown exception: ${json.toString}")
       }
     }
   }
