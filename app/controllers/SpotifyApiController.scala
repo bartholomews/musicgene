@@ -51,17 +51,23 @@ class SpotifyApiController @Inject() (api: BaseApi,
     me => Ok(views.html.callback(me.id))
   }
 
-  def myPlaylists: Action[AnyContent] = handleAsync {
+  def myPlaylists2: Action[AnyContent] = handleAsync {
     profilesApi.me flatMap {
       me => playlistsApi.playlists(me.id) map { p => Ok(views.html.playlists(s"${me.id} playlists", p.items)) }
     }
-    /*
-  // TODO This throws either 401 Unauthorised or 429 Too many requests, while playlists(user_id) below works ok
-  // maybe it depends on the grant requested which are not enough?
-  playlistsApi.myPlaylists map {
-    p => Ok(views.html.playlists("My Playlists", p.items))
   }
-  */
+
+  /*
+  TODO This throws either 401 Unauthorised or 429 Too many requests, while playlists(user_id) below works ok
+  maybe it depends on the grant requested which are not enough?
+   */
+  def myPlaylists: Action[AnyContent] = handleAsync {
+    playlistsApi.myPlaylists map {
+      p => Ok(views.html.playlists("My Playlists", p.items))
+    } recover {
+      case e: RegularError => BadRequest(views.html.exception(s"{'status':${e.status}, 'message':${e.message}}"))
+      case ex: Throwable => BadRequest(views.html.exception(ex.getMessage))
+    }
   }
 
   /**
@@ -235,7 +241,6 @@ class SpotifyApiController @Inject() (api: BaseApi,
     try block
     catch {
       case auth: WebApiException => Future(BadRequest(views.html.exception(auth.getMessage)))
-      case authError: AuthError => Future(BadRequest(views.html.exception(authError.message)))
       case ex: Exception => handleException(ex)
     }
   }

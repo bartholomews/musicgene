@@ -7,7 +7,6 @@ import javax.inject.{Inject, Singleton}
 
 import logging.AccessLogging
 import controllers.wrapper.entities._
-import play.api.data.validation.ValidationError
 import play.api.libs.json.{JsError, _}
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import utils.ConversionUtils
@@ -24,20 +23,26 @@ class BaseApi @Inject()(configuration: play.api.Configuration, ws: WSClient) ext
   val AUTHORIZE_ENDPOINT = configuration.underlying.getString("AUTHORIZE_ENDPOINT")
   val TOKEN_ENDPOINT = configuration.underlying.getString("TOKEN_ENDPOINT")
 
-  /* REMOVE THIS
-def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
-  @tailrec
-  def loop(p: Page[T], acc: List[T]): List[T] = {
-    p.next match {
-      case None => acc
-      case Some(href) =>
-        val pg = call(href)
-        loop(pg, acc ::: pg.items)
-    }
+
+  def get[T](endpoint: String)(implicit fmt: Reads[T]): Future[T] = {
+    withToken[T](t => validate[T] {
+      logResponse {
+        ws.url(endpoint)
+          .withHeaders(auth_bearer(t.access_token))
+          .get()
+      }
+    }(fmt))
   }
-  loop(page, page.items)
-}
-*/
+
+  def getWithOAuth[T](endpoint: String)(implicit fmt: Reads[T]): Future[T] = {
+    withAuthToken()(t => validate[T] {
+      logResponse {
+        ws.url(endpoint)
+          .withHeaders(auth_bearer(t.access_token))
+          .get()
+      }
+    }(fmt))
+  }
 
   def getAll[T](call: String => Future[Page[T]])(endpoint: String): Future[List[T]] = {
     def loop(p: Page[T], acc: List[T]): Future[List[T]] = {
@@ -70,32 +75,6 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
     loop(page, page.items)
   }
 
-  def getWithLogger[T](endpoint: String)(implicit fmt: Reads[T]): Future[T] = {
-    withToken[T](t => validate[T] {
-      logRequest {
-        ws.url(endpoint)
-          .withHeaders(auth_bearer(t.access_token))
-          .get()
-      }
-    }(fmt))
-  }
-
-  def get[T](endpoint: String)(implicit fmt: Reads[T]): Future[T] = {
-    withToken[T](t => validate[T] {
-        ws.url(endpoint)
-          .withHeaders(auth_bearer(t.access_token))
-          .get()
-    }(fmt))
-  }
-
-  def get[T](key: String)(endpoint: String)(implicit fmt: Reads[T]): Future[T] = {
-    withToken[T](t => validate[T] {
-      ws.url(endpoint)
-        .withHeaders(auth_bearer(t.access_token))
-        .get()
-    }(fmt))
-  }
-
   /*
   def getList[T](endpoints: List[String])(implicit fmt: Reads[T]): Future[List[T]] = {
     val list: List[Future[T]] = endpoints map (e => get[T](e))
@@ -104,6 +83,26 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
     Future.sequence(listTry).map(_.collect { case Success(x) => x })
   }
   */
+
+  def validate[T](f: Future[WSResponse])(implicit fmt: Reads[T]): Future[T] = {
+    f map { response =>
+      response.json.validate[T](fmt) match {
+        case JsSuccess(obj, _) => obj
+        case JsError(_) => throw webApiException(response.json)
+      }
+    } recoverWith { case ex => Future.failed(ex) }
+  }
+
+  private def webApiException(json: JsValue): WebApiException = {
+    accessLogger.debug(json.toString)
+    json.validate[RegularError] match {
+      case JsSuccess(obj, _) => obj
+      case JsError(_) => json.validate[AuthError] match {
+        case JsSuccess(obj, _) => obj
+        case JsError(_) => throw new Exception(s"Unknown exception: ${json.toString}")
+      }
+    }
+  }
 
   /**
     * Collect disregarding failures
@@ -123,87 +122,6 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
     f.map(Success(_)).recover({case e => Failure(e) })
   }
 
-  /*
-  def getWithOAuth[T](endpoint: String, logger: Boolean = false)(implicit fmt: Reads[T]): Future[T] = {
-    if (logger) {
-      withAuthToken()(t => validate[T] {
-        logRequest {
-          ws.url(endpoint)
-            .withHeaders(auth_bearer(t.access_token))
-            .get()
-        }
-      }(fmt))
-    } else getWithOAuth(endpoint)
-  }
-  */
-
-  def getWithOAuth[T](endpoint: String)(implicit fmt: Reads[T]): Future[T] = {
-    withAuthToken()(t => validate[T] {
-        ws.url(endpoint)
-          .withHeaders(auth_bearer(t.access_token))
-          .get()
-    }(fmt))
-  }
-
-  def what[T]: Future[T] = {
-    Future.failed(new Exception(""))
-  }
-
-  def validate[T](f: Future[WSResponse])(implicit fmt: Reads[T]): Future[T] = {
-    f map { response =>
-      response.json.validate[T](fmt) match {
-        case JsSuccess(obj, _) => obj
-        case JsError(_) => throw webApiException(response.json)
-      }
-    } recoverWith { case ex => Future.failed(ex) }
-    /*
-          accessLogger.debug(errors.toString)
-          val error = response.json \ "error"//.validate[String].get
-          // TODO CATCH PROPERLY (ALSO THERE ARE 2 DIFFERENT TYPES OF JSON ERROR RESPONSES, SEE ENTITIES)
-          // val error_description = response.json \ "error_description"//.validate[String].get
-          accessLogger.debug(error.toString)
-          throw new Exception(error.toString)
-          */
-  }
-
-  // TODO Should be able to detect from the first JsError above; path which kind of error is that instead of try-matching blindly
-  def webApiException(json: JsValue): WebApiException = {
-    accessLogger.debug(json.toString)
-    json.validate[AuthError] match {
-      case JsSuccess(obj, _) => obj
-      case JsError(_) => json.validate[RegularError] match {
-        // TODO          [Exception: Unknown exception: {"error":{"status":429,"message":"API rate limit exceeded"}}]
-        case JsSuccess(obj, _) => obj
-        case JsError(_) => throw new Exception(s"Unknown exception: ${json.toString}")
-      }
-    }
-  }
-
-  def validate[T](key: String)(f: Future[WSResponse])(implicit fmt: Reads[T]): Future[T] = {
-    f map { response =>
-      (response.json \ key).validate[T](fmt) match {
-        case JsSuccess(obj, _) => obj
-        case JsError(errors) =>
-          //val error = (response.json \ "error").validate[String].get
-          //val error_description = (response.json \ "error_description").validate[String].get
-          throw new Exception(errors.head.toString) // (s"$error: $error_description")
-      }
-    }
-  }
-
-  def tryValidate[T](f: Future[WSResponse])(implicit fmt: Reads[T]): Future[Try[T]] = {
-    f map { response =>
-      response.json.validate[T](fmt) match {
-        case JsSuccess(obj, _) => Try(obj)
-        case JsError(errors) =>
-          val error = (response.json \ "error").validate[String].get
-          val error_description = (response.json \ "error_description").validate[String].get
-          Failure {
-            throw new Exception(s"$error: $error_description")
-          }
-      }
-    }
-  }
 
   // * =========================================== AUTH // ====================================================== * //
 
@@ -225,7 +143,11 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
     }
   }
 
-  private def refresh: Future[Token] = validate[Token] { logRequest { clientCredentials } }
+  private def refresh: Future[Token] = validate[Token] {
+    logResponse {
+      clientCredentials
+    }
+  }
 
   def callback[T](authCode: String)(request: Token => Future[T]): Future[T] = {
     authorization_code = Some(access(authCode))
@@ -237,8 +159,7 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
     authorization_code match {
       case Some(t) => t flatMap {
         token => authorization_code = {
-          if (token.expired) Some(refresh(token)) //refresh(token.refresh_token)) // .getOrElse(throw new Exception("No refresh token found"))))
-          else authorization_code
+          if (token.expired) Some(refresh(token)) else authorization_code
         }
           request(token)
       }
@@ -252,8 +173,17 @@ def getAll[T](page: Page[T])(call: String => Page[T]): List[T] = {
     newToken => Token(oldToken.access_token, newToken.token_type, newToken.scope, newToken.expires_in, oldToken.refresh_token)
   }
 
-  private def access(code: String): Future[Token] = validate[Token] { logRequest { accessToken(code) } }
-  private def refresh(code: String): Future[Token] = validate[Token] { logRequest { refreshToken(code) } }
+  private def access(code: String): Future[Token] = validate[Token] {
+    logResponse {
+      accessToken(code)
+    }
+  }
+
+  private def refresh(code: String): Future[Token] = validate[Token] {
+    logResponse {
+      refreshToken(code)
+    }
+  }
 
   private def accessToken(code: String): Future[WSResponse] = {
     ws.url(TOKEN_ENDPOINT)
