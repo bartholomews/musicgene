@@ -1,7 +1,7 @@
 package controllers
 
 import com.mongodb.casbah.Imports._
-import com.mongodb.casbah.MongoClient
+import com.mongodb.casbah.{MongoClient, TypeImports}
 import com.mongodb.casbah.commons.MongoDBObject
 import model.music._
 
@@ -37,7 +37,7 @@ object MongoController {
     * @return true if the value passed as argument is already store in the collection
     *         under that particular key, false otherwise
     */
-  def alreadyInDB[T](key: String, value: T, collection: MongoCollection) = {
+  def alreadyInDB[T](key: String, value: T, collection: MongoCollection): Boolean = {
     val q = MongoDBObject(key -> value)
     collection.find(q).nonEmpty
   }
@@ -49,14 +49,14 @@ object MongoController {
     * @param collection the collection where songs are inserted
     * @param songs the Song instances to be written to the database
     */
-  def writeToDB(collection: MongoCollection, songs: Vector[Song]) = {
+  def writeToDB(collection: MongoCollection, songs: Vector[Song]): Unit = {
     val jsValues = MusicUtil.toJson(songs.filterNot(s => alreadyInDB("spotify_id", s.id, collection)))
     jsValues.foreach { track =>
       collection.insert(com.mongodb.util.JSON.parse(track.toString).asInstanceOf[DBObject])
     }
   }
 
-  def writeToDB(collection: MongoCollection, song: Song) = {
+  def writeToDB(collection: MongoCollection, song: Song): TypeImports.WriteResult = {
     collection.insert(com.mongodb.util.JSON.parse(MusicUtil.toJson(song).toString).asInstanceOf[DBObject])
   }
 

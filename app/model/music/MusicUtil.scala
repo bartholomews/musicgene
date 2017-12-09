@@ -1,6 +1,6 @@
 package model.music
 
-import controllers.wrapper.entities.{AudioFeatures, Track}
+import it.turingtest.spotify.scala.client.entities.{AudioFeatures, Track}
 import play.api.libs.json.{JsNumber, JsObject, JsString, JsValue}
 
 /**

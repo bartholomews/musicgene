@@ -1,12 +1,12 @@
 package utils
 
-import java.nio.charset.StandardCharsets
-import java.util.Base64
+import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
 object ConversionUtils {
 
-  def base64(secret: String): String = {
-    Base64.getEncoder.encodeToString(secret.getBytes(StandardCharsets.UTF_8))
+  def encode(str: String): String = {
+    str.replace("{", "%7B").replace("}", "%7D")
   }
 
 }

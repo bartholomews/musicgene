@@ -1,4 +1,4 @@
-@(user: String)
+@(user_id: String)
 
 @main("MIR") {
     <html xmlns="http://www.w3.org/1999/html">
@@ -21,8 +21,8 @@
                 </nav>
 
                 <div class="jumbotron text-center white-semitransparent">
-                    <h2>Hello, @user</h2>
-                    <form action = "@routes.SpotifyApiController.playlists(user)" method = "get">
+                    <h2>Hello, @user_id</h2>
+                    <form action = "@routes.SpotifyApiController.playlists(utils.ConversionUtils.encode(user_id))" method = "get">
                         <button class="btn btn-success" onclick="addWaitingPara('get-tracks')">Get Your Playlists</button>
                     </form>
                     <br/>

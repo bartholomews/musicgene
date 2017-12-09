@@ -1,6 +1,6 @@
-@import controllers.wrapper.entities.SimplePlaylist
+@import it.turingtest.spotify.scala.client.entities.SimplePlaylist
 
-@(title: String, playlists: List[SimplePlaylist])
+@(title: String, playlists: Seq[SimplePlaylist])
 @main("MIR") {
 
     <html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
@@ -61,7 +61,9 @@
                             <td>@p.name</td>
                             <td>@p.href</td>
                             <td>
-                                <form action = "@routes.SpotifyApiController.songs(p.owner.id, p.id)" method = "get">
+                                <form action = "@routes.SpotifyApiController.songs(
+                                    utils.ConversionUtils.encode(p.owner.id), p.id
+                                )" method = "get">
                     <button class="btn btn-success btn-lg" id="try-button">Go to tracks</button>
                 </form>
                 </td>

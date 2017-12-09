@@ -2,10 +2,8 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 
-import controllers.wrapper.SpotifyAPI
-import logging.AccessLogging
-import controllers.wrapper.entities.{Page, SimpleAlbum, SimplePlaylist, Track}
-import model.music.Song
+import it.turingtest.spotify.scala.client.{ProfilesApi, BaseApi}
+import it.turingtest.spotify.scala.client.logging.AccessLogging
 import play.api.Logger
 import play.api.cache.redis.CacheApi
 import play.api.mvc.{Action, Controller, Result}
@@ -23,8 +21,8 @@ import scala.concurrent.Future
   */
 @Singleton
 class HomeController @Inject()(configuration: play.api.Configuration,
-                               cache: CacheApi,
-                               spotify: SpotifyAPI) extends Controller with AccessLogging {
+                               cache: CacheApi, profilesApi: ProfilesApi,
+                               spotify: BaseApi) extends Controller with AccessLogging {
 
   val logger = Logger("application")
 
