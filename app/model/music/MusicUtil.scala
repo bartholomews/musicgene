@@ -2,6 +2,7 @@ package model.music
 
 import it.turingtest.spotify.scala.client.entities.{AudioFeatures, Track}
 import play.api.libs.json.{JsNumber, JsObject, JsString, JsValue}
+import java.util.UUID._
 
 /**
   *
@@ -11,7 +12,7 @@ object MusicUtil {
   def toJson(songs: Seq[Song]): Seq[JsValue] = songs.map(s => toJson(s))
 
   def toJson(song: Song): JsValue = JsObject(Seq(
-    "spotify_id" -> JsString(song.id.orNull),
+    "spotify_id" -> JsString(song.id),
     "attributes" -> JsObject(toJsonAttribute(song.attributes))
   ))
 
@@ -65,10 +66,10 @@ object MusicUtil {
 
   def toSongs(songs: Seq[(Track, AudioFeatures)]): Seq[Song] = songs.map(t => toSong(t))
 
-  def personalSong(t: Track): Song = Song(None, Set())
+  def personalSong(t: Track): Song = Song(randomUUID().toString, Set())
 
   def toSong(t: (Track, AudioFeatures)): Song = {
-    Song(t._1.id,
+    Song(t._1.id.getOrElse(randomUUID().toString),
       Set[Attribute](
         Preview_URL(t._1.preview_url.getOrElse("")),
         Title(t._1.name),
@@ -92,7 +93,7 @@ object MusicUtil {
   }
 
   def toSong(t: Track): Song = {
-    Song(t.id,
+    Song(t.id.getOrElse(randomUUID().toString),
       Set[Attribute](
         Preview_URL(t.preview_url.getOrElse("")),
         Title(t.name),

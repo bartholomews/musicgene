@@ -2,7 +2,8 @@ package controllers
 
 import javax.inject.{Inject, Singleton}
 
-import it.turingtest.spotify.scala.client.{ProfilesApi, BaseApi}
+import com.mongodb.casbah.Imports
+import it.turingtest.spotify.scala.client.{BaseApi, ProfilesApi}
 import it.turingtest.spotify.scala.client.logging.AccessLogging
 import play.api.Logger
 import play.api.cache.redis.CacheApi
@@ -51,7 +52,7 @@ class HomeController @Inject()(configuration: play.api.Configuration,
   /**
     * The 'tracks' collection at injected MongoDB server
     */
-  val dbTracks = MongoController.getCollection(
+  val dbTracks: Imports.MongoCollection = MongoController.getCollection(
     configuration.underlying.getString("mongodb.uri"),
     configuration.underlying.getString("mongodb.db"),
     configuration.underlying.getString("mongodb.tracks")
@@ -68,20 +69,6 @@ class HomeController @Inject()(configuration: play.api.Configuration,
   */
   def index = Action {
     Ok(views.html.index("musicgene"))
-  }
-
-  /**
-    * Retrieve the first 200 tracks stored in the MongoDB database,
-    * and return them rendering the view tracks.scala.html
-    *
-    * @return an HTTP Ok 200 on tracks view with 200 Song instances retrieved from MongoDB
-    */
-  def getSampleTracks = Action {
-    // retrieve 200 sample tracks from MongoDB
-    val songs = MongoController.read(dbTracks, 200)
-    Ok(views.html.tracks("sample",
-      Vector(("A list of unsorted tracks with different characteristics", songs)))
-    )
   }
 
   /**

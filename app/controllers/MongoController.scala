@@ -1,8 +1,9 @@
 package controllers
 
 import com.mongodb.casbah.Imports._
-import com.mongodb.casbah.{MongoClient, TypeImports}
+import com.mongodb.casbah.MongoClient
 import com.mongodb.casbah.commons.MongoDBObject
+import com.mongodb.util.JSON._
 import model.music._
 
 /**
@@ -52,12 +53,14 @@ object MongoController {
   def writeToDB(collection: MongoCollection, songs: Vector[Song]): Unit = {
     val jsValues = MusicUtil.toJson(songs.filterNot(s => alreadyInDB("spotify_id", s.id, collection)))
     jsValues.foreach { track =>
-      collection.insert(com.mongodb.util.JSON.parse(track.toString).asInstanceOf[DBObject])
+      collection.insert(parse(track.toString).asInstanceOf[DBObject])
     }
   }
 
-  def writeToDB(collection: MongoCollection, song: Song): TypeImports.WriteResult = {
-    collection.insert(com.mongodb.util.JSON.parse(MusicUtil.toJson(song).toString).asInstanceOf[DBObject])
+  def writeToDB(collection: MongoCollection, song: Song) {
+    if(!alreadyInDB("spotify_id", song.id, collection)) {
+      collection.insert(parse(MusicUtil.toJson(song).toString).asInstanceOf[DBObject])
+    }
   }
 
   /**
@@ -98,7 +101,7 @@ object MongoController {
     * @return an instance of the extracted Song
     */
   def parseSong(obj: DBObject): Song = {
-    Song(getID(obj),
+    Song(getID(obj).get,
       obj.get("attributes").asInstanceOf[DBObject]
         .map(a => MusicUtil.extractAttribute(a._1, a._2.toString)).toSet)
   }
@@ -111,7 +114,7 @@ object MongoController {
     * @return the Spotify ID of that object
     */
   def getID(obj: DBObject): Option[String] = {
-    obj.get("spotify_id").asInstanceOf[Option[String]]
+    obj.getAs[String]("spotify_id")
   }
 
   /**

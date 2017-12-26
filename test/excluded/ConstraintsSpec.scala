@@ -10,11 +10,11 @@ import org.scalatest.{FlatSpec, Matchers}
   */
 class ConstraintsSpec extends FlatSpec with Matchers {
   val p1 = new Playlist(Vector(
-    Song(Some("id1"), Set(Title("Title_1"), Energy(1.0), Tempo(140))),
-    Song(Some("id2"), Set(Title("Title_2"), Energy(1.0), Tempo(140))),
-    Song(Some("id3"), Set(Title("Title_3"), Energy(0.5), Tempo(140))),
-    Song(Some("id4"), Set(Title("Title_4"), Energy(0.2), Tempo(140))),
-    Song(Some("id5"), Set(Title("Title_5"), Tempo(140)))
+    Song("id1", Set(Title("Title_1"), Energy(1.0), Tempo(140))),
+    Song("id2", Set(Title("Title_2"), Energy(1.0), Tempo(140))),
+    Song("id3", Set(Title("Title_3"), Energy(0.5), Tempo(140))),
+    Song("id4", Set(Title("Title_4"), Energy(0.2), Tempo(140))),
+    Song("id5", Set(Title("Title_5"), Tempo(140)))
   ), CostBasedFitness(Set()))
 
   //====================================================================================================================

@@ -61,17 +61,15 @@ class PlaylistController @Inject() (configuration: play.api.Configuration, cache
   def getFromRedisThenMongo(p: PlaylistRequest): MusicCollection = {
    new MusicCollection(
      for(id <- p.ids) yield {
-       cache.get[Song](id) match {
-         case Some(song) => song
-         case None => {
+//       cache.get[Song](id) match {
+//         case Some(song) => song
+//         case None => {
            val song = MongoController.readByID(dbTracks, id).get
-           cache.set(id, song)
+//           cache.set(id, song)
            song
-         }
-       }
+         })
+//       }
      }
-   )
-  }
 
   /**
     * The JSON response to send back to the user

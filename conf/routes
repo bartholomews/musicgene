@@ -4,7 +4,6 @@
 # controllers.excluded.SpotifyController.callback
 
 GET     /                                            controllers.HomeController.index
-GET     /alltracks                                   controllers.HomeController.getSampleTracks
 POST    /playlist                                    controllers.PlaylistController.generatePlaylist
 
 GET     /auth                                        controllers.SpotifyApiController.auth

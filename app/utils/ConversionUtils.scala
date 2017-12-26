@@ -1,8 +1,5 @@
 package utils
 
-import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
-
 object ConversionUtils {
 
   def encode(str: String): String = {
