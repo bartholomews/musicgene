@@ -1,7 +1,8 @@
 @import views.common.Tab
+@(user: String)
 
-@main(activeTab = Tab.Home) {
+@main(activeTab = Tab.Discogs) {
     <div class="jumbotron text-center white-semitransparent">
-        <h2>Welcome</h2>
+        <h2>Hello, @user</h2>
     </div>
 }

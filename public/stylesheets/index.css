@@ -20,12 +20,6 @@ body {
     font-size: large;
 }
 
-.navbar {
-    background-color: rgba(17, 17, 17, 0.60);
-    margin-bottom: 20px;
-    position: relative;
-}
-
 /* http://stackoverflow.com/a/26131377 */
 .container {
     padding: 0;
