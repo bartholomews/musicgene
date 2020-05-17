@@ -1,8 +1,12 @@
 @import views.common.Tab
-@(user: String)
-
+@import io.bartholomews.discogs4s.entities.UserIdentity
+@(user: UserIdentity)
 @main(activeTab = Tab.Discogs) {
-    <div class="jumbotron text-center white-semitransparent">
-        <h2>Hello, @user</h2>
+    <div class="main-section">
+        <h2>Hello, @user.username</h2>
+        <hr class="horizontal-rule">
+        <form action="@routes.DiscogsController.logout()">
+            <button class="btn btn-outline-dark" type="submit">Log out</button>
+        </form>
     </div>
 }

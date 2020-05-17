@@ -3,11 +3,14 @@
 
 @(user: PrivateUser)
 @main(activeTab = Tab.Spotify) {
-    <div class="jumbotron text-center white-semitransparent">
-        <h2>Hello, @user</h2>
+    <div class="main-section">
+        <h2>Hello, @user.displayName.getOrElse(user.id)</h2>
+        <hr class="horizontal-rule">
             <!-- TODO: https://www.playframework.com/documentation/2.8.x/ScalaForms -->
-        <form action = "@routes.SpotifyController.playlists(user.id)" method = "get">
-            <button class="btn btn-success" onclick="addWaitingPara('get-tracks')">Get Your Playlists</button>
+        <form action = "@routes.SpotifyController.playlists(user.id)">
+            <button class="btn btn-outline-dark"
+            onclick="addWaitingPara('get-tracks')">Get Your Playlists
+            </button>
         </form>
         <br/>
         <p id="get-tracks"></p>

@@ -1,16 +1,16 @@
 package controllers
 
 import cats.data.EitherT
-import cats.effect.IO
+import cats.effect.{ContextShift, IO}
 import cats.implicits._
 import com.google.inject.Inject
+import controllers.http.SpotifyCookies
 import io.bartholomews.fsclient.entities.oauth.{AuthorizationCode, SignerV2}
 import io.bartholomews.spotify4s.SpotifyClient
 import io.bartholomews.spotify4s.entities._
 import javax.inject._
 import model.music.{MusicUtil, Song}
 import org.http4s.Uri
-import pdi.jwt._
 import play.api.mvc._
 import views.common.Tab
 
@@ -23,8 +23,7 @@ import scala.concurrent.ExecutionContext
 class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: ExecutionContext)
     extends AbstractControllerIO(cc) {
 
-  import JsonProtocol._
-
+  implicit val cs: ContextShift[IO] = IO.contextShift(ec)
   val spotifyClient: SpotifyClient = SpotifyClient.unsafeFromConfig()
 
   /**
@@ -46,7 +45,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
       redirectUri = Uri.unsafeFromString(s"${requestHost(request)}/spotify/callback"),
       state = None,
       scopes = List.empty,
-      showDialog = true
+      showDialog = false
     )
     Redirect(Call("GET", redirectUri.renderString))
   }
@@ -71,20 +70,33 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
         signer =>
           spotifyClient.users
             .me(signer)
-            .map(_.toResult(Tab.Spotify)(me => Ok(views.html.spotify.hello(me)).setAuthCookie(signer)))
+            .map(
+              _.toResult(Tab.Spotify)(me =>
+                Ok(views.html.spotify.hello(me)).withCookies(SpotifyCookies.serializeCookieCredentials(signer): _*)
+              )
+            )
       )
     )
   }
 
+  private def refresh(request: Request[AnyContent])(f: SignerV2 => IO[Result]): IO[Result] =
+    SpotifyCookies
+      .getRefreshCookieCredentials(request)
+      .fold(IO.pure(authenticate(request)))(token =>
+        spotifyClient.auth.AuthorizationCode
+          .refresh(token)
+          .flatMap(_.toResultF(Tab.Spotify) { authorizationCode =>
+            f(authorizationCode).map(_.withCookies(SpotifyCookies.serializeCookieCredentials(authorizationCode): _*))
+          })
+      )
+
   // http://pauldijou.fr/jwt-scala/samples/jwt-play/
   def withToken[A](f: SignerV2 => IO[Result]): Request[AnyContent] => IO[Result] = { request =>
-    val spotifyAccessCookie = "spotify_access_cookie"
-    val spotifyAccessToken = "spotify_access_token"
-    request.cookies
-      .get(spotifyAccessCookie)
-      .flatMap(maybeCookie => JwtSession.deserialize(maybeCookie.value).getAs[AuthorizationCode](spotifyAccessToken)) match {
-      case None              => IO.pure(authenticate(request))
-      case Some(accessToken) => f(accessToken)
+    SpotifyCookies.getAccessCookieCredentials(request) match {
+      case None => IO.pure(authenticate(request))
+      case Some(accessToken: AuthorizationCode) =>
+        if (accessToken.isExpired()) refresh(request)(f)
+        else f(accessToken)
     }
   }
 
