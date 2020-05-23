@@ -14,7 +14,6 @@ import io.bartholomews.fsclient.entities.oauth.{AccessTokenCredentials, SignerV1
 import javax.inject._
 import org.http4s.Uri
 import play.api.mvc._
-import views.common.Tab
 
 import scala.concurrent.ExecutionContext
 
@@ -25,6 +24,8 @@ import scala.concurrent.ExecutionContext
 class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: ExecutionContext)
     extends AbstractControllerIO(cc) {
 
+  import controllers.http.DiscogsHttpResults._
+
   // TODO: load from config
   private val discogsCallback = Uri.unsafeFromString("http://localhost:9000/discogs/callback")
 
@@ -32,7 +33,7 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
     DiscogsClient.unsafeFromConfig(SignerType.BasicSignature)
 
   private def hello(signer: SignerV1): IO[Result] =
-    discogsClient.auth.me(signer).map(_.toResult(Tab.Spotify)(me => Ok(views.html.discogs.hello(me))))
+    discogsClient.auth.me(signer).map(_.toResult(me => Ok(views.html.discogs.hello(me))))
 
   def hello(): Action[AnyContent] = ActionIO.async {
     withToken(hello)
@@ -45,16 +46,16 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
       DiscogsSession
         .getSession[RequestToken](request)
         .toRight(
-          badRequest("There was a problem retrieving the request token", Tab.Discogs)
+          badRequest("There was a problem retrieving the request token")
         )
 
     (for {
       requestToken <- EitherT.fromEither[IO](extractSessionRequestToken)
       callbackUri <- EitherT.fromEither[IO](
-        maybeUri.leftMap(parseFailure => badRequest(parseFailure.details, Tab.Spotify))
+        maybeUri.leftMap(parseFailure => badRequest(parseFailure.details))
       )
       maybeAccessToken <- EitherT.liftF(discogsClient.auth.fromUri(requestToken, callbackUri))
-      accessTokenCredentials <- EitherT.fromEither[IO](maybeAccessToken.entity.leftMap(errorToResult(Tab.Discogs)))
+      accessTokenCredentials <- EitherT.fromEither[IO](maybeAccessToken.entity.leftMap(errorToResult))
     } yield accessTokenCredentials).value
       .flatMap(
         _.fold(
@@ -86,7 +87,7 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
       .map(
         _.entity
           .fold(
-            errorToResult(Tab.Discogs),
+            errorToResult,
             (requestToken: RequestToken) =>
               redirect(requestToken.callback)
                 .addingToSession(DiscogsSession.serializeSession(requestToken))

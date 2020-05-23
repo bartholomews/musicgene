@@ -12,7 +12,6 @@ import javax.inject._
 import model.music.{MusicUtil, Song}
 import org.http4s.Uri
 import play.api.mvc._
-import views.common.Tab
 
 import scala.concurrent.ExecutionContext
 
@@ -22,6 +21,8 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: ExecutionContext)
     extends AbstractControllerIO(cc) {
+
+  import controllers.http.SpotifyHttpResults._
 
   implicit val cs: ContextShift[IO] = IO.contextShift(ec)
   val spotifyClient: SpotifyClient = SpotifyClient.unsafeFromConfig()
@@ -52,16 +53,16 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
 
   def hello(): Action[AnyContent] = ActionIO.async {
     withToken { signer =>
-      spotifyClient.users.me(signer).map(_.toResult(Tab.Spotify)(me => Ok(views.html.spotify.hello(me))))
+      spotifyClient.users.me(signer).map(_.toResult(me => Ok(views.html.spotify.hello(me))))
     }
   }
 
   def callback: Action[AnyContent] = ActionIO.async { implicit request =>
     val maybeUri = Uri.fromString(s"${requestHost(request)}/${request.uri.stripPrefix("/")}")
     val getAuthCode = (for {
-      uri <- EitherT.fromEither[IO](maybeUri.leftMap(parseFailure => badRequest(parseFailure.details, Tab.Spotify)))
+      uri <- EitherT.fromEither[IO](maybeUri.leftMap(parseFailure => badRequest(parseFailure.details)))
       maybeToken <- EitherT.liftF(spotifyClient.auth.AuthorizationCode.fromUri(uri))
-      authorizationCode <- EitherT.fromEither[IO](maybeToken.entity.leftMap(errorToResult(Tab.Spotify)))
+      authorizationCode <- EitherT.fromEither[IO](maybeToken.entity.leftMap(errorToResult))
     } yield authorizationCode).value
 
     getAuthCode.flatMap(
@@ -71,7 +72,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
           spotifyClient.users
             .me(signer)
             .map(
-              _.toResult(Tab.Spotify)(me =>
+              _.toResult(me =>
                 Ok(views.html.spotify.hello(me))
                   .addingToSession(SpotifySession.serializeSession(signer): _*)
               )
@@ -94,7 +95,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
       .fold(IO.pure(authenticate(request)))(token =>
         spotifyClient.auth.AuthorizationCode
           .refresh(token)
-          .flatMap(_.toResultF(Tab.Spotify) { authorizationCode =>
+          .flatMap(_.toResultF { authorizationCode =>
             f(authorizationCode).map(_.addingToSession(SpotifySession.serializeSession(authorizationCode): _*))
           })
       )
@@ -117,7 +118,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
     withToken { accessToken =>
       spotifyClient.playlists
         .getUserPlaylists(userId)(accessToken)
-        .map(_.toResult(Tab.Spotify)(pg => Ok(views.html.spotify.playlists("Playlists", pg.items))))
+        .map(_.toResult(pg => Ok(views.html.spotify.playlists("Playlists", pg.items))))
     }
   }
 
@@ -182,7 +183,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
 
       spotifyClient.playlists
         .getPlaylist(playlistId)
-        .flatMap(_.toResultF(Tab.Spotify) { playlist =>
+        .flatMap(_.toResultF { playlist =>
           val f: IO[List[Song]] = playlist.tracks.items
             .map(_.track)
             .traverse({ fullTrack =>
