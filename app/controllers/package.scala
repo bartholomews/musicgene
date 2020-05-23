@@ -14,9 +14,9 @@ package object controllers {
   }
 
   val userAgent: UserAgent = UserAgent(
-    appName = "musicgene",
-    appVersion = Some("0.0.1-SNAPSHOT"),
-    appUrl = Some("com.github.bartholomews")
+    appName = musicgene.BuildInfo.name,
+    appVersion = Some(musicgene.BuildInfo.version),
+    appUrl = musicgene.BuildInfo.homepage.map(_.toExternalForm)
   )
 
   def redirect(uri: Uri): Result = Redirect(Call("GET", uri.renderString))

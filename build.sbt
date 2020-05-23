@@ -1,10 +1,16 @@
 name := """musicgene"""
 organization := "io.bartholomews"
+homepage := Some(url("https://github.com/bartholomews/musicgene"))
 
 version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
+  .enablePlugins(BuildInfoPlugin)
+  .settings(
+    buildInfoKeys := Seq[BuildInfoKey](name, version, homepage, scalaVersion, sbtVersion),
+    buildInfoPackage := "musicgene"
+  )
 
 scalaVersion := "2.13.1"
 
