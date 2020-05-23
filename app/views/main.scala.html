@@ -5,12 +5,12 @@
 <html lang="en">
     <head>
         @* Here's where we render the page title `String`. *@
-        <title>musicgene</title>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-        <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/chiave_di_violino.png")">
+    <title>musicgene</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
+    <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/chiave_di_violino.png")">
     </head>
     <body>
         <nav class="navbar navbar-expand-lg navbar-light">
@@ -30,16 +30,18 @@
                             }" href=@tab.href.url>@tab.name</a>
                         </li>
                     }
-                    <li class="nav-link"><a class="nav-item" href="mailto:musicgene@@bartholomews.io">
-                        @* <i class="fa fa-envelope"></i>Support</a>*@
-                        <i class="fa fa-sign-out-alt"></i>Support</a>
-                        @* <i class="fa fa-list"></i>Playlist</a>*@
-                        @* <i class="fa fa-music"></i>Tracks</a>*@
-                    </li>
+                <li class="nav-link"><a class="nav-item" href="mailto:musicgene@@bartholomews.io">
+                    @* <i class="fa fa-envelope"></i>Support</a>*@
+                    @* <i class="fa fa-sign-out-alt"></i>Support</a>*@
+                    Support
+                </a>
+                    @* <i class="fa fa-list"></i>Playlist</a>*@
+                    @* <i class="fa fa-music"></i>Tracks</a>*@
+                </li>
                 </ul>
             </div>
         </nav>
-        <div class="content wrap">@content</div>
+        <div class="container-fluid">@content</div>
         <script src="@routes.Assets.versioned("js/main.js")" type="text/javascript"></script>
         <script src="https://kit.fontawesome.com/b51887c376.js" crossorigin="anonymous"></script>
     </body>

@@ -15,6 +15,12 @@ html, body {
   margin-bottom: 100px;
 }
 
+.btn-group {
+  button {
+    margin-right: 10px;
+  }
+}
+
 hr {
   border: none;
   border-top: 3px double #333;
