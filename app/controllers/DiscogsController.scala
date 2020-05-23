@@ -40,29 +40,35 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   }
 
   def callback: Action[AnyContent] = ActionIO.async { implicit request =>
-    val maybeUri = Uri.fromString(s"${requestHost(request)}/${request.uri.stripPrefix("/")}")
+    DiscogsSession
+      .getSession[AccessTokenCredentials](request)
+      .map(hello)
+      .getOrElse {
 
-    def extractSessionRequestToken: Either[Result, RequestToken] =
-      DiscogsSession
-        .getSession[RequestToken](request)
-        .toRight(
-          badRequest("There was a problem retrieving the request token")
-        )
+        val maybeUri = Uri.fromString(s"${requestHost(request)}/${request.uri.stripPrefix("/")}")
 
-    (for {
-      requestToken <- EitherT.fromEither[IO](extractSessionRequestToken)
-      callbackUri <- EitherT.fromEither[IO](
-        maybeUri.leftMap(parseFailure => badRequest(parseFailure.details))
-      )
-      maybeAccessToken <- EitherT.liftF(discogsClient.auth.fromUri(requestToken, callbackUri))
-      accessTokenCredentials <- EitherT.fromEither[IO](maybeAccessToken.entity.leftMap(errorToResult))
-    } yield accessTokenCredentials).value
-      .flatMap(
-        _.fold(
-          errorResult => IO.pure(errorResult),
-          signer => hello(signer).map(_.addingToSession(DiscogsSession.serializeSession(signer)))
-        )
-      )
+        def extractSessionRequestToken: Either[Result, RequestToken] =
+          DiscogsSession
+            .getSession[RequestToken](request)
+            .toRight(
+              badRequest("There was a problem retrieving the request token")
+            )
+
+        (for {
+          requestToken <- EitherT.fromEither[IO](extractSessionRequestToken)
+          callbackUri <- EitherT.fromEither[IO](
+            maybeUri.leftMap(parseFailure => badRequest(parseFailure.details))
+          )
+          maybeAccessToken <- EitherT.liftF(discogsClient.auth.fromUri(requestToken, callbackUri))
+          accessTokenCredentials <- EitherT.fromEither[IO](maybeAccessToken.entity.leftMap(errorToResult))
+        } yield accessTokenCredentials).value
+          .flatMap(
+            _.fold(
+              errorResult => IO.pure(errorResult),
+              signer => hello(signer).map(_.addingToSession(DiscogsSession.serializeSession(signer)))
+            )
+          )
+      }
   }
 
   def logout(): Action[AnyContent] = ActionIO.async { implicit request =>
