@@ -44,6 +44,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   private def authenticate(request: Request[AnyContent]): Result =
     redirect {
       spotifyClient.auth.authorizeUrl(
+        // TODO: load from config
         redirectUri = Uri.unsafeFromString(s"${requestHost(request)}/spotify/callback"),
         state = None,
         scopes = List.empty,
@@ -58,9 +59,8 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   }
 
   def callback: Action[AnyContent] = ActionIO.async { implicit request =>
-    val maybeUri = Uri.fromString(s"${requestHost(request)}/${request.uri.stripPrefix("/")}")
     val getAuthCode = (for {
-      uri <- EitherT.fromEither[IO](maybeUri.leftMap(parseFailure => badRequest(parseFailure.details)))
+      uri <- EitherT.fromEither[IO](requestUri(request).leftMap(parseFailure => badRequest(parseFailure.details)))
       maybeToken <- EitherT.liftF(spotifyClient.auth.AuthorizationCode.fromUri(uri))
       authorizationCode <- EitherT.fromEither[IO](maybeToken.entity.leftMap(errorToResult))
     } yield authorizationCode).value

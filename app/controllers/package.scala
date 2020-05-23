@@ -1,5 +1,5 @@
 import io.bartholomews.fsclient.config.UserAgent
-import org.http4s.Uri
+import org.http4s.{ParseResult, Uri}
 import play.api.mvc.Results._
 import play.api.mvc._
 
@@ -8,6 +8,9 @@ package object controllers {
     val scheme = if (request.secure) "https" else "http"
     s"$scheme://${request.host.stripPrefix("/").stripSuffix("/")}"
   }
+
+  def requestUri(request: Request[AnyContent]): ParseResult[Uri] =
+    Uri.fromString(s"${requestHost(request)}/${request.uri.stripPrefix("/")}")
 
   val userAgent: UserAgent = UserAgent(
     appName = musicgene.BuildInfo.name,
