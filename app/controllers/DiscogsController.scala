@@ -1,7 +1,7 @@
 package controllers
 
 import cats.data.EitherT
-import cats.effect.IO
+import cats.effect.{ContextShift, IO}
 import cats.implicits._
 import com.google.inject.Inject
 import controllers.http.DiscogsSession
@@ -25,11 +25,12 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
     extends AbstractControllerIO(cc) {
 
   import controllers.http.DiscogsHttpResults._
+  implicit val cs: ContextShift[IO] = IO.contextShift(ec)
 
   // TODO: load from config
   private val discogsCallback = Uri.unsafeFromString("http://localhost:9000/discogs/callback")
 
-  val discogsClient: DiscogsClient =
+  val discogsClient: DiscogsClient[IO] =
     DiscogsClient.unsafeFromConfig(SignerType.BasicSignature)
 
   private def hello(signer: SignerV1): IO[Result] =
