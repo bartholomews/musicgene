@@ -28,10 +28,10 @@ function changeSlidersMaxValue(maxValue) {
 
 function changeSliderMaxValue(name, maxValue) {
     //  $('#' + 'slider-monotonic').slider("remove");
-    $('#' + name + "-div").after("<input id="+name + "type='text' style='display: none'/>");
-    initSliders(1, maxValue);
-    $slider = $('#' + name);
-    $slider.slider('refresh');
+    // $('#' + name + "-div").after("<input id="+name + "type='text' style='display: none'/>");
+    // initSliders(1, maxValue);
+    // $slider = $('#' + name);
+    // $slider.slider('refresh');
 }
 
 /**
@@ -82,7 +82,7 @@ function resetModal() {
  * @returns {boolean}
  */
 function saveModal(name) {
-    var trackSlider = $('#slider-' + name).slider();
+    var trackSlider = undefined; // TODO $('#slider-' + name).slider();
     var from = trackSlider.slider('getValue')[0];
     var to = trackSlider.slider('getValue')[1];
 
@@ -142,15 +142,15 @@ function checkAttributeFireSlider() {
  * @returns {boolean}
  */
 function initSlider(name, minRange, maxRange) {
-    $('#slider-' + name).slider({
-        min: minRange, max: maxRange, value: [1, maxRange], focus: true, step: 1,
-        start: function (event, ui) {
-            event.stopPropagation();
-        },
-        formatter: function (value) {
-            return "range: " + value;
-        }
-    });
+    // $('#slider-' + name).slider({
+    //     min: minRange, max: maxRange, value: [1, maxRange], focus: true, step: 1,
+    //     start: function (event, ui) {
+    //         event.stopPropagation();
+    //     },
+    //     formatter: function (value) {
+    //         return "range: " + value;
+    //     }
+    // });
 }
 
 function getAudioDescription(attribute) {
