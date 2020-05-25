@@ -1,22 +1,17 @@
 @import io.bartholomews.spotify4s.entities.SimplePlaylist
 @import views.common.Tab
-
 @(title: String, playlists: Seq[SimplePlaylist])
-    @main(activeTab = Tab.Spotify) {
+@main(activeTab = Tab.Spotify) {
 
-        <div class="main-section">
-            <h1>
-                <span id="playlist-title">@title</span>
-            </h1>
-            <p id="playlist-paragraph">Select a playlist</p>
-        </div>
+    <div class="main-section">
+        <h1>
+            <span id="playlist-title">@title</span>
+        </h1>
+        <p id="playlist-paragraph">Select a playlist</p>
+    </div>
 
-            <!-- Playlists -->
-        @* <div class="container">*@
-        <div class="music-collection" id="music-collection">
-        @playlists.zipWithIndex.map { case (p, index) =>
-        <table class="table table-responsive table-hover table-sm" id="music-collection-table">
-            <caption>@p.name</caption>
+    <div class="music-collection" id="music-collection">
+        <table class="table table-dark" id="music-collection-table">
             <thead>
                 <tr>
                     <th>#</th>
@@ -24,22 +19,14 @@
                     <th>Href</th>
                 </tr>
             </thead>
-            <tbody class="music-collection-tbody">
-                <tr>
+            <tbody class="music-collection-tbody">@playlists.zipWithIndex.map { case (p, index) =>
+                <tr class="clickable" onclick="redirect(`@routes.SpotifyController.songs(p.id).url`)">
                     <th scope="row">@index</th>
-                    <td>@p.owner.displayName.getOrElse("N/A")</td>
                     <td>@p.name</td>
                     <td>@p.href</td>
-                        <!-- TODO: -->
-                    <td>
-                        <form action = "@routes.SpotifyController.songs(p.id)" method = "get">
-            <button class="btn btn-outline-dark" id="try-button">Go to tracks</button>
-        </form>
-        </td>
-        </tr>
-        </tbody>
+                </tr>
+                }
+            </tbody>
         </table>
-        }
-        </div>
-        @* </div>*@
-    }
+    </div>
+}

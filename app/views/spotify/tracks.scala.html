@@ -1,6 +1,7 @@
+@import io.bartholomews.spotify4s.entities.FullPlaylist
 @import model.music.Song
 @import views.common.Tab
-@(title: String, tracks: Seq[(String, Seq[Song])])
+@(playlist: FullPlaylist, songs: Seq[Song])
 @main(activeTab = Tab.Spotify) {
     @* <head>*@
     @* <script src="@routes.Assets.versioned("javascripts/modals.js")" type="text/javascript"></script>*@
@@ -44,7 +45,7 @@
     <div class="container">
         <div class="jumbotron text-left white-transparent">
             <h1>
-                <span id="playlist-title">@title playlists</span>
+                <span id="playlist-title">@playlist.name</span>
             </h1>
             <p id="playlist-paragraph">Select restriction on the playlist to be generated.
                 Click on a track to listen to a short preview.
@@ -97,9 +98,9 @@
         <!-- Existing Music collection -->
     <div class="container">
         <div class="music-collection" id="music-collection">
-        @tracks.map { t =>
+        @songs.map { song =>
             <table class="table table-responsive table-hover table-sm" id="music-collection-table">
-                <caption>@t._1</caption>
+                <caption>@song.id</caption>
                 <thead>
                     <tr>
                         <th>#</th>
@@ -117,7 +118,7 @@
                     </tr>
                 </thead>
                 <tbody class="music-collection-tbody">
-                @t._2.zip(Stream from 1).map { case (track, index) =>
+                @songs.zipWithIndex.map { case (track, index) =>
                 <tr class="playable" id="@track.id" data-preview="@track.preview_url">
                     <th scope="row">@index</th>
                     <td id="@track.id-title">@track.title</td>

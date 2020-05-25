@@ -107,7 +107,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
 
   /**
    * @param userId the ID of the logged-in user
-   * @return the FIRST PAGE of a user playlists (TODO)
+   * @return the FIRST PAGE of a user playlists TODO
    */
   def playlists(userId: SpotifyUserId): Action[AnyContent] = ActionIO.async {
     withToken { accessToken =>
@@ -173,26 +173,29 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   //  }
 
   def songs(playlistId: SpotifyId): Action[AnyContent] = ActionIO.async {
-    withToken { accessToken =>
-      implicit val token: SignerV2 = accessToken
-
+    withToken { implicit accessToken =>
       spotifyClient.playlists
         .getPlaylist(playlistId)
         .flatMap(_.toResultF { playlist =>
-          val f: IO[List[Song]] = playlist.tracks.items
-            .map(_.track)
-            .traverse({ fullTrack =>
-              spotifyClient.tracks.getAudioFeatures(fullTrack.id).map { maybeAf =>
-                maybeAf.entity.fold(
-                  _ => MusicUtil.toSong(fullTrack),
-                  af => MusicUtil.toSong(fullTrack, af)
-                )
-              // MongoController.writeToDB(dbTracks, song) // TODO only if not already there
-              }
-            })
+          val tracksPage: List[FullTrack] = playlist.tracks.items.map(_.track)
 
-          f.map { s =>
-            Ok(views.html.spotify.tracks(s"${playlist.name}'s tracks", List((playlist.name, s))))
+          val audioFeaturesLookup: IO[Map[SpotifyId, AudioFeatures]] =
+            spotifyClient.tracks
+              .getAudioFeatures(tracksPage.map(_.id).toSet)
+              .map(
+                _.entity.fold(
+                  _ => Map.empty,
+                  af => af.map(f => Tuple2(f.id, f)).toMap
+                  // MongoController.writeToDB(dbTracks, song) // TODO only if not already there
+                )
+              )
+
+          audioFeaturesLookup.map { lookup =>
+            val songs: List[Song] = tracksPage.map { track =>
+              lookup.get(track.id).fold(MusicUtil.toSong(track))(af => MusicUtil.toSong(track, af))
+            }
+
+            Ok(views.html.spotify.tracks(playlist, songs))
           }
         })
     }

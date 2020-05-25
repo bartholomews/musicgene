@@ -8,6 +8,10 @@ html, body {
   margin: 0;
 }
 
+.clickable {
+  cursor: pointer;
+}
+
 .main-section {
   @include fadeIn(1.8s);
   text-align: center;
@@ -19,15 +23,6 @@ html, body {
   button {
     margin-right: 10px;
   }
-}
-
-hr {
-  border: none;
-  border-top: 3px double #333;
-  color: #333;
-  height: 5px;
-  margin-left: 50px;
-  margin-right: 50px;
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
