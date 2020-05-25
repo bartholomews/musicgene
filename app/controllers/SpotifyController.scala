@@ -59,26 +59,21 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   }
 
   def callback: Action[AnyContent] = ActionIO.async { implicit request =>
-    val getAuthCode = (for {
+    (for {
       uri <- EitherT.fromEither[IO](requestUri(request).leftMap(parseFailure => badRequest(parseFailure.details)))
       maybeToken <- EitherT.liftF(spotifyClient.auth.AuthorizationCode.fromUri(uri))
       authorizationCode <- EitherT.fromEither[IO](maybeToken.entity.leftMap(errorToResult))
-    } yield authorizationCode).value
-
-    getAuthCode.flatMap(
-      _.fold(
-        errorResult => IO.pure(errorResult),
-        signer =>
-          spotifyClient.users
-            .me(signer)
-            .map(
-              _.toResult(me =>
-                Ok(views.html.spotify.hello(me))
-                  .addingToSession(SpotifySession.serializeSession(signer): _*)
-              )
+      result <- EitherT.right[Result](
+        spotifyClient.users
+          .me(authorizationCode)
+          .map(
+            _.toResult(me =>
+              Ok(views.html.spotify.hello(me))
+                .addingToSession(SpotifySession.serializeSession(authorizationCode): _*)
             )
+          )
       )
-    )
+    } yield result).value.map(_.fold(identity, identity))
   }
 
   def logout(): Action[AnyContent] = ActionIO.async { implicit request =>
