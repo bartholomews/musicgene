@@ -1,12 +1,15 @@
 @import views.common.Tab
 @import io.bartholomews.discogs4s.entities.UserIdentity
 @(user: UserIdentity)
-    @main(activeTab = Tab.Discogs) {
-        <div class="main-section">
-            <h2>Hello, @user.username</h2>
-            <hr class="horizontal-rule">
-            <form action="@routes.DiscogsController.logout()">
-                <button class="btn btn-outline-dark" type="submit" formtarget="_blank">Revoke app</button>
-            </form>
-        </div>
-    }
+@main(activeTab = Tab.Discogs) {
+    <div class="main-section">
+        <h2>Hello, @user.username</h2>
+        <hr class="horizontal-rule">
+        <form action="@routes.DiscogsController.logout()">
+            <button class="btn btn-outline-dark"
+            type="submit"
+            formtarget="_blank"
+            onclick="redirect('/')">Revoke app</button>
+        </form>
+    </div>
+}
