@@ -10,6 +10,8 @@ object JSONParser {
     * Parse a JSON Playlist request
     * @return Some(PlaylistRequest) if parsing is successfull,
     *         None otherwise
+    *
+    *         TODO: use a play Reader!
     */
   def parseRequest(js: JsValue): Option[PlaylistRequest] = {
     try {

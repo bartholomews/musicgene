@@ -1,0 +1,10 @@
+@import views.common.Tab
+
+@(result: String)(implicit requestHeader: RequestHeader)
+@main(activeTab = Tab.Spotify) {
+    <div class="main-section">
+        <div class="custom-asd-inline">
+            <h2>Playlist generation: @result</h2>
+        </div>
+    </div>
+}

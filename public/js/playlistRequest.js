@@ -33,7 +33,7 @@ function playlistRequestDescription() {
 function pushTrackIds(js) {
     // get all <tr> elements children of <music-collection> table (i.e. playlists)
     var db = document.querySelectorAll('#music-collection-table tbody tr'), i;
-    for(i = 0; i < db.length; i++) {
+    for (i = 0; i < db.length; i++) {
         js.ids.push(db[i].getAttribute('id'));
     }
 }
@@ -77,21 +77,39 @@ function getAttribute(element) {
  * @param obj
  */
 function sendConstraints(obj) {
+    const r = jsRoutes.controllers.SpotifyController.generatePlaylist();
     $.ajax({
-        type: 'POST',
-        url: '/playlist',
-        contentType: 'application/json',
-        dataType: 'json',
-        data: obj,
-        success: function (json) {
-            // playlistResponse.js
-            getNewPlaylist(json);
-        },
-        // TODO http://stackoverflow.com/a/450540
-        error: function (xhr, ajaxOptions, thrownError) {
-            console.log("Error");
-            alert("There was a problem generating you playlist. xhr status: " + xhr.status);
-            revertPlaylistParagraph();
+        url: r.url,
+        type: r.type,
+        contentType: "application/json",
+        headers: csrfTokenHeader(),
+        data: JSON.stringify([1, 2, 3]),
+        success: (response) => {
+            console.log('SUCCESS:');
+            console.log(response);
+        }, error: (err) => {
+            console.log('ERROR');
+            console.log(err);
         }
     });
+    // $.ajax(jsRoutes.controllers.SpotifyController.generatePlaylist())
+    //     .done( /*...*/ )
+    //     .fail( /*...*/ );
+    // $.ajax({
+    //     type: 'POST',
+    //     url: '/playlist',
+    //     contentType: 'application/json',
+    //     dataType: 'json',
+    //     data: obj,
+    //     success: function (json) {
+    //         // playlistResponse.js
+    //         getNewPlaylist(json);
+    //     },
+    //     // TODO http://stackoverflow.com/a/450540
+    //     error: function (xhr, ajaxOptions, thrownError) {
+    //         console.log("Error");
+    //         alert("There was a problem generating you playlist. xhr status: " + xhr.status);
+    //         revertPlaylistParagraph();
+    //     }
+    // });
 }

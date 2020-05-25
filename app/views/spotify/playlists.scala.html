@@ -1,6 +1,6 @@
 @import io.bartholomews.spotify4s.entities.SimplePlaylist
 @import views.common.Tab
-@(title: String, playlists: Seq[SimplePlaylist])
+@(title: String, playlists: Seq[SimplePlaylist])(implicit requestHeader: RequestHeader)
 @main(activeTab = Tab.Spotify) {
 
     <div class="main-section">

@@ -9,9 +9,12 @@ import io.bartholomews.fsclient.entities.oauth.{AuthorizationCode, SignerV2}
 import io.bartholomews.spotify4s.SpotifyClient
 import io.bartholomews.spotify4s.entities._
 import javax.inject._
+import model.genetic.Playlist
 import model.music.{MusicUtil, Song}
 import org.http4s.Uri
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
+import views.spotify.PlaylistRequest
 
 import scala.concurrent.ExecutionContext
 
@@ -20,7 +23,8 @@ import scala.concurrent.ExecutionContext
  */
 @Singleton
 class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: ExecutionContext)
-    extends AbstractControllerIO(cc) {
+    extends AbstractControllerIO(cc)
+    with play.api.i18n.I18nSupport {
 
   import controllers.http.SpotifyHttpResults._
 
@@ -52,7 +56,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
       )
     }
 
-  def hello(): Action[AnyContent] = ActionIO.async {
+  def hello(): Action[AnyContent] = ActionIO.async { implicit request =>
     withToken { signer =>
       spotifyClient.users.me(signer).map(_.toResult(me => Ok(views.html.spotify.hello(me))))
     }
@@ -96,20 +100,19 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
       )
 
   // http://pauldijou.fr/jwt-scala/samples/jwt-play/
-  def withToken[A](f: SignerV2 => IO[Result]): Request[AnyContent] => IO[Result] = { implicit request =>
+  def withToken[A](f: SignerV2 => IO[Result])(implicit request: Request[AnyContent]): IO[Result] =
     SpotifySession.getAccessSession(request) match {
       case None => IO.pure(authenticate(request))
       case Some(accessToken: AuthorizationCode) =>
         if (accessToken.isExpired()) refresh(f)
         else f(accessToken)
     }
-  }
 
   /**
    * @param userId the ID of the logged-in user
    * @return the FIRST PAGE of a user playlists TODO
    */
-  def playlists(userId: SpotifyUserId): Action[AnyContent] = ActionIO.async {
+  def playlists(userId: SpotifyUserId): Action[AnyContent] = ActionIO.async { implicit request =>
     withToken { accessToken =>
       spotifyClient.playlists
         .getUserPlaylists(userId)(accessToken)
@@ -117,62 +120,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
     }
   }
 
-  // TODO lookup for a User stored in local db for that spotifyID and fallback to profilesApi
-  //  TODO store playlist href-name-listOfTracksID for later retrieval
-
-  //  /**
-  //    * TODO if e.getMessage is authorization_code_not_provided, you should be able to re-login automatically
-  //    * especially if no_dialog was set to false, anyway even if was set to true could send the user straight there
-  //    * instead of showing the error, or at least showing this error with a link and caching this request to get back
-  //    * as soon as the user has logged in again;
-  //    *
-  //    * @param f
-  //    * @tparam T
-  //    * @return
-  //    */
-  //  private def handleError[T](f: Future[T]): Future[T] = {
-  //    f.recover {
-  //      //        case auth: WebApiException => Future(BadRequest(views.html.exception(auth.getMessage)))
-  //      case ex: Exception =>
-  //        //          accessLogger.debug(ex.getMessage)
-  //        BadRequest(s"There was a problem loading this page. Please try again.\n${ex.getMessage}")
-  //    }
-  //  }
-
-  /*
-  TODO This throws either 401 Unauthorised or 429 Too many requests, while playlists(user_id) below works ok
-  maybe it depends on the scopes requested which are not enough?
-   */
-  //  def myPlaylists: Action[AnyContent] = handleAsync {
-  //    profilesApi.myPlaylists map {
-  //      p => Ok(views.html.playlists("My Playlists", p.items))
-  //    } recover {
-  //      case e: RegularError => BadRequest(views.html.exception(s"{'status':${e.status}, 'message':${e.message}}"))
-  //      case ex: Throwable => BadRequest(views.html.exception(ex.getMessage))
-  //    }
-  //  }
-
-  /*
-  def myPlaylists: Action[AnyContent] = handleAsync {
-    // TODO lookup for a User stored in local db for that spotifyID and fallback to profilesApi
-    profilesApi.me flatMap { me =>
-      playlistsApi.playlists(me.id).map(p =>
-        // TODO store playlist href-name-listOfTracksID for later retrieval
-        Ok(views.html.playlists(s"${me.display_name.getOrElse("")} Playlists", p.items))
-      )
-    }
-  }
-   */
-
-  //  def playlistTracks(): Action[AnyContent] = handleAsync {
-  //    profilesApi.myPlaylists flatMap { p =>
-  //      playlistsApi.playlist(p.items.head.owner.id, p.items.head.id) map {
-  //        p => Ok(views.html.playlistTracks(p.name, List()))
-  //      }
-  //    }
-  //  }
-
-  def songs(playlistId: SpotifyId): Action[AnyContent] = ActionIO.async {
+  def songs(playlistId: SpotifyId): Action[AnyContent] = ActionIO.async { implicit request =>
     withToken { implicit accessToken =>
       spotifyClient.playlists
         .getPlaylist(playlistId)
@@ -195,7 +143,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
               lookup.get(track.id).fold(MusicUtil.toSong(track))(af => MusicUtil.toSong(track, af))
             }
 
-            Ok(views.html.spotify.tracks(playlist, songs))
+            Ok(views.html.spotify.tracks(playlist, songs, PlaylistRequest.form))
           }
         })
     }
@@ -243,15 +191,6 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   //      }
   //    }
   //  }
-
-  /*
-  private def songs(href: String): Future[List[Song]] = {
-    for {
-      tracks: List[Track] <- tracksApi.getPlaylistTracks(href) map { p => p.items map { pt => pt.track } }
-      af: List[AudioFeatures] <- tracks.map(t => tracksApi.getAudioFeatures(t.id.get))
-    } yield MusicUtil.toSongs(tracks.zip(af))
-  }
-   */
 
   /*
   def songs(href: String): Action[AnyContent] = handleAsync {
@@ -310,4 +249,60 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   //    }
   //  }
 
+  //
+  /**
+   * @see https://www.playframework.com/documentation/latest/ScalaJsonHttp
+   * Handle a JSON HTTP request with a Content-type header as text/json or application/json
+   * The body of the request is parsed by the `JSONParser` object
+   * which will return an Option[PlaylistRequest].
+   * If the request is parsed correctly, the playlist generation algorithm
+   * will be started with the data from the PlaylistRequest
+   * and a 200 Ok with the JSON response will return,
+   * else a 400 Bad Request
+   *
+   * @return a 200 Ok with a JSON response (name of the Playlist and Array of IDs)
+   *         or a 400 Bad Request if the request couldn't be parsed
+   */
+//  def generatePlaylist: Action[JsValue] = Action(parse.json) { implicit request =>
+//    println("~" * 50)
+//    println(request.body)
+//    println("~" * 50)
+//    JSONParser.parseRequest(request.body) match {
+//      // the request is not parsed correctly: return an HTTP 400 Bad Request
+//      case None    => BadRequest("Json Request failed")
+//      case Some(p) =>
+////        val db = getFromRedisThenMongo(p)
+//        // call the playlist generation algorithm with (MusicCollection, Set[Constraint], Int) args
+////        val playlist = GA.generatePlaylist(db, p.constraints, p.length)
+//        // the JSON response with the playlist name and the returned playlist
+//        val js = createJsonResponse(p.name, new Playlist(Vector.empty, CostBasedFitness(Set.empty)))
+//        Ok(js)
+//    }
+//  }
+
+  def renderGeneratedPlaylist(requestId: String): Action[AnyContent] = ActionIO.async { implicit request =>
+    IO.pure(Ok(views.html.spotify.playlist_generation(requestId)))
+  }
+
+  val generatePlaylist: Action[PlaylistRequest] = Action(parse.form(PlaylistRequest.form)) { implicit request =>
+    val playlistRequest = request.body
+    Redirect(routes.SpotifyController.renderGeneratedPlaylist(playlistRequest.name))
+  }
+
+  /**
+   * The JSON response to send back to the user
+   *
+   * @param name the name of the playlist
+   * @param playlist the Playlist generated
+   * @return a JSON with the name of the playlist and an array of tracks ids
+   */
+  def createJsonResponse(name: String, playlist: Playlist): JsValue = {
+    // map each Song in the playlist back to only its id
+    // as the view is supposed to reconstruct the response
+    val tracksID = Json.toJson(playlist.songs.map(s => s.id))
+    Json.obj(
+      "name" -> name, // a String name of the playlist
+      "ids" -> tracksID // an Array with the tracks IDs
+    )
+  }
 }

@@ -33,10 +33,10 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   val discogsClient: DiscogsClient[IO] =
     DiscogsClient.unsafeFromConfig(SignerType.BasicSignature)
 
-  private def hello(signer: SignerV1): IO[Result] =
+  private def hello(signer: SignerV1)(implicit request: Request[AnyContent]): IO[Result] =
     discogsClient.auth.me(signer).map(_.toResult(me => Ok(views.html.discogs.hello(me))))
 
-  def hello(): Action[AnyContent] = ActionIO.async {
+  def hello(): Action[AnyContent] = ActionIO.async { implicit request =>
     withToken(hello)
   }
 
@@ -102,10 +102,9 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
       )
 
   // http://pauldijou.fr/jwt-scala/samples/jwt-play/
-  def withToken[A](f: SignerV1 => IO[Result]): Request[AnyContent] => IO[Result] = { request =>
+  def withToken[A](f: SignerV1 => IO[Result])(implicit request: Request[AnyContent]): IO[Result] =
     DiscogsSession.getSession[AccessTokenCredentials](request) match {
       case None              => authenticate(request)
       case Some(accessToken) => f(accessToken)
     }
-  }
 }

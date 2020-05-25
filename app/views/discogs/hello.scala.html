@@ -1,6 +1,6 @@
 @import views.common.Tab
 @import io.bartholomews.discogs4s.entities.UserIdentity
-@(user: UserIdentity)
+@(user: UserIdentity)(implicit requestHeader: RequestHeader)
 @main(activeTab = Tab.Discogs) {
     <div class="main-section">
         <h2>Hello, @user.username</h2>
