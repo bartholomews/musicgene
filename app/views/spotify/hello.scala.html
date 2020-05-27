@@ -11,15 +11,11 @@
             <!-- TODO: https://www.playframework.com/documentation/2.8.x/ScalaForms -->
         <div class="btn-group">
             <form action = "@routes.SpotifyController.playlists(user.id)">
-                <button class="btn btn-outline-dark"
-                onclick="addWaitingPara('get-tracks')">Get Your Playlists
-                </button>
+                <button class="btn btn-outline-dark">Get Your Playlists</button>
             </form>
             <form action="@routes.SpotifyController.logout()">
                 <button class="btn btn-outline-dark" type="submit">Revoke app</button>
             </form>
         </div>
-        <br/>
-        <p id="get-tracks"></p>
     </div>
 }

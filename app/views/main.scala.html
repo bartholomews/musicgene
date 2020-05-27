@@ -1,6 +1,6 @@
 @import views.common.Tab
 @import views.html.helper.CSRF
-@(activeTab: Tab)(content: Html)(implicit requestHeader: RequestHeader)
+@(activeTab: Tab, styles: List[Call] = List.empty, scripts: List[Call] = List.empty)(content: Html)(implicit requestHeader: RequestHeader)
 @* https://www.playframework.com/documentation/latest/ScalaJavascriptRouting *@
 @helper.javascriptRouter("jsRoutes")(
     routes.javascript.SpotifyController.generatePlaylist,
@@ -10,14 +10,13 @@
     <head>
         @* Here's where we render the page title `String`. *@
     <title>musicgene</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
     <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/chiave_di_violino.png")">
+    <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
+    @for(css <- styles) { <link rel="stylesheet" media="screen" href="@css"/> }
     </head>
     <body data-token='@CSRF.getToken.value'>
-        <nav class="navbar navbar-expand-lg navbar-light">
+    <nav class="navbar navbar-expand-lg navbar-light">
             <a class="navbar-brand" href="/">
                 <img src="@routes.Assets.versioned("images/dna_helix_gene.png")" class="d-inline-block align-top" alt="">
                 <span>musicgene </span>
@@ -47,13 +46,9 @@
         </nav>
         <div class="container-fluid">@content</div>
         <script src="https://kit.fontawesome.com/b51887c376.js" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
         <script type="text/javascript" src="@routes.Assets.versioned("js/main.js")"></script>
-            <!-- TODO remove these: -->
-        <script type="text/javascript" src="@routes.Assets.versioned("js/callback.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("js/charts.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("js/constraints.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("js/modals.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("js/playlistRequest.js")"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("js/playlistResponse.js")"></script>
+        @for(js <- scripts) { <script type="text/javascript" src="@js"></script> }
     </body>
 </html>

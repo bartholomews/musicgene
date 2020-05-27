@@ -1,19 +1,3 @@
-/**
- * TODO clear input modals when either 'undo' or 'save' button pressed
- */
-$(document).ready(function () {
-    playPreviewTable();  // listen for mouse click on track rows
-    resetModal(); // listen for a closed modal
-    updateDescriptionListener("monotonicValue");
-    updateDescriptionListener("monotonicTransition");
-    initSliders(1, parseInt(document.getElementById('length').value));
-    focusInputOnOpenModal();
-    // make tooltip active
-    $(function () {
-        $('[data-toggle="tooltip"]').tooltip()
-    })
-});
-
 function initSliders(min, max) {
     initSlider('monotonicValue', min, max);
     initSlider('monotonicTransition', min, max);

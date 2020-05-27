@@ -1,42 +1,6 @@
-/**
- * reference
- * @see https://github.com/plamere/SmarterPlaylists/blob/master/web/playlist.js
- */
-var audio = null;
-
-/**
- * if preview_url == null (e.g. Xtal) catch DOMException: Failed to load because no supported source was found.
- * TODO loop would be nice, with fade even nicer
- */
-function playPreviewTable() {
-    $(document).on('click', '.playable', function() {
-        var url = $(this).attr('data-preview');
-        playPreview(url);
-    });
-}
-
 function playPreviewGraph(i) {
     var url = $('#new-playlist-table').find('> tbody > tr').eq(i).attr("data-preview");
     playPreview(url)
-}
-
-function playPreview(url) {
-    if (audio == null) {
-        audio = $("<audio>");
-    }
-    if (isPlaying()) {
-        // pause the current playing track
-        audio.get(0).pause();
-        // if the click is on same track, just return
-        if (audio.attr('src') == url) return;
-    }
-    // bind the audio src to the track preview and play
-    audio.attr('src', url);
-    audio.get(0).play();
-}
-
-function isPlaying() {
-    return !audio.get(0).paused;
 }
 
 function revertPlaylistParagraph() {
