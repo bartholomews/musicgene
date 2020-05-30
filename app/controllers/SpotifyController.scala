@@ -4,7 +4,7 @@ import cats.data.EitherT
 import cats.effect.{ContextShift, IO}
 import cats.implicits._
 import com.google.inject.Inject
-import controllers.http.SpotifySession
+import controllers.http.SpotifyCookies
 import io.bartholomews.fsclient.entities.oauth.{AuthorizationCode, SignerV2}
 import io.bartholomews.spotify4s.SpotifyClient
 import io.bartholomews.spotify4s.entities._
@@ -73,7 +73,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
           .map(
             _.toResult(me =>
               Ok(views.html.spotify.hello(me))
-                .addingToSession(SpotifySession.serializeSession(authorizationCode): _*)
+              .withCookies(SpotifyCookies.accessCookies(authorizationCode): _*)
             )
           )
       )
@@ -83,25 +83,24 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   def logout(): Action[AnyContent] = ActionIO.async { implicit request =>
     IO.pure(
       Ok(views.html.index())
-        .removingFromSession(SpotifySession.accessSessionKey)
-        .removingFromSession(SpotifySession.refreshSessionKey)
+        .discardingCookies(SpotifyCookies.discardCookies: _*)
     )
   }
 
   private def refresh(f: SignerV2 => IO[Result])(implicit request: Request[AnyContent]): IO[Result] =
-    SpotifySession
-      .getRefreshSession(request)
+    SpotifyCookies
+      .extractRefreshToken(request)
       .fold(IO.pure(authenticate(request)))(token =>
         spotifyClient.auth.AuthorizationCode
           .refresh(token)
           .flatMap(_.toResultF { authorizationCode =>
-            f(authorizationCode).map(_.addingToSession(SpotifySession.serializeSession(authorizationCode): _*))
+            f(authorizationCode).map(_.withCookies(SpotifyCookies.accessCookies(authorizationCode): _*))
           })
       )
 
   // http://pauldijou.fr/jwt-scala/samples/jwt-play/
   def withToken[A](f: SignerV2 => IO[Result])(implicit request: Request[AnyContent]): IO[Result] =
-    SpotifySession.getAccessSession(request) match {
+    SpotifyCookies.extractAuthCode(request) match {
       case None => IO.pure(authenticate(request))
       case Some(accessToken: AuthorizationCode) =>
         if (accessToken.isExpired()) refresh(f)
