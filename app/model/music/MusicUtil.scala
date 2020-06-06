@@ -74,7 +74,7 @@ object MusicUtil {
   def personalSong(t: FullTrack): Song = Song(randomUUID().toString, Set())
 
   def toSong(t: FullTrack, af: AudioFeatures): Song = {
-    Song(t.id.value, // .getOrElse(randomUUID().toString
+    Song(t.id.map(_.value).getOrElse("N/A"), // .getOrElse(randomUUID().toString
       Set[Attribute](
         Preview_URL(t.previewUrl.map(_.renderString).getOrElse("")),
         Title(t.name),
@@ -98,7 +98,7 @@ object MusicUtil {
   }
 
   def toSong(t: FullTrack): Song = {
-    Song(t.id.value, // .getOrElse(randomUUID().toString),
+    Song(t.id.map(_.value).getOrElse("N/A"), // .getOrElse(randomUUID().toString),
       Set[Attribute](
         Preview_URL(t.previewUrl.map(_.renderString).getOrElse("")),
         Title(t.name),

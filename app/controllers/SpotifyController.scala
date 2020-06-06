@@ -4,15 +4,15 @@ import cats.data.EitherT
 import cats.effect.{ContextShift, IO}
 import cats.implicits._
 import com.google.inject.Inject
-import controllers.http.SpotifyCookies
+import controllers.http.{JsonProtocol, SpotifyCookies}
 import io.bartholomews.fsclient.entities.oauth.{AuthorizationCode, SignerV2}
 import io.bartholomews.spotify4s.SpotifyClient
 import io.bartholomews.spotify4s.entities._
 import javax.inject._
-import model.genetic.Playlist
-import model.music.{MusicUtil, Song}
+import model.genetic.{GA, Playlist}
+import model.music.{MusicCollection, MusicUtil, PlaylistResponse, Song}
 import org.http4s.Uri
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc._
 import views.spotify.PlaylistRequest
 
@@ -73,7 +73,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
           .map(
             _.toResult(me =>
               Ok(views.html.spotify.hello(me))
-              .withCookies(SpotifyCookies.accessCookies(authorizationCode): _*)
+                .withCookies(SpotifyCookies.accessCookies(authorizationCode): _*)
             )
           )
       )
@@ -128,7 +128,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
 
           val audioFeaturesLookup: IO[Map[SpotifyId, AudioFeatures]] =
             spotifyClient.tracks
-              .getAudioFeatures(tracksPage.map(_.id).toSet)
+              .getAudioFeatures(tracksPage.flatMap(_.id).toSet)
               .map(
                 _.entity.fold(
                   _ => Map.empty,
@@ -139,10 +139,12 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
 
           audioFeaturesLookup.map { lookup =>
             val songs: List[Song] = tracksPage.map { track =>
-              lookup.get(track.id).fold(MusicUtil.toSong(track))(af => MusicUtil.toSong(track, af))
+              track.id.fold(MusicUtil.toSong(track)) { trackId =>
+                lookup.get(trackId).fold(MusicUtil.toSong(track))(af => MusicUtil.toSong(track, af))
+              }
             }
 
-            Ok(views.html.spotify.tracks(playlist, songs, PlaylistRequest.form))
+            Ok(views.html.spotify.tracks(playlist, songs))
           }
         })
     }
@@ -283,10 +285,36 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
     IO.pure(Ok(views.html.spotify.playlist_generation(requestId)))
   }
 
-  val generatePlaylist: Action[PlaylistRequest] = Action(parse.form(PlaylistRequest.form)) { implicit request =>
-    val playlistRequest = request.body
-    Redirect(routes.SpotifyController.renderGeneratedPlaylist(playlistRequest.name))
+  val generatePlaylist: Action[JsValue] = Action(parse.json) { implicit request =>
+
+    val playlistRequestJson = request.body.validate[PlaylistRequest]
+    playlistRequestJson.fold(
+      errors => {
+        BadRequest(Json.obj("message" -> JsError.toJson(errors)))
+      },
+      playlistRequest => {
+        println(playlistRequest)
+        val p = GA.generatePlaylist(
+          db = new MusicCollection(songs = Vector.empty),
+          c = Set.empty,
+          playlistRequest.range.getOrElse(0)
+        )
+//        Redirect(routes.SpotifyController.renderGeneratedPlaylist(playlistRequest.name))
+        Ok(Json.toJson(PlaylistResponse.fromPlaylist(p)))
+      }
+    )
   }
+
+//  val generatePlaylistForm: Action[PlaylistRequest] = Action(parse.form(PlaylistRequest.form)) { implicit request =>
+//    val playlistRequest = request.body
+//    println(playlistRequest)
+//    val p = GA.generatePlaylist(
+//      db = new MusicCollection(songs = Vector.empty),
+//      c = Set.empty,
+//      playlistRequest.range.getOrElse(0)
+//    )
+//    Redirect(routes.SpotifyController.renderGeneratedPlaylist(playlistRequest.name))
+//  }
 
   /**
    * The JSON response to send back to the user

@@ -1,54 +1,58 @@
 @import views.common.Tab
 @import views.html.helper.CSRF
 @(activeTab: Tab, styles: List[Call] = List.empty, scripts: List[Call] = List.empty)(content: Html)(implicit requestHeader: RequestHeader)
-@* https://www.playframework.com/documentation/latest/ScalaJavascriptRouting *@
-@helper.javascriptRouter("jsRoutes")(
-    routes.javascript.SpotifyController.generatePlaylist,
-)
+    @* https://www.playframework.com/documentation/latest/ScalaJavascriptRouting *@
+    @helper.javascriptRouter("jsRoutes")(
+        routes.javascript.SpotifyController.generatePlaylist,
+    )
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        @* Here's where we render the page title `String`. *@
-    <title>musicgene</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/chiave_di_violino.png")">
-    <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
-    @for(css <- styles) { <link rel="stylesheet" media="screen" href="@css"/> }
-    </head>
-    <body data-token='@CSRF.getToken.value'>
-    <nav class="navbar navbar-expand-lg navbar-light">
-            <a class="navbar-brand" href="/">
-                <img src="@routes.Assets.versioned("images/dna_helix_gene.png")" class="d-inline-block align-top" alt="">
-                <span>musicgene </span>
-            </a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarText">
-                <ul class="navbar-nav mr-auto">
-                    @for(tab <- List(Tab.Discogs, Tab.Spotify)) {
-                        <li class="nav-link">
-                            <a class="nav-item @{
-                                if(tab == activeTab) "active" else ""
-                            }" href=@tab.href.url>@tab.name</a>
-                        </li>
-                    }
-                <li class="nav-link"><a class="nav-item" href="mailto:musicgene@@bartholomews.io">
-                    @* <i class="fa fa-envelope"></i>Support</a>*@
-                    @* <i class="fa fa-sign-out-alt"></i>Support</a>*@
-                    Support
+    <html lang="en">
+        <head>
+            @* Here's where we render the page title `String`. *@
+        <title>musicgene</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/chiave_di_violino.png")">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
+            @for(css <- styles) {
+                <link rel="stylesheet" media="screen" href="@css"/>
+            }
+        </head>
+        <body data-token='@CSRF.getToken.value'>
+            <nav class="navbar navbar-expand-lg navbar-light">
+                <a class="navbar-brand" href="/">
+                    <img src="@routes.Assets.versioned("images/dna_helix_gene.png")" class="d-inline-block align-top" alt="">
+                    <span>musicgene </span>
                 </a>
-                    @* <i class="fa fa-list"></i>Playlist</a>*@
-                    @* <i class="fa fa-music"></i>Tracks</a>*@
-                </li>
-                </ul>
-            </div>
-        </nav>
-        <div class="container-fluid">@content</div>
-        <script src="https://kit.fontawesome.com/b51887c376.js" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-        <script type="text/javascript" src="@routes.Assets.versioned("js/main.js")"></script>
-        @for(js <- scripts) { <script type="text/javascript" src="@js"></script> }
-    </body>
-</html>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarText">
+                    <ul class="navbar-nav mr-auto">
+                        @for(tab <- List(Tab.Discogs, Tab.Spotify)) {
+                            <li class="nav-link">
+                                <a class="nav-item @{
+                                    if(tab == activeTab) "active" else ""
+                                }" href=@tab.href.url>@tab.name</a>
+                            </li>
+                        }
+                    <li class="nav-link"><a class="nav-item" href="mailto:musicgene@@bartholomews.io">
+                        @* <i class="fa fa-envelope"></i>Support</a>*@
+                        @* <i class="fa fa-sign-out-alt"></i>Support</a>*@
+                        Support
+                    </a>
+                        @* <i class="fa fa-list"></i>Playlist</a>*@
+                        @* <i class="fa fa-music"></i>Tracks</a>*@
+                    </li>
+                    </ul>
+                </div>
+            </nav>
+            <div class="container-fluid">@content</div>
+            <script src="https://kit.fontawesome.com/b51887c376.js" crossorigin="anonymous"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+            <script type="text/javascript" src="@routes.Assets.versioned("js/main.js")"></script>
+            @for(js <- scripts) {
+                <script type="text/javascript" src="@js"></script>
+            }
+        </body>
+    </html>
