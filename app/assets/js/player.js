@@ -8,12 +8,14 @@ let audio = null;
  * if preview_url == null (e.g. Xtal) catch DOMException: Failed to load because no supported source was found.
  * TODO loop would be nice, with fade even nicer
  */
-$(function () {
-    $(document).on('click', '.playable', function () {
-        const url = $(this).attr('data-preview');
-        playPreview(url);
-    });
-});
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('.playable')
+        .forEach(input => input.addEventListener('click', () => {
+            const url = input.getAttribute('data-preview');
+            return playPreview(url);
+        }));
+})
 
 //  * TODO clear input modals when either 'undo' or 'save' button pressed
 // playPreviewTable();  // listen for mouse click on track rows
