@@ -4,16 +4,7 @@
 @css = @{List(
     routes.Assets.versioned("stylesheets/playlists.css")
 )}
-@js = @{ List(
-    routes.Assets.versioned("js/player.js"),
-    routes.Assets.versioned("js/callback.js"),
-    routes.Assets.versioned("js/charts.js"),
-    routes.Assets.versioned("js/constraints.js"),
-    routes.Assets.versioned("js/modals.js"),
-    routes.Assets.versioned("js/playlistRequest.js"),
-    routes.Assets.versioned("js/playlistResponse.js")
-)}
-@main(activeTab = Tab.Spotify, styles = css, scripts = js){
+@main(activeTab = Tab.Spotify, styles = css){
 
     <div class="main-section">
         <h1>
