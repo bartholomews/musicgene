@@ -3,6 +3,7 @@ package controllers.http
 import cats.Applicative
 import io.bartholomews.fsclient.entities.{ErrorBody, ErrorBodyJson, ErrorBodyString}
 import io.bartholomews.fsclient.utils.HttpTypes.HttpResponse
+import play.api.libs.json.Json
 import play.api.mvc.Results.BadRequest
 import play.api.mvc.{AnyContent, Request, Result}
 import views.common.Tab
@@ -17,6 +18,12 @@ sealed abstract class HttpResults(tab: Tab) {
       responseToResult: A => F[Result]
     )(implicit f: Applicative[F], request: Request[AnyContent]): F[Result] =
       httpResponse.foldBody(err => f.pure(errorToResult(err)), responseToResult)
+  }
+
+  def errorToJsonResult(error: ErrorBody)(implicit request: Request[AnyContent]): Result = error match {
+    case ErrorBodyString(value) => BadRequest(value)
+    // TODO: https://github.com/jilen/play-circe
+    case ErrorBodyJson(value) => BadRequest(Json.parse(value.noSpaces))
   }
 
   def errorToResult(error: ErrorBody)(implicit request: Request[AnyContent]): Result = error match {
