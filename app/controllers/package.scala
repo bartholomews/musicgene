@@ -4,12 +4,12 @@ import play.api.mvc.Results._
 import play.api.mvc._
 
 package object controllers {
-  def requestHost(request: Request[AnyContent]): String = {
+  def requestHost[C](request: Request[C]): String = {
     val scheme = if (request.secure) "https" else "http"
     s"$scheme://${request.host.stripPrefix("/").stripSuffix("/")}"
   }
 
-  def requestUri(request: Request[AnyContent]): ParseResult[Uri] =
+  def requestUri[C](request: Request[C]): ParseResult[Uri] =
     Uri.fromString(s"${requestHost(request)}/${request.uri.stripPrefix("/")}")
 
   val userAgent: UserAgent = UserAgent(

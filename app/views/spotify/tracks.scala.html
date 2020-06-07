@@ -1,19 +1,20 @@
-@import model.music.Song
-@import io.bartholomews.spotify4s.entities.FullPlaylist
+@import io.bartholomews.spotify4s.entities.FullTrack
+@import model.music.MusicUtil
 @import views.common.Tab
-@import views.html.helper.CSRF
-
-@(playlist: FullPlaylist, songs: Seq[Song])(implicit requestHeader: RequestHeader, messages: Messages)
+@import io.bartholomews.spotify4s.entities.Page
+@import views.spotify.PlaylistRequest
+@(tracksPage: Page[FullTrack])(implicit requestHeader: RequestHeader, messages: Messages)
 @js = @{
     List(
-        routes.Assets.versioned("js/player.js"),
-        routes.Assets.versioned("js/fetch.js"),
+        routes.Assets.versioned("js/common/player.js"),
+        routes.Assets.versioned("js/common/fetch.js"),
+        routes.Assets.versioned("js/spotify/tracks.js"),
     )
 }
 @main(activeTab = Tab.Spotify, scripts = js) {
     <div class="container">
         <h1>
-            <span id="playlist-title">@playlist.name</span>
+            <span id="playlist-title">Tracks</span>
         </h1>
         <p id="playlist-paragraph">Select restriction on the playlist to be generated.
             Click on a track to listen to a short preview.
@@ -34,8 +35,8 @@
         </div>
         <button
         type="button"
-        onclick="jsonRequest()"
-        class="btn btn-success btn-lg"
+        onclick="generatePlaylist()"
+        class="btn btn-outline-dark"
         data-toggle="modal"
         data-target="#modal-playlistName">Generate
         </button>
@@ -87,36 +88,21 @@
                 <table class="table table-responsive table-hover table-sm" id="music-collection-table">
                     <thead>
                         <tr>
-                            <th>#</th>
-                            <th>Title</th>
                             <th>Duration</th>
+                            <th>Title</th>
                             <th>Artist</th>
                             <th>Album</th>
-                            <th>Loudness</th>
-                            <th>Tempo</th>
-                            <th>Energy</th>
-                            <th>Acousticness</th>
-                            <th>Danceability</th>
-                            <th>Liveness</th>
-                            <th>Speechiness</th>
                         </tr>
                     </thead>
                     <tbody class="music-collection-tbody">
-                    @songs.zipWithIndex.map { case (track, index) =>
-                    <tr class="clickable playable" id="@track.id" data-preview="@track.preview_url">
-                        <th scope="row">@index</th>
-                        <td id="@track.id-title">@track.title</td>
-                        <td id="@track.id-duration">@track.stringDuration</td>
-                        <td id="@track.id-artist">@track.artist</td>
-                        <td id="@track.id-album">@track.album</td>
-                        <td id="@track.id-loudness">@track.loudness</td>
-                        <td id="@track.id-tempo">@track.tempo</td>
-                        <td id="@track.id-energy">@track.energy</td>
-                        <td id="@track.id-acousticness">@track.acousticness</td>
-                        <td id="@track.id-danceability">@track.danceability</td>
-                        <td id="@track.id-liveness">@track.liveness</td>
-                        <td id="@track.id-speechiness">@track.speechiness</td>
-                    </tr>
+                    @tracksPage.items.map { track =>
+                        <tr class="@PlaylistRequest.trackRowClassNames(track)"
+                        id="@track.id.map(_.value)" data-preview="@track.previewUrl.map(_.renderString).getOrElse("")">
+                            <th scope="row">@MusicUtil.millisecondsToMinutesAndSeconds(track.durationMs)</th>
+                            <td id="@track.id-title">@track.name</td>
+                            <td id="@track.id-artist">@track.artists.map(_.name).mkString(", ")</td>
+                            <td id="@track.id-album">@track.album.name</td>
+                        </tr>
                     }
                     </tbody>
                 </table>

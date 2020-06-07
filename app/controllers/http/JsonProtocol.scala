@@ -3,6 +3,7 @@ package controllers.http
 import io.bartholomews.discogs4s.entities.RequestToken
 import io.bartholomews.fsclient.entities.oauth._
 import io.bartholomews.fsclient.entities.oauth.v2.OAuthV2AuthorizationFramework._
+import io.bartholomews.spotify4s.entities.SpotifyId
 import org.http4s.client.oauth1.{Consumer, Token}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.JsonConfiguration.Aux
@@ -17,6 +18,7 @@ trait JsonProtocol {
   implicit val refreshTokenFormat: Format[RefreshToken] = Json.valueFormat[RefreshToken]
   implicit val clientIdFormat: Format[ClientId] = Json.valueFormat[ClientId]
   implicit val clientSecretFormat: Format[ClientSecret] = Json.valueFormat[ClientSecret]
+  implicit val spotifyIdFormat: Format[SpotifyId] = Json.valueFormat[SpotifyId]
 
   implicit val scopeReads: Reads[Scope] = (JsPath \ "scope" \ "values").read[List[String]].map(Scope.apply)
   implicit val scopeWrites: Writes[Scope] = Json.writes[Scope]

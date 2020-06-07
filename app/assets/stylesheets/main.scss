@@ -29,6 +29,13 @@ html, body {
   }
 }
 
+.table {
+  .disabled, .disabled:hover {
+    cursor: not-allowed;
+    background: darkgray;
+  }
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 //@media (max-width: 780px) {
 //  body {
