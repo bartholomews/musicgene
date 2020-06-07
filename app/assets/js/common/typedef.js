@@ -12,3 +12,8 @@
  @typedef SpotifyController
  @property {function} generatePlaylist()
  */
+
+/**
+ @typedef playlistResponse
+ @property {array} songs
+ */

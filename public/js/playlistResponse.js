@@ -1,6 +1,8 @@
 function playPreviewGraph(i) {
-    var url = $('#new-playlist-table').find('> tbody > tr').eq(i).attr("data-preview");
-    playPreview(url)
+    console.log('TODO: PLAY PREVIEW:');
+    console.log(i);
+    // var url = $('#new-playlist-table').find('> tbody > tr').eq(i).attr("data-preview");
+    // playPreview(url)
 }
 
 function revertPlaylistParagraph() {

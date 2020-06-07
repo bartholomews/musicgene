@@ -6,6 +6,10 @@ function generatePlaylist(name, length) {
 
     jsonRequest(route, {name, length, tracks},
         err => console.log(err),
-        res => console.log(res)
+        playlistResponse => {
+            console.log(playlistResponse)
+            generateConfidenceChart(playlistResponse.songs)
+            generateBpmDbChart(playlistResponse.songs)
+        }
     );
 }
