@@ -4,8 +4,10 @@ function handleResponse(response) {
     else return response.json();
 }
 
-function jsonRequest(route, payload) {
+function jsonRequest(route, payload, onError, onSuccess) {
+    console.log("~~~~~~~~~~ Json request ~~~~~~~~~~")
     console.log(payload);
+    console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     fetch(route.url, {
         method: 'post',
         headers: {
@@ -17,8 +19,6 @@ function jsonRequest(route, payload) {
 
     })
         .then(handleResponse)
-        .then(res => {
-            console.log(res)
-        })
-        .catch(err => console.log(err.message));
+        .then(onSuccess)
+        .catch(onError)
 }

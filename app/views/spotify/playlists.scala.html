@@ -3,8 +3,9 @@
 
 @(title: String, playlists: Seq[SimplePlaylist])(implicit requestHeader: RequestHeader)
 @css = @{List(
-    routes.Assets.versioned("stylesheets/playlists.css")
+    routes.Assets.versioned("stylesheets/spotify/playlists.css")
 )}
+
 @main(activeTab = Tab.Spotify, styles = css){
 
     <div class="main-section">

@@ -135,8 +135,8 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   }
 
   private def songsJsonResult(playlistRequest: PlaylistRequest)(implicit request: Request[AnyContent]): IO[Result] = {
-    // FIXME too many ids error on `getTracks`
-    val tracksIds = playlistRequest.tracks.toSet.take(50) // FIXME tracks should be refined then
+    // FIXME too many ids error on `getTracks` over 50 tracks
+    val tracksIds = playlistRequest.tracks.toSet.take(50)
     withToken { implicit accessToken =>
       val getTracks: IO[Either[Result, List[FullTrack]]] =
         spotifyClient.tracks
@@ -162,18 +162,17 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
               }
             }
 
-            p = genP(playlistRequest, songs)
-          } yield Ok(Json.toJson(PlaylistResponse.fromPlaylist(p)))).fold(identity, identity)
+            playlist = GA.generatePlaylist(
+              db = new MusicCollection(songs),
+              c = Set.empty,
+              playlistRequest.length
+            )
+
+          } yield Ok(Json.toJson(PlaylistResponse.fromPlaylist(playlistRequest.name, playlist))))
+            .fold(identity, identity)
       })
     }
   }
-
-  private def genP(request: PlaylistRequest, songs: List[Song]) =
-    GA.generatePlaylist(
-      db = new MusicCollection(songs),
-      c = Set.empty,
-      request.length
-    )
 
   def renderGeneratedPlaylist(generatedPlaylistResultId: GeneratedPlaylistResultId): Action[AnyContent] =
     ActionIO.async { implicit request =>

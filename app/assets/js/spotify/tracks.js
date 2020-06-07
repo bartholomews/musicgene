@@ -1,12 +1,11 @@
-function generatePlaylist() {
+function generatePlaylist(name, length) {
     const route = jsRoutes.controllers.SpotifyController.generatePlaylist();
-    const tracksId = Array.from(document.getElementsByClassName('spotify-track-row'))
+    const tracks = Array.from(document.getElementsByClassName('spotify-track-row'))
         .map(el => el.id)
         .filter(id => !!id);
 
-    jsonRequest(route, {
-        name: "Some playlist",
-        length: 10,
-        tracks: tracksId,
-    });
+    jsonRequest(route, {name, length, tracks},
+        err => console.log(err),
+        res => console.log(res)
+    );
 }

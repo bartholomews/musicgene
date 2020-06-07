@@ -4,14 +4,24 @@
 @import io.bartholomews.spotify4s.entities.Page
 @import views.spotify.PlaylistRequest
 @(tracksPage: Page[FullTrack])(implicit requestHeader: RequestHeader, messages: Messages)
+@css = @{
+    List(
+        routes.Assets.versioned("stylesheets/common/c3.min.css"),
+        routes.Assets.versioned("stylesheets/common/c3.min.css"),
+        routes.Assets.versioned("stylesheets/spotify/tracks.css")
+    )
+}
 @js = @{
     List(
         routes.Assets.versioned("js/common/player.js"),
         routes.Assets.versioned("js/common/fetch.js"),
+        routes.Assets.versioned("js/common/d3.min.js"),
+        routes.Assets.versioned("js/common/c3.min.js"),
         routes.Assets.versioned("js/spotify/tracks.js"),
+        routes.Assets.versioned("js/spotify/charts.js"),
     )
 }
-@main(activeTab = Tab.Spotify, scripts = js) {
+@main(activeTab = Tab.Spotify, styles = css, scripts = js) {
     <div class="container">
         <h1>
             <span id="playlist-title">Tracks</span>
@@ -35,11 +45,14 @@
         </div>
         <button
         type="button"
-        onclick="generatePlaylist()"
+        onclick="generatePlaylist('My playlist', 10)"
         class="btn btn-outline-dark"
         data-toggle="modal"
         data-target="#modal-playlistName">Generate
         </button>
+
+        <button onclick="generateChart()">CHART</button>
+        <div id="chart"></div>
 
             <!-- Constraints area: an inline div  -->
             @*

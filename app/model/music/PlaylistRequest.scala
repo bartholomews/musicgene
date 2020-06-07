@@ -13,8 +13,8 @@ case class PlaylistRequest(name: String, length: Int, ids: Vector[String], const
 case class PlaylistResponse(name: String, songs: List[SongResponse])
 object PlaylistResponse {
   implicit val playlistResponseWrite: OWrites[PlaylistResponse] = Json.writes
-  def fromPlaylist(p: Playlist): PlaylistResponse =
-    PlaylistResponse("WAT", p.songs.toList.map(SongResponse.fromDomain))
+  def fromPlaylist(name: String, p: Playlist): PlaylistResponse =
+    PlaylistResponse(name, p.songs.toList.map(SongResponse.fromDomain))
 }
 
 case class SongResponse(acousticness: Option[String], danceability: Option[String], tempo: Option[String])
