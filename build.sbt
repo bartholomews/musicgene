@@ -2,7 +2,7 @@ name := """musicgene"""
 organization := "io.bartholomews"
 homepage := Some(url("https://github.com/bartholomews/musicgene"))
 
-version := "1.0-SNAPSHOT"
+version := "0.0.1-SNAPSHOT"
 
 lazy val root = (project in file("."))
   .enablePlugins(PlayScala)
@@ -14,12 +14,15 @@ lazy val root = (project in file("."))
 
 scalaVersion := "2.13.2"
 
-routesImport += "io.bartholomews.spotify4s.entities._"
+routesImport ++= Seq(
+  "io.bartholomews.spotify4s.entities._",
+  "model.music.GeneratedPlaylistResultId"
+)
 
 libraryDependencies += guice
 libraryDependencies ++= Seq(
-  "io.bartholomews" %% "spotify4s" % "0.1.0-SNAPSHOT",
-  "io.bartholomews" %% "discogs4s" % "0.1.0-SNAPSHOT",
+  "io.bartholomews" %% "spotify4s" % "0.0.0+65-d112bde0+20200607-1030-SNAPSHOT",
+  "io.bartholomews" %% "discogs4s" % "0.0.1+5-c8522079+20200525-0002-SNAPSHOT",
   // https://github.com/pauldijou/jwt-scala/releases
   "com.pauldijou" %% "jwt-play" % "4.2.0",
   // https://mvnrepository.com/artifact/com.adrianhurt/play-bootstrap
