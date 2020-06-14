@@ -1,51 +1,8 @@
-
-@(title: String)
-
-@main("musicgene") {
-    <html>
-
-        <head>
-            <title>@title</title>
-            <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/index.css")">
-        </head>
-
-        <body>
-
-            <nav class="navbar navbar-dark bg-inversed">
-                <a class="navbar-brand" href="#">musicgene</a>
-            </nav>
-
-            <div class="container">
-            <div class="jumbotron text-left white-semitransparent">
-                    @* make full width
-                    <div class="container"> *@
-                    <div class="row">
-                        <div class="col-xl-6">
-                            <h1>musicgene</h1>
-                            <p>Automatic playlist generation</p>
-                            <p>from content-based audio analysis features</p>
-                            <form action = "@routes.SpotifyApiController.auth" method = "get">
-                                <button class="btn btn-success btn-lg" id="login-button">Login with Spotify</button>
-                            </form>
-                            <br>
-                            <p>or use sample tracks (no login required)</p>
-                            <form action = "@routes.SpotifyApiController.sampleTracks" method = "get">
-                                <button class="btn btn-success btn-lg" id="try-button">Try the App</button>
-                            </form>
-                            <br>
-                        </div>
-                        </div>
-                    </div>
-                <div class="push"></div>
-            </div>
-
-            <footer class="footer">
-                <div class="container">
-                    <p class="bright-white italic">Birkbeck University project by Federico Bartolomei, powered by Spotify API</p>
-                </div>
-            </footer>
-
-            @* http://aarmstrong.org/content/aspect_ratio_calc.php?w=2560&h=1440&rw=16&rh=9&s=Submit *@
-        </body>
-    </html>
+@import views.common.Tab
+@()(implicit request: Request[AnyContent])
+@main(activeTab = Tab.Home) {
+    <div class="main-section">
+        <h2>Welcome</h2>
+        <hr/>
+    </div>
 }

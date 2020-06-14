@@ -1,20 +1,26 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
-# ~~~~
-# controllers.excluded.SpotifyController.callback
+# https://www.playframework.com/documentation/latest/ScalaRouting
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-GET     /                                            controllers.HomeController.index
-POST    /playlist                                    controllers.PlaylistController.generatePlaylist
 
-GET     /auth                                        controllers.SpotifyApiController.auth
-GET     /callback                                    controllers.SpotifyApiController.callback
-GET     /sample/tracks/                              controllers.SpotifyApiController.sampleTracks
-GET     /me/playlists                                controllers.SpotifyApiController.myPlaylists
-GET     /:user_id/playlists/                         controllers.SpotifyApiController.playlists(user_id)
-GET     /:user_id/playlists/:playlist_id/tracks      controllers.SpotifyApiController.songs(user_id, playlist_id)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# An example controller showing a sample home page
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+GET         /                                            controllers.HomeController.index
+GET         /discogs/hello                               controllers.DiscogsController.hello
+GET         /discogs/callback                            controllers.DiscogsController.callback
+GET         /discogs/logout                              controllers.DiscogsController.logout
+GET         /spotify/hello                               controllers.SpotifyController.hello
+GET         /spotify/callback                            controllers.SpotifyController.callback
+GET         /spotify/logout                              controllers.SpotifyController.logout
+GET         /spotify/:userId/playlists                   controllers.SpotifyController.playlists(userId: io.bartholomews.spotify4s.entities.SpotifyUserId)
+GET         /spotify/playlists/:playlistId/tracks        controllers.SpotifyController.tracks(playlistId: io.bartholomews.spotify4s.entities.SpotifyId)
+POST        /spotify/playlist/generate                   controllers.SpotifyController.generatePlaylist
+GET         /spotify/playlist/generate/:id               controllers.SpotifyController.renderGeneratedPlaylist(id: model.music.GeneratedPlaylistResultId)
 
-#GET     /browse/featured-playlists      controllers.wrapper.Browse.featuredPlaylistsAction(_)
-#GET     /browse/new-releases            controllers.wrapper.Browse.newReleasesActionAsync
-
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file            controllers.Assets.versioned(path="/public", file: Asset)
+# //noinspection ScalaDeprecation
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+GET         /assets/*file                                controllers.Assets.versioned(file)

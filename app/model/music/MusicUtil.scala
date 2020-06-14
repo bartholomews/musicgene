@@ -1,8 +1,9 @@
 package model.music
 
-import it.turingtest.spotify.scala.client.entities.{AudioFeatures, Track}
-import play.api.libs.json.{JsNumber, JsObject, JsString, JsValue}
 import java.util.UUID._
+
+import io.bartholomews.spotify4s.entities.{AudioFeatures, FullTrack}
+import play.api.libs.json.{JsNumber, JsObject, JsString, JsValue}
 
 /**
   *
@@ -24,24 +25,24 @@ object MusicUtil {
     attr.map(a => {
       val name = a.getClass.getSimpleName
       a match {
-        case _:AudioAttribute => name -> JsNumber(a.value.asInstanceOf[Double])
-        case _:TimeAttribute => name -> JsNumber(a.value.asInstanceOf[Int])
-        case _:TextAttribute => name -> JsString(a.value.asInstanceOf[String])
+        case _: AudioAttribute => name -> JsNumber(a.value.asInstanceOf[Double])
+        case _: TimeAttribute => name -> JsNumber(a.value.asInstanceOf[Int])
+        case _: TextAttribute => name -> JsString(a.value.asInstanceOf[String])
         case x => throw new Exception(x + ": Attribute value type is unknown")
       }
       // @see http://stackoverflow.com/a/2925643
-    })(collection.breakOut)
+    }).toMap
   }
 
   // TODO reflection getName.getSimpleName pattern matched on Attribute type
   def extractAttribute(tuple: (String, String)): Attribute =
     tuple match {
-        // TextAttribute
+      // TextAttribute
       case ("Preview_URL", value) => Preview_URL(value)
       case ("Title", value) => Title(value)
       case ("Artist", value) => Artist(value)
       case ("Album", value) => Album(value)
-        // AudioAttribute
+      // AudioAttribute
       case ("Tempo", value) => Tempo(getDoubleOrMax(value))
       case ("Energy", value) => Energy(getDoubleOrMax(value))
       case ("Loudness", value) => Loudness(getDoubleOrMax(value))
@@ -61,46 +62,55 @@ object MusicUtil {
 
   // http://stackoverflow.com/a/9542430
   private def getDoubleOrMax(value: String): Double = {
-    try { value.toDouble } catch { case _: Throwable => Double.MaxValue }
+    try {
+      value.toDouble
+    } catch {
+      case _: Throwable => Double.MaxValue
+    }
   }
 
-  def toSongs(songs: Seq[(Track, AudioFeatures)]): Seq[Song] = songs.map(t => toSong(t))
+  def toSongs(songs: Seq[(FullTrack, AudioFeatures)]): Seq[Song] = songs.map(t => toSong(t._1, t._2))
 
-  def personalSong(t: Track): Song = Song(randomUUID().toString, Set())
+  def personalSong(t: FullTrack): Song = Song(randomUUID().toString, Set())
 
-  def toSong(t: (Track, AudioFeatures)): Song = {
-    Song(t._1.id.getOrElse(randomUUID().toString),
+  def toSong(t: FullTrack, af: AudioFeatures): Song = {
+    Song(t.id.map(_.value).getOrElse("N/A"), // .getOrElse(randomUUID().toString
       Set[Attribute](
-        Preview_URL(t._1.preview_url.getOrElse("")),
-        Title(t._1.name),
-        Album(t._1.album.name),
-        Artist(t._1.artists.head.name),
-        Duration(t._1.duration_ms),
-        Acousticness(t._2.acousticness),
-        Danceability(t._2.danceability),
-        Energy(t._2.energy),
-        Instrumentalness(t._2.instrumentalness),
-        Liveness(t._2.liveness),
-        Loudness(t._2.loudness),
-        Speechiness(t._2.speechiness),
-        Tempo(t._2.tempo),
-        Valence(t._2.valence),
-        Time_Signature(t._2.time_signature),
-        Mode(t._2.mode),
-        Key(t._2.key)
+        Preview_URL(t.previewUrl.map(_.renderString).getOrElse("")),
+        Title(t.name),
+        Album(t.album.name),
+        Artist(t.artists.head.name),
+        Duration(t.durationMs),
+        Acousticness(af.acousticness.value),
+        Danceability(af.danceability.value),
+        Energy(af.energy.value),
+        Instrumentalness(af.instrumentalness.value),
+        Liveness(af.liveness.value),
+        Loudness(af.loudness),
+        Speechiness(af.speechiness.value),
+        Tempo(af.tempo),
+        Valence(af.valence.value),
+        Time_Signature(af.timeSignature),
+        Mode(af.mode.value),
+        Key(af.key.value)
       )
     )
   }
 
-  def toSong(t: Track): Song = {
-    Song(t.id.getOrElse(randomUUID().toString),
+  def toSong(t: FullTrack): Song = {
+    Song(t.id.map(_.value).getOrElse("N/A"), // .getOrElse(randomUUID().toString),
       Set[Attribute](
-        Preview_URL(t.preview_url.getOrElse("")),
+        Preview_URL(t.previewUrl.map(_.renderString).getOrElse("")),
         Title(t.name),
         Album(t.album.name),
         Artist(t.artists.head.name),
-        Duration(t.duration_ms)
+        Duration(t.durationMs)
       ))
   }
 
+  def millisecondsToMinutesAndSeconds(timeUnitMs: Int): String = {
+    val minutes = (timeUnitMs / 1000)  / 60
+    val seconds = (timeUnitMs / 1000) % 60
+    "%02d".format(minutes) + ":" + "%02d".format(seconds)
+  }
 }

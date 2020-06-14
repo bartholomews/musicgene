@@ -1,0 +1,33 @@
+@import views.common.Tab
+@import model.music.Song
+@import model.music.GeneratedPlaylistResultId
+
+@import model.music.MusicUtil
+@(result: GeneratedPlaylistResultId, songs: List[Song])(implicit requestHeader: RequestHeader)
+    @main(activeTab = Tab.Spotify) {
+        <div class="main-section">
+            <div class="custom-asd-inline">
+                <h2>Playlist generation: @result.value.toString</h2>
+            </div>
+            <div>
+            @songs.zipWithIndex.map { case (track, index) =>
+            <table>
+                <tr class="clickable playable" id="@track.id" data-preview="@track.preview_url">
+                    <th scope="row">@index</th>
+                    <td id="@track.id-title">@track.title</td>
+@*                    <td id="@track.id-duration">@MusicUtil.millisecondsToMinutesAndSeconds(track.duration)</td>*@
+                    <td id="@track.id-artist">@track.artist</td>
+                    <td id="@track.id-album">@track.album</td>
+                    <td id="@track.id-loudness">@track.loudness</td>
+                    <td id="@track.id-tempo">@track.tempo</td>
+                    <td id="@track.id-energy">@track.energy</td>
+                    <td id="@track.id-acousticness">@track.acousticness</td>
+                    <td id="@track.id-danceability">@track.danceability</td>
+                    <td id="@track.id-liveness">@track.liveness</td>
+                    <td id="@track.id-speechiness">@track.speechiness</td>
+            </tr>
+            </table>
+            </div>
+        </div>
+    }
+    }

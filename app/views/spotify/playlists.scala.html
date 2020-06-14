@@ -1,0 +1,38 @@
+@import io.bartholomews.spotify4s.entities.SimplePlaylist
+@import views.common.Tab
+
+@(title: String, playlists: Seq[SimplePlaylist])(implicit requestHeader: RequestHeader)
+@css = @{List(
+    routes.Assets.versioned("stylesheets/spotify/playlists.css")
+)}
+
+@main(activeTab = Tab.Spotify, styles = css){
+
+    <div class="main-section">
+        <h1>
+            <span id="playlist-title">@title</span>
+        </h1>
+        <p id="playlist-paragraph">Select a playlist</p>
+    </div>
+
+    <div class="music-collection" id="music-collection">
+        <table class="table table-hover" id="music-collection-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+                <!-- TODO you already have tracks here, should probl collapse and show them -->
+            <tbody class="music-collection-tbody">@playlists.zipWithIndex.map { case (p, index) =>
+            <tr class="clickable" onclick="redirect(`@routes.SpotifyController.tracks(p.id).url`)">
+                    <th scope="row">@index</th>
+                    <td>@p.name</td>
+                    <td>@p.description.getOrElse("-")</td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

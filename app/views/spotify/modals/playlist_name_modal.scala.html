@@ -1,0 +1,30 @@
+@()
+<div class="modal fade" id="modal-playlistName" tabindex="-1"
+role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <a class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        <span class="sr-only">Close</span>
+                    </a>
+                    <h4 class="modal-title" id="modal-label">Name your playlist</h4>
+                </div>
+                <div class="modal-body">
+                    <label>
+                        <input type="text" id="generate-playlist"
+                        onkeypress="return isEnterKeyPressed(event, 'playlist-input')">
+                    </label>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
+                    <button
+                    onclick="createNewPlaylist()"
+                    type="button" id="playlist-input" class="btn btn-success">Generate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

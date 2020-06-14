@@ -28,19 +28,6 @@ case class Song(id: String, attributes: Set[Attribute]) {
   // =============================================================================
   // STRING VALS
   // =============================================================================
-  /*
-  Ok for view display, but it's not nice
-  and it will throw an exception if used
-  at the back end if the attribute is not found
-  ("unknown" parsed to another data type),
-  should be using Option[value] for that.
- */
-  val stringDuration = {
-    val seconds: Int = ((duration / 1000) % 60).toInt
-    val minutes = ((duration / (1000*60)) % 60).toInt
-    "%02d".format(minutes) + ":" + "%02d".format(seconds)
-  }
-
   val title = findValue(Title(""))
   val preview_url = findValue(Preview_URL())
   val artist = findValue(Artist(""))

@@ -3,11 +3,11 @@ package model.music
 /**
   *
   */
-class MusicCollection(val songs: Vector[Song]) {
+class MusicCollection(val songs: List[Song]) {
 
   def apply(i: Int) = songs(i)
   def size = songs.size
-  def IDs: Vector[String] = songs.map(t => t.id)
+  def IDs: List[String] = songs.map(t => t.id)
   /**
     * @param p the predicate which filter out songs
     * @return a new `MusicCollection` with the songs filtered by a predicate
