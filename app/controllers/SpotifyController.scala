@@ -158,7 +158,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
             tracks <- getTracksResult
             songs = tracks.map { track =>
               track.id.fold(MusicUtil.toSong(track)) { trackId =>
-                audioFeaturesLookup.get(trackId).fold(MusicUtil.toSong(track))(af => MusicUtil.toSong(track, af))
+                audioFeaturesLookup.get(trackId).fold(MusicUtil.toSong(track))(af => MusicUtil.toSong2(track, af))
               }
             }
 

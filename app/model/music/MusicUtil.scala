@@ -28,7 +28,7 @@ object MusicUtil {
         case _: AudioAttribute => name -> JsNumber(a.value.asInstanceOf[Double])
         case _: TimeAttribute => name -> JsNumber(a.value.asInstanceOf[Int])
         case _: TextAttribute => name -> JsString(a.value.asInstanceOf[String])
-        case x => throw new Exception(x + ": Attribute value type is unknown")
+        case x => throw new Exception(s"$x: Attribute value type is unknown")
       }
       // @see http://stackoverflow.com/a/2925643
     }).toMap
@@ -69,11 +69,11 @@ object MusicUtil {
     }
   }
 
-  def toSongs(songs: Seq[(FullTrack, AudioFeatures)]): Seq[Song] = songs.map(t => toSong(t._1, t._2))
+  def toSongs(songs: Seq[(FullTrack, AudioFeatures)]): Seq[Song] = songs.map(t => toSong2(t._1, t._2))
 
   def personalSong(t: FullTrack): Song = Song(randomUUID().toString, Set())
 
-  def toSong(t: FullTrack, af: AudioFeatures): Song = {
+  def toSong2(t: FullTrack, af: AudioFeatures): Song = {
     Song(t.id.map(_.value).getOrElse("N/A"), // .getOrElse(randomUUID().toString
       Set[Attribute](
         Preview_URL(t.previewUrl.map(_.renderString).getOrElse("")),

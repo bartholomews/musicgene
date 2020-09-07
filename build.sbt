@@ -19,10 +19,13 @@ routesImport ++= Seq(
   "model.music.GeneratedPlaylistResultId"
 )
 
+resolvers +=
+  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+
 libraryDependencies += guice
 libraryDependencies ++= Seq(
-  "io.bartholomews" %% "spotify4s" % "0.0.0+65-d112bde0+20200607-1030-SNAPSHOT",
-  "io.bartholomews" %% "discogs4s" % "0.0.1+5-c8522079+20200525-0002-SNAPSHOT",
+  "io.bartholomews" %% "spotify4s" % "0.0.0+57-d8ce43db-SNAPSHOT",
+  "io.bartholomews" %% "discogs4s" % "0.0.1+4-24187890-SNAPSHOT",
   // https://github.com/pauldijou/jwt-scala/releases
   "com.pauldijou" %% "jwt-play" % "4.2.0",
   // https://mvnrepository.com/artifact/com.adrianhurt/play-bootstrap
