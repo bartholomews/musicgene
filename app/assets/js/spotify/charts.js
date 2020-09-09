@@ -1,5 +1,5 @@
-function generateConfidenceChart(songs) {
-    return generateChart(songs, [
+function generateConfidenceChart(audioTracks) {
+    return generateChart(audioTracks, [
         {name: 'acousticness', colour: '#8b4513'},
         {name: 'energy', colour: '#9D7AFF'},
         {name: 'liveness', colour: '#000066', hidden: true},
@@ -15,8 +15,8 @@ function generateConfidenceChart(songs) {
     })
 }
 
-function generateBpmDbChart(songs) {
-    return generateChart(songs, [
+function generateBpmDbChart(audioTracks) {
+    return generateChart(audioTracks, [
         {name: 'tempo', colour: '#8b4513', axes: 'y'},
         {name: 'loudness', colour: '#9D7AFF', axes: 'y2'},
     ], {
@@ -41,12 +41,12 @@ function generateBpmDbChart(songs) {
     })
 }
 
-function generateChart(songs, attributes, config) {
+function generateChart(audioTracks, attributes, config) {
     const labels = attributes.map(attr => attr.name);
-    const audioFeatures = songs.reduce((acc, curr) => {
+    const audioFeatures = audioTracks.reduce((acc, audioTrack) => {
         return labels
             .map((attribute, index) => {
-                const attr = curr[attribute];
+                const attr = audioTrack[attribute];
                 return [...acc[index], attr]
             })
     }, labels.map(attribute => [].concat(attribute)))
@@ -68,7 +68,7 @@ function generateChart(songs, attributes, config) {
             colors,
             // smooth plotting
             type: 'spline',
-            onclick: data => playPreview(songs[data.index]['previewUrl']),
+            onclick: data => playPreview(audioTracks[data.index]['previewUrl']),
             axes,
         },
         axis: {
@@ -85,7 +85,7 @@ function generateChart(songs, attributes, config) {
         },
         tooltip: {
             format: {
-                title: (index) => songs[index].title,
+                title: (index) => audioTracks[index].title,
                 value: d3.format(',')
             }
         }
