@@ -5,7 +5,7 @@ import cats.effect.{ContextShift, IO}
 import cats.implicits._
 import com.google.inject.Inject
 import controllers.http.DiscogsCookies
-import controllers.http.JsonProtocol._
+import controllers.http.codecs.FsClientCodecs._
 import io.bartholomews.discogs4s.DiscogsClient
 import io.bartholomews.discogs4s.endpoints.DiscogsAuthEndpoint
 import io.bartholomews.discogs4s.entities.RequestToken

@@ -18,7 +18,7 @@ object ConstraintsUtil {
     * @return Some[Double] with the value of the song's Attribute,
     *         None if the song doesn't have that Attribute
     */
-  def extractValue(s: Song, that: Attribute): Option[Double] = {
+  def extractValue(s: AudioTrack, that: Attribute): Option[Double] = {
     s.attributes.find(a => a.getClass == that.getClass) match {
       case None => None
       case Some(attr) => attr.value match {
@@ -37,7 +37,7 @@ object ConstraintsUtil {
     * @return Some(Double, Double) with the values of the songs' Attribute,
     *         None one or both do not have that Attribute
     */
-  def extractValues(s1: Song, s2: Song, that: Attribute): Option[(Double, Double)] = {
+  def extractValues(s1: AudioTrack, s2: AudioTrack, that: Attribute): Option[(Double, Double)] = {
     extractValue(s1, that) match {
       case None => None
       case Some(x) => extractValue(s2, that) match {
@@ -54,7 +54,7 @@ object ConstraintsUtil {
     * @param that the AudioAttribute
     * @return a tuple for the two values to be within tolerance, and their distance
     */
-  def compareWithTolerance(s: Song, that: AudioAttribute): (Boolean, Double) = {
+  def compareWithTolerance(s: AudioTrack, that: AudioAttribute): (Boolean, Double) = {
     extractValue(s, that) match {
       case None => (false, Double.MaxValue)
       case Some(x) => compareWithTolerance(x, that.value, that)
@@ -69,7 +69,7 @@ object ConstraintsUtil {
     * @param that the AudioAttribute
     * @return a tuple for the two values to be within tolerance, and their distance
     */
-  def compareWithTolerance(s1: Song, s2: Song, that: AudioAttribute): (Boolean, Double) = {
+  def compareWithTolerance(s1: AudioTrack, s2: AudioTrack, that: AudioAttribute): (Boolean, Double) = {
     extractValues(s1, s2, that) match {
       case None => (false, Double.MaxValue)
       case Some((x, y)) => compareWithTolerance(x, y, that)
@@ -97,7 +97,7 @@ object ConstraintsUtil {
     * @param f the predicate function
     * @return a tuple with the evaluation of f and the distance between the track's value and that value
     */
-  def compare(s: Song, that: AudioAttribute, f: (Double, Double) => Boolean): (Boolean, Double) = {
+  def compare(s: AudioTrack, that: AudioAttribute, f: (Double, Double) => Boolean): (Boolean, Double) = {
     extractValue(s, that) match {
       case None => (false, Double.MaxValue)
       case Some(x) => monotonicDistance(x, that.value, that, f(x, that.value))
@@ -113,7 +113,7 @@ object ConstraintsUtil {
     * @param f the predicate function
     * @return a tuple with the evaluation of f and the distance between the two tracks
     */
-  def compare(s1: Song, s2: Song, that: AudioAttribute, f: (Double, Double) => Boolean): (Boolean, Double) = {
+  def compare(s1: AudioTrack, s2: AudioTrack, that: AudioAttribute, f: (Double, Double) => Boolean): (Boolean, Double) = {
     extractValues(s1, s2, that) match {
       case None => (false, Double.MaxValue)
       case Some((x, y)) => monotonicDistance(x, y, that, f(x, y))

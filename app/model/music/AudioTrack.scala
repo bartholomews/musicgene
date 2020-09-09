@@ -4,7 +4,7 @@ package model.music
   *
   */
 
-case class Song(id: String, attributes: Set[Attribute]) {
+case class AudioTrack(id: String, attributes: Set[Attribute]) {
 
   def getOrElse(that: Attribute): Attribute = attributes.find(a => a.getClass == that.getClass) match {
     case None => that

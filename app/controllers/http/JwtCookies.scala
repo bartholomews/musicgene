@@ -2,6 +2,7 @@ package controllers.http
 
 import java.time.Clock
 
+import controllers.http.codecs.FsClientCodecs.{authorizationTokenReads, authorizationTokenWrites, refreshTokenFormat}
 import io.bartholomews.fsclient.entities.oauth.AuthorizationCode
 import io.bartholomews.fsclient.entities.oauth.v2.OAuthV2AuthorizationFramework.RefreshToken
 import pdi.jwt.JwtSession
@@ -13,23 +14,17 @@ case object SpotifyCookies {
   final val accessSessionKey: String = "spotify4s_access_session"
   final val refreshSessionKey: String = "spotify4s_refresh_session"
 
-  def accessCookies(accessToken: AuthorizationCode): List[Cookie] = {
-    import JsonProtocol.{authorizationTokenWrites, refreshTokenFormat}
+  def accessCookies(accessToken: AuthorizationCode): List[Cookie] =
     JwtCookies.withCookie(accessSessionKey, accessToken) +:
       accessToken.refreshToken.toList
         .map(rt => JwtCookies.withCookie(refreshSessionKey, rt))
-  }
 
   // Todo S <: SignerV2
-  def extractAuthCode(request: Request[AnyContent]): Option[AuthorizationCode] = {
-    import JsonProtocol.authorizationTokenReads
-    JwtCookies.extractCookie(accessSessionKey, request)
-  }
+  def extractAuthCode(request: Request[AnyContent]): Option[AuthorizationCode] =
+    JwtCookies.extractCookie[AuthorizationCode](accessSessionKey, request)
 
-  def extractRefreshToken(request: Request[AnyContent]): Option[RefreshToken] = {
-    import JsonProtocol.refreshTokenFormat
+  def extractRefreshToken(request: Request[AnyContent]): Option[RefreshToken] =
     JwtCookies.extractCookie[RefreshToken](refreshSessionKey, request)
-  }
 
   val discardCookies: List[DiscardingCookie] =
     List(DiscardingCookie(accessSessionKey), DiscardingCookie(refreshSessionKey))

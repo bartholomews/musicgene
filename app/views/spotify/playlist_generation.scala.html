@@ -1,16 +1,16 @@
 @import views.common.Tab
-@import model.music.Song
+@import model.music.AudioTrack
 @import model.music.GeneratedPlaylistResultId
 
 @import model.music.MusicUtil
-@(result: GeneratedPlaylistResultId, songs: List[Song])(implicit requestHeader: RequestHeader)
+@(result: GeneratedPlaylistResultId, audioTracks: List[AudioTrack])(implicit requestHeader: RequestHeader)
     @main(activeTab = Tab.Spotify) {
         <div class="main-section">
             <div class="custom-asd-inline">
                 <h2>Playlist generation: @result.value.toString</h2>
             </div>
             <div>
-            @songs.zipWithIndex.map { case (track, index) =>
+            @audioTracks.zipWithIndex.map { case (track, index) =>
             <table>
                 <tr class="clickable playable" id="@track.id" data-preview="@track.preview_url">
                     <th scope="row">@index</th>

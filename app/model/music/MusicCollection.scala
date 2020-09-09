@@ -3,7 +3,7 @@ package model.music
 /**
   *
   */
-class MusicCollection(val songs: List[Song]) {
+class MusicCollection(val songs: List[AudioTrack]) {
 
   def apply(i: Int) = songs(i)
   def size = songs.size

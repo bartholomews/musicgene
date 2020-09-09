@@ -14,7 +14,7 @@ import model.music._
 import org.http4s.Uri
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc._
-import views.spotify.PlaylistRequest
+import views.spotify.requests.PlaylistRequest
 
 import scala.concurrent.ExecutionContext
 
@@ -122,19 +122,22 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   }
 
   val generatePlaylist: Action[JsValue] = ActionIO.async[JsValue](parse.json) { implicit request =>
-    import controllers.http.JsonProtocol.spotifyIdFormat
+    import controllers.http.codecs.SpotifyCodecs.spotifyIdFormat
     val playlistRequestJson = request.body.validate[PlaylistRequest]
     playlistRequestJson.fold(
-      errors => IO.pure(BadRequest(Json.obj("message" -> JsError.toJson(errors)))),
+      errors => IO.pure(BadRequest(Json.obj(
+        "error" -> "invalid_playlist_request_payload",
+        "message" -> JsError.toJson(errors)))
+      ),
       playlistRequest =>
         // val db = getFromRedisThenMongo(p)
         //        Ok(Json.toJson(PlaylistResponse.fromPlaylist(p)))
-        songsJsonResult(playlistRequest)(request.map(AnyContentAsJson))
+        generatePlaylist(playlistRequest)(request.map(AnyContentAsJson))
       //        songs(playlistRequest.tracks.toSet)(request)
     )
   }
 
-  private def songsJsonResult(playlistRequest: PlaylistRequest)(implicit request: Request[AnyContent]): IO[Result] = {
+  private def generatePlaylist(playlistRequest: PlaylistRequest)(implicit request: Request[AnyContent]): IO[Result] = {
     // FIXME too many ids error on `getTracks` over 50 tracks
     val tracksIds = playlistRequest.tracks.toSet.take(50)
     withToken { implicit accessToken =>
@@ -155,20 +158,20 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
             // MongoController.writeToDB(dbTracks, song) // TODO only if not already there
             audioFeaturesLookup <- getAudioFeaturesResult
               .map(af => af.map(f => Tuple2(f.id, f)).toMap)
-            tracks <- getTracksResult
-            songs = tracks.map { track =>
-              track.id.fold(MusicUtil.toSong(track)) { trackId =>
-                audioFeaturesLookup.get(trackId).fold(MusicUtil.toSong(track))(af => MusicUtil.toSong2(track, af))
+            spotifyTracks <- getTracksResult
+            audioTracks = spotifyTracks.map { track =>
+              track.id.fold(MusicUtil.toAudioTrack(track)) { trackId =>
+                audioFeaturesLookup.get(trackId).fold(MusicUtil.toAudioTrack(track))(af => MusicUtil.toAudioTrack2(track, af))
               }
             }
 
             playlist = GA.generatePlaylist(
-              db = new MusicCollection(songs),
+              db = new MusicCollection(audioTracks),
               c = Set.empty,
               playlistRequest.length
             )
 
-          } yield Ok(Json.toJson(PlaylistResponse.fromPlaylist(playlistRequest.name, playlist))))
+          } yield Ok(Json.toJson(GeneratedPlaylist.fromPlaylist(playlistRequest.name, playlist))))
             .fold(identity, identity)
       })
     }

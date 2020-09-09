@@ -1,14 +1,14 @@
 package model.genetic
 
 import model.constraints.Score
-import model.music.Song
+import model.music.AudioTrack
 
 import scala.util.Random
 
 /**
  * A candidate playlist which gets evaluated over a fitness function
  */
-class Playlist(val songs: List[Song], f: FitnessFunction) {
+class Playlist(val songs: List[AudioTrack], f: FitnessFunction) {
 
   def get(index: Int) = songs(index)
 
@@ -59,7 +59,7 @@ class Playlist(val songs: List[Song], f: FitnessFunction) {
     }
   }
 
-  def randomSwapMutation(arr: Array[Song]): List[Song] = {
+  def randomSwapMutation(arr: Array[AudioTrack]): List[AudioTrack] = {
     val v1 = randomIndex
     val v2 = randomIndex
     val aux = arr(v1)
@@ -68,7 +68,7 @@ class Playlist(val songs: List[Song], f: FitnessFunction) {
     arr.toList
   }
 
-  def indexedMutation(arr: Array[Song]): List[Song] = {
+  def indexedMutation(arr: Array[AudioTrack]): List[AudioTrack] = {
     // shuffle the unmatched indexes
     val weakBucket = Random.shuffle(unmatchedIndexes)
     // each unmatched index might be swapped with another random index of the playlist
@@ -101,7 +101,7 @@ class Playlist(val songs: List[Song], f: FitnessFunction) {
     new Playlist(v1 ++ v2, f)
   }
 
-  def getSongsAtIndex(p: Playlist, indexes: Set[Int]): Vector[Song] =
+  def getSongsAtIndex(p: Playlist, indexes: Set[Int]): Vector[AudioTrack] =
     indexes.map(i => p.songs(i)).toVector
 
 }

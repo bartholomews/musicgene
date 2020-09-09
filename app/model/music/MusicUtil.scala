@@ -10,11 +10,11 @@ import play.api.libs.json.{JsNumber, JsObject, JsString, JsValue}
   */
 object MusicUtil {
 
-  def toJson(songs: Seq[Song]): Seq[JsValue] = songs.map(s => toJson(s))
+  def toJson(tracks: Seq[AudioTrack]): Seq[JsValue] = tracks.map(s => toJson(s))
 
-  def toJson(song: Song): JsValue = JsObject(Seq(
-    "spotify_id" -> JsString(song.id),
-    "attributes" -> JsObject(toJsonAttribute(song.attributes))
+  def toJson(track: AudioTrack): JsValue = JsObject(Seq(
+    "spotify_id" -> JsString(track.id),
+    "attributes" -> JsObject(toJsonAttribute(track.attributes))
   ))
 
   /**
@@ -69,12 +69,12 @@ object MusicUtil {
     }
   }
 
-  def toSongs(songs: Seq[(FullTrack, AudioFeatures)]): Seq[Song] = songs.map(t => toSong2(t._1, t._2))
+  def toSongs(songs: Seq[(FullTrack, AudioFeatures)]): Seq[AudioTrack] = songs.map(t => toAudioTrack2(t._1, t._2))
 
-  def personalSong(t: FullTrack): Song = Song(randomUUID().toString, Set())
+  def personalSong(t: FullTrack): AudioTrack = AudioTrack(randomUUID().toString, Set())
 
-  def toSong2(t: FullTrack, af: AudioFeatures): Song = {
-    Song(t.id.map(_.value).getOrElse("N/A"), // .getOrElse(randomUUID().toString
+  def toAudioTrack2(t: FullTrack, af: AudioFeatures): AudioTrack = {
+    AudioTrack(t.id.map(_.value).getOrElse("N/A"), // .getOrElse(randomUUID().toString
       Set[Attribute](
         Preview_URL(t.previewUrl.map(_.renderString).getOrElse("")),
         Title(t.name),
@@ -97,8 +97,8 @@ object MusicUtil {
     )
   }
 
-  def toSong(t: FullTrack): Song = {
-    Song(t.id.map(_.value).getOrElse("N/A"), // .getOrElse(randomUUID().toString),
+  def toAudioTrack(t: FullTrack): AudioTrack = {
+    AudioTrack(t.id.map(_.value).getOrElse("N/A"), // .getOrElse(randomUUID().toString),
       Set[Attribute](
         Preview_URL(t.previewUrl.map(_.renderString).getOrElse("")),
         Title(t.name),

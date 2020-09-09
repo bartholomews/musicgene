@@ -10,14 +10,14 @@ import play.api.libs.json.{Json, OWrites}
  */
 case class PlaylistRequest(name: String, length: Int, ids: Vector[String], constraints: Set[Constraint])
 
-case class PlaylistResponse(name: String, songs: List[SongResponse])
-object PlaylistResponse {
-  implicit val playlistResponseWrite: OWrites[PlaylistResponse] = Json.writes
-  def fromPlaylist(name: String, p: Playlist): PlaylistResponse =
-    PlaylistResponse(name, p.songs.map(s => SongResponse.fromDomain(s)))
+case class GeneratedPlaylist(name: String, songs: List[AudioTrackResponse])
+object GeneratedPlaylist {
+  implicit val playlistResponseWrite: OWrites[GeneratedPlaylist] = Json.writes
+  def fromPlaylist(name: String, p: Playlist): GeneratedPlaylist =
+    GeneratedPlaylist(name, p.songs.map(s => AudioTrackResponse.fromDomain(s)))
 }
 
-case class SongResponse(
+case class AudioTrackResponse(
   title: Option[String],
   previewUrl: Option[String],
   acousticness: Option[String],
@@ -28,17 +28,17 @@ case class SongResponse(
   tempo: Option[String],
   loudness: Option[String]
 )
-object SongResponse {
-  implicit val songResponseWrite: OWrites[SongResponse] = Json.writes
-  def fromDomain(song: Song): SongResponse = SongResponse(
-    title = song.title,
-    previewUrl = song.preview_url,
-    acousticness = song.acousticness,
-    energy = song.energy,
-    liveness = song.liveness,
-    speechiness = song.speechiness,
-    danceability = song.danceability,
-    tempo = song.tempo,
-    loudness = song.loudness
+object AudioTrackResponse {
+  implicit val audioTrackResponseWrite: OWrites[AudioTrackResponse] = Json.writes
+  def fromDomain(audioTrack: AudioTrack): AudioTrackResponse = AudioTrackResponse(
+    title = audioTrack.title,
+    previewUrl = audioTrack.preview_url,
+    acousticness = audioTrack.acousticness,
+    energy = audioTrack.energy,
+    liveness = audioTrack.liveness,
+    speechiness = audioTrack.speechiness,
+    danceability = audioTrack.danceability,
+    tempo = audioTrack.tempo,
+    loudness = audioTrack.loudness
   )
 }

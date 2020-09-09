@@ -1,4 +1,4 @@
-package views.spotify
+package views.spotify.requests
 
 import io.bartholomews.spotify4s.entities.{FullTrack, SpotifyId}
 import play.api.libs.json.{Json, OFormat}
@@ -13,7 +13,7 @@ case class PlaylistRequest(
 )
 
 object PlaylistRequest {
-  import controllers.http.JsonProtocol.spotifyIdFormat
+  import controllers.http.codecs.SpotifyCodecs.spotifyIdFormat
   implicit val playlistRequestFormat: OFormat[PlaylistRequest] = Json.format
 //  val form: Form[PlaylistRequest] =
 //    Form(
