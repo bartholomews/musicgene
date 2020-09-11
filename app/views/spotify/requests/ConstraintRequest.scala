@@ -6,7 +6,6 @@ import play.api.libs.json.{Json, Reads}
 
 sealed trait ConstraintRequest
 object ConstraintRequest {
-  // https://www.playframework.com/documentation/latest/ScalaJsonAutomated
   implicit val reads: Reads[ConstraintRequest] = withDiscriminator.reads[ConstraintRequest]
 }
 
