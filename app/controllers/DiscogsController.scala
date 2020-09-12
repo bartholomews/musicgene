@@ -30,7 +30,7 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   // TODO: load from config
   private val discogsCallback = Uri.unsafeFromString("http://localhost:9000/discogs/callback")
 
-  val discogsClient: DiscogsClient =
+  val discogsClient: DiscogsClient[IO] =
     DiscogsClient.unsafeFromConfig(SignerType.BasicSignature)
 
   private def hello(signer: SignerV1)(implicit request: Request[AnyContent]): IO[Result] =

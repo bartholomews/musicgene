@@ -23,9 +23,9 @@ resolvers +=
   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 libraryDependencies += guice
-libraryDependencies ++= Seq(
+libraryDependencies ++=  Seq(
   "io.bartholomews" %% "spotify4s" % "0.0.0+57-f0138648-SNAPSHOT",
-  "io.bartholomews" %% "discogs4s" % "0.0.1+4-24187890-SNAPSHOT",
+  "io.bartholomews" %% "discogs4s" % "0.0.1+13-bbb90ce2-SNAPSHOT",
   // https://github.com/pauldijou/jwt-scala/releases
   "com.pauldijou" %% "jwt-play" % "4.2.0",
   // https://mvnrepository.com/artifact/com.adrianhurt/play-bootstrap
