@@ -14,9 +14,10 @@ package object codecs {
         discriminator = "type",
         typeNaming = JsonNaming { fullyQualifiedName =>
           val fr: String = fullyQualifiedName.split("\\.").last
-          fr.head.toLower + fr.tail.foldLeft("") { (acc, curr) =>
-            if (curr.isUpper) acc + "_" + curr.toLower else acc + curr
+          val tail = fr.tail.foldLeft("") { (acc, curr) =>
+            if (curr.isUpper) s"${acc}_${curr.toLower}" else s"$acc$curr"
           }
+          s"${fr.head.toLower}$tail"
         }
       )
     )

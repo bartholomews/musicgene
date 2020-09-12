@@ -73,10 +73,9 @@ object FsClientCodecs {
   implicit val clientPasswordBasicAuthenticationV2Reads: Reads[ClientPasswordBasicAuthenticationV2] =
     (JsPath \ "client_password").read[ClientPassword].map(ClientPasswordBasicAuthenticationV2.apply)
 
+  implicit val accessTokenSignerV2Format: OFormat[AccessTokenSignerV2] = Json.format[AccessTokenSignerV2]
+
   implicit val requestTokenV1Writes: OWrites[RequestToken] = Json.writes[RequestToken]
   implicit val requestTokenV1Reads: Reads[RequestToken] =
     (JsPath \ "token").read[Token].and((JsPath \ "callback_confirmed").read[Boolean])(RequestToken.apply _)
-
-  implicit val signerV2Format: OFormat[SignerV2] = Json.format[SignerV2]
-  implicit val accessTokenSignerV2Format: OFormat[AccessTokenSignerV2] = Json.format[AccessTokenSignerV2]
 }
