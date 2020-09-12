@@ -123,7 +123,6 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   }
 
   val generatePlaylist: Action[JsValue] = ActionIO.async[JsValue](parse.json) { implicit request =>
-    import controllers.http.codecs.SpotifyCodecs.spotifyIdFormat
     val playlistRequestJson = request.body.validate[PlaylistRequest]
     playlistRequestJson.fold(
       errors =>
@@ -134,7 +133,6 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
         // val db = getFromRedisThenMongo(p)
         //        Ok(Json.toJson(PlaylistResponse.fromPlaylist(p)))
         generatePlaylist(playlistRequest)(request.map(AnyContentAsJson))
-      //        songs(playlistRequest.tracks.toSet)(request)
     )
   }
 
@@ -178,7 +176,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
             }
             playlist = GA.generatePlaylist(
               db = new MusicCollection(audioTracks),
-              c = Set.empty,
+              c = playlistRequest.constraints.map(_.toDomain),
               playlistRequest.length
             )
           } yield Ok(Json.toJson(GeneratedPlaylist.fromPlaylist(playlistRequest.name, playlist))))

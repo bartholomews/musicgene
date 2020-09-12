@@ -3,7 +3,8 @@
 @import model.music.GeneratedPlaylistResultId
 
 @import model.music.MusicUtil
-@(result: GeneratedPlaylistResultId, audioTracks: List[AudioTrack])(implicit requestHeader: RequestHeader)
+@import model.music.SpotifyAudioTrackResponse
+@(result: GeneratedPlaylistResultId, audioTracks: List[SpotifyAudioTrackResponse])(implicit requestHeader: RequestHeader)
     @main(activeTab = Tab.Spotify) {
         <div class="main-section">
             <div class="custom-asd-inline">
@@ -12,7 +13,7 @@
             <div>
             @audioTracks.zipWithIndex.map { case (track, index) =>
             <table>
-                <tr class="clickable playable" id="@track.id" data-preview="@track.preview_url">
+                <tr class="clickable playable" id="@track.id" data-preview="@track.previewUrl">
                     <th scope="row">@index</th>
                     <td id="@track.id-title">@track.title</td>
 @*                    <td id="@track.id-duration">@MusicUtil.millisecondsToMinutesAndSeconds(track.duration)</td>*@

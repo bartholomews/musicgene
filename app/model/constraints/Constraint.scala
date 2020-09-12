@@ -8,8 +8,8 @@ import model.music._
   * enforcing to implement an instance of `Attribute`
   * and the score method to evaluate a `Playlist`
   */
-trait Constraint {
-  val that: Attribute
+trait Constraint[A] {
+  def that: Attribute[A]
   def score(p: Playlist): Seq[Score]
 }
 
@@ -18,8 +18,8 @@ trait Constraint {
   *
   * @param that the Attribute to be tested against the Playlist
   */
-case class IncludeAny(that: Attribute) extends Constraint {
-  def score(p: Playlist) = Seq(Score(p.songs.exists(s => s.attributes.contains(that))))
+case class IncludeAny[A](that: Attribute[A]) extends Constraint[A] {
+  def score(p: Playlist) = Seq(Score(p.songs.exists((s: AudioTrack) => s.attributes.contains(that))))
 }
 
 /**
@@ -27,8 +27,15 @@ case class IncludeAny(that: Attribute) extends Constraint {
   *
   * @param that the Attribute to be tested against the Playlist
   */
-case class IncludeAll(that: Attribute) extends Constraint {
-  def score(p: Playlist) = Seq(Score(p.songs.forall(s => s.attributes.contains(that))))
+case class IncludeAll[A](that: Attribute[A]) extends Constraint[A] {
+  def score(p: Playlist): Seq[Score] = {
+    val numberOfMatches = p.songs.count(s => s.attributes.contains(that))
+    Seq(Score(
+      matched = numberOfMatches == p.songs.size,
+      // info = Some(Info(that, index = -1, distance = numberOfMatches / p.songs.size))
+      info = None
+    ))
+  }
 }
 
 /**
@@ -36,7 +43,7 @@ case class IncludeAll(that: Attribute) extends Constraint {
   *
   * @param that the Attribute to be tested against the Playlist
   */
-case class ExcludeAny(that: Attribute) extends Constraint {
+case class ExcludeAny[A](that: Attribute[A]) extends Constraint[A] {
   def score(p: Playlist) = Seq(Score(p.songs.exists(s => !s.attributes.contains(that))))
 }
 
@@ -45,17 +52,18 @@ case class ExcludeAny(that: Attribute) extends Constraint {
   *
   * @param that the Attribute to be tested against the Playlist
   */
-case class ExcludeAll(that: Attribute) extends Constraint {
+case class ExcludeAll[A](that: Attribute[A]) extends Constraint[A] {
   def score(p: Playlist) = Seq(Score(!p.songs.exists(s => s.attributes.contains(that))))
 }
 
 /**
   * Constraint trait which enforces upper and lower bounds
   */
-trait IndexedConstraint extends Constraint {
-  val lo: Int; val hi: Int
+trait IndexedConstraint[A] extends Constraint[A] {
+  def lo: Int
+  def hi: Int
   // check if the bounds are within range for the playlist
-  def inRange(p: Playlist): Boolean = {
+  final def inRange(p: Playlist): Boolean = {
     if (lo >= 0 && hi >= 0 && lo < p.size && hi < p.size && lo <= hi) true
     else throw new IndexOutOfBoundsException("Cannot get index range " + lo + "-" + hi + " of Playlist with size " + p.size)
   }
@@ -68,8 +76,8 @@ trait IndexedConstraint extends Constraint {
   * @param hi the last index of the playlist to test
   * @param that the Attribute to be tested against each index within the bounds
   */
-case class Include(lo: Int, hi: Int, that: Attribute) extends IndexedConstraint {
-  override def score(p: Playlist) = {
+case class Include[A](lo: Int, hi: Int, that: Attribute[A]) extends IndexedConstraint[A] {
+  override def score(p: Playlist): Seq[Score] = {
     for (index <- lo to hi) yield {
       Score(matched = p.songs(index).attributes.contains(that), Some(Info(that, index)))
     }
@@ -83,7 +91,7 @@ case class Include(lo: Int, hi: Int, that: Attribute) extends IndexedConstraint 
   * @param hi the last index of the playlist to test
   * @param that the Attribute to be tested against each index within the bounds
   */
-case class Exclude(lo: Int, hi: Int, that: Attribute) extends IndexedConstraint {
+case class Exclude[A](lo: Int, hi: Int, that: Attribute[A]) extends IndexedConstraint[A] {
   override def score(p: Playlist) = {
     for (index <- lo to hi) yield {
       Score(matched = !p.songs(index).attributes.contains(that), Some(Info(that, index)))
@@ -99,7 +107,7 @@ case class Exclude(lo: Int, hi: Int, that: Attribute) extends IndexedConstraint 
   * @param hi the last index of the playlist to test
   * @param that the Attribute to be tested against each index within the bounds
   */
-case class AdjacentInclude(lo: Int, hi: Int, that: Attribute) extends IndexedConstraint {
+case class AdjacentInclude[A](lo: Int, hi: Int, that: Attribute[A]) extends IndexedConstraint[A] {
   override def score(p: Playlist) = {
     for(index <- lo until hi) yield {
       val info = Some(Info(that, index))
@@ -119,7 +127,7 @@ case class AdjacentInclude(lo: Int, hi: Int, that: Attribute) extends IndexedCon
   * @param hi the last index of the playlist to test
   * @param that the Attribute to be tested against each index within the bounds
   */
-case class AdjacentExclude(lo: Int, hi: Int, that: Attribute) extends IndexedConstraint {
+case class AdjacentExclude[A](lo: Int, hi: Int, that: Attribute[A]) extends IndexedConstraint[A] {
   override def score(p: Playlist) = {
     for(index <- lo until hi) yield {
       val info = Some(Info(that, index))
@@ -134,8 +142,8 @@ case class AdjacentExclude(lo: Int, hi: Int, that: Attribute) extends IndexedCon
 /**
   * Constraint trait which enforces to implement an instance of AudioAttribute
   */
-trait AudioConstraint extends IndexedConstraint {
-  override val that: AudioAttribute
+trait AudioConstraint extends IndexedConstraint[Double] {
+  override def that: AudioAttribute
 }
 
 /**
@@ -261,7 +269,7 @@ case class DecreasingTransition(lo: Int, hi: Int, that: AudioAttribute) extends 
   *
   * @param that the AudioAttribute on which each Song in the range is evaluated on
   */
-case class DecreasingTransitionAll(that: AudioAttribute) extends Constraint {
+case class DecreasingTransitionAll(that: AudioAttribute) extends Constraint[Double] {
   override def score(p: Playlist): Seq[Score] = DecreasingTransition(0, p.songs.length, that).score(p)
 }
 

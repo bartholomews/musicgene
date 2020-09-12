@@ -6,7 +6,7 @@ import model.constraints.{Constraint, Score}
   * Trait to collect the Score values from a Playlist over a Set of Constraints
   */
 trait FitnessFunction {
-  val constraints: Set[Constraint]
+  val constraints: Set[Constraint[_]]
   def score(playlist: Playlist): Seq[Score] = constraints.toSeq.flatMap(c => c.score(playlist))
   def getFitness(playlist: Playlist): Double
   def getDistance(playlist: Playlist): Double = 0.0
@@ -17,7 +17,7 @@ trait FitnessFunction {
   *
   * @param constraints the Set of Constraints to evaluate over a Playlist
   */
-case class CostBasedFitness(constraints: Set[Constraint]) extends FitnessFunction {
+case class CostBasedFitness(constraints: Set[Constraint[_]]) extends FitnessFunction {
   override def getFitness(p: Playlist): Double = {
     if(constraints.isEmpty) 1.0
     else {

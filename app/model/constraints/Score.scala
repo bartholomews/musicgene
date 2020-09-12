@@ -6,5 +6,5 @@ package model.constraints
   * @param matched true if it's a matched Score, false otherwise
   * @param info optional information about the evaluation, default at None
   */
-case class Score(matched: Boolean, info: Option[Info] = None)
+case class Score(matched: Boolean, info: Option[Info[_]] = None)
 

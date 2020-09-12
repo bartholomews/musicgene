@@ -10,13 +10,20 @@ import scala.annotation.tailrec
   */
 object GA {
 
-  def generatePlaylist(db: MusicCollection, c: Set[Constraint], length: Int): Playlist = {
+  def generatePlaylist(db: MusicCollection, c: Set[Constraint[_]], length: Int): Playlist = {
+    println("Generating playlist with cost-based fitness")
+    println(c)
     GA.generatePlaylist(db, CostBasedFitness(c), length)
   }
 
   def generatePlaylist(db: MusicCollection, f: FitnessFunction, length: Int): Playlist = {
-    if (f.constraints.isEmpty) generateRandomPlaylist(db, length, f)
+    if (f.constraints.isEmpty) {
+      println("Generating playlist without constraints")
+      generateRandomPlaylist(db, length, f)
+    }
     else {
+      println("Generating playlist with constraints")
+      println(f.constraints)
       val pop = PopFactory.generatePopulation(db, f, length)
       evolve(pop, 1)
     }
@@ -37,7 +44,10 @@ object GA {
     */
   @tailrec
   private def evolve(pop: Population, generation: Int): Playlist = {
+    println(s"generation: $generation")
+    println(s"popSize: ${pop.popSize}")
     if (generation >= GASettings.maxGen || pop.maxFitness >= GASettings.maxFitness) {
+      println("End of the evolution.")
       pop.fittest
     }
     else evolve(pop.evolve, generation + 1)

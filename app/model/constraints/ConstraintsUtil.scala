@@ -10,7 +10,7 @@ object ConstraintsUtil {
   val tolerance = 0.05
 
   /**
-    * Extract that Attribute value on the track
+    * Extract that Attribute value on the track - FIXME: WTF IS THIS
     *
     * @see http://stackoverflow.com/a/16751674
     * @param s the song whose attribute need to be extracted
@@ -18,7 +18,7 @@ object ConstraintsUtil {
     * @return Some[Double] with the value of the song's Attribute,
     *         None if the song doesn't have that Attribute
     */
-  def extractValue(s: AudioTrack, that: Attribute): Option[Double] = {
+  def extractValue[A](s: AudioTrack, that: Attribute[A]): Option[Double] = {
     s.attributes.find(a => a.getClass == that.getClass) match {
       case None => None
       case Some(attr) => attr.value match {
@@ -37,7 +37,7 @@ object ConstraintsUtil {
     * @return Some(Double, Double) with the values of the songs' Attribute,
     *         None one or both do not have that Attribute
     */
-  def extractValues(s1: AudioTrack, s2: AudioTrack, that: Attribute): Option[(Double, Double)] = {
+  def extractValues[A](s1: AudioTrack, s2: AudioTrack, that: Attribute[A]): Option[(Double, Double)] = {
     extractValue(s1, that) match {
       case None => None
       case Some(x) => extractValue(s2, that) match {

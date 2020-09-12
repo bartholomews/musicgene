@@ -4,7 +4,7 @@ function generatePlaylist(name, length) {
         // TODO
         {
             type: 'include_all',
-            attribute: {type: 'acousticness', confidence: 0.5}
+            attribute: {type: 'tempo', value: 220}
         }
     ]
     const tracks = Array.from(document.getElementsByClassName('spotify-track-row'))

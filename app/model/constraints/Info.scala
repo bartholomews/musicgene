@@ -10,4 +10,5 @@ import model.music.Attribute
   * @param distance the distance result of the evaluation, default at 0.0
   *                 for constraints which do not reason in terms of distance
   */
-case class Info(attr: Attribute, index: Int, distance: Double = 0.0)
+case class Info[A](attr: Attribute[A], index: Int, distance: Double = 0.0)
+
