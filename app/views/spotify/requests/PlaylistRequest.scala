@@ -1,13 +1,13 @@
 package views.spotify.requests
 
 import io.bartholomews.spotify4s.entities.{FullTrack, SpotifyId}
-import play.api.libs.json.{Json, OFormat, Reads}
+import play.api.libs.json.{Json, Reads}
 
 // https://www.playframework.com/documentation/latest/ScalaForms
 case class PlaylistRequest(
   name: String,
   length: Int,
-  tracks: List[SpotifyId],
+  tracks: Set[SpotifyId],
   range: Option[Int],
   constraints: Set[ConstraintRequest]
 )

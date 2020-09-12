@@ -27,6 +27,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
     with play.api.i18n.I18nSupport {
 
   import controllers.http.SpotifyHttpResults._
+  import model.helpers.CollectionsHelpers._
 
   implicit val cs: ContextShift[IO] = IO.contextShift(ec)
   val spotifyClient: SpotifyClient = SpotifyClient.unsafeFromConfig()
@@ -125,10 +126,10 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
     import controllers.http.codecs.SpotifyCodecs.spotifyIdFormat
     val playlistRequestJson = request.body.validate[PlaylistRequest]
     playlistRequestJson.fold(
-      errors => IO.pure(BadRequest(Json.obj(
-        "error" -> "invalid_playlist_request_payload",
-        "message" -> JsError.toJson(errors)))
-      ),
+      errors =>
+        IO.pure(
+          BadRequest(Json.obj("error" -> "invalid_playlist_request_payload", "message" -> JsError.toJson(errors)))
+        ),
       playlistRequest =>
         // val db = getFromRedisThenMongo(p)
         //        Ok(Json.toJson(PlaylistResponse.fromPlaylist(p)))
@@ -137,45 +138,53 @@ class SpotifyController @Inject() (cc: ControllerComponents)(implicit ec: Execut
     )
   }
 
-  private def generatePlaylist(playlistRequest: PlaylistRequest)(implicit request: Request[AnyContent]): IO[Result] = {
-    // FIXME too many ids error on `getTracks` over 50 tracks
-    val tracksIds = playlistRequest.tracks.toSet.take(50)
+  private def generatePlaylist(playlistRequest: PlaylistRequest)(implicit request: Request[AnyContent]): IO[Result] =
     withToken { implicit accessToken =>
       val getTracks: IO[Either[Result, List[FullTrack]]] =
-        spotifyClient.tracks
-          .getTracks(tracksIds, market = None)
-          .map(_.entity.leftMap(errorToJsonResult))
+        playlistRequest.tracks
+          .groupedNes(size = 50)
+          .map(xs =>
+            spotifyClient.tracks
+              .getTracks(xs, market = None)
+              .map(_.entity.leftMap(errorToJsonResult))
+          )
+          .parSequence
+          .map(_.sequence.map(_.flatten))
 
       val getAudioFeatures: IO[Either[Result, List[AudioFeatures]]] =
-        spotifyClient.tracks
-          .getAudioFeatures(tracksIds)
-          .map(_.entity.leftMap(errorToJsonResult))
+        playlistRequest.tracks
+          .groupedNes(size = 100)
+          .map(xs =>
+            spotifyClient.tracks
+              .getAudioFeatures(xs)
+              .map(_.entity.leftMap(errorToJsonResult))
+          )
+          .parSequence
+          .map(_.sequence.map(_.flatten))
 
-      (getTracks, getAudioFeatures).parMapN({
+      Tuple2(getTracks, getAudioFeatures).parMapN({
         case (getTracksResult, getAudioFeaturesResult) =>
           (for {
-
             // MongoController.writeToDB(dbTracks, song) // TODO only if not already there
             audioFeaturesLookup <- getAudioFeaturesResult
               .map(af => af.map(f => Tuple2(f.id, f)).toMap)
             spotifyTracks <- getTracksResult
             audioTracks = spotifyTracks.map { track =>
               track.id.fold(MusicUtil.toAudioTrack(track)) { trackId =>
-                audioFeaturesLookup.get(trackId).fold(MusicUtil.toAudioTrack(track))(af => MusicUtil.toAudioTrack2(track, af))
+                audioFeaturesLookup
+                  .get(trackId)
+                  .fold(MusicUtil.toAudioTrack(track))(af => MusicUtil.toAudioTrack2(track, af))
               }
             }
-
             playlist = GA.generatePlaylist(
               db = new MusicCollection(audioTracks),
               c = Set.empty,
               playlistRequest.length
             )
-
           } yield Ok(Json.toJson(GeneratedPlaylist.fromPlaylist(playlistRequest.name, playlist))))
             .fold(identity, identity)
       })
     }
-  }
 
   def renderGeneratedPlaylist(generatedPlaylistResultId: GeneratedPlaylistResultId): Action[AnyContent] =
     ActionIO.async { implicit request =>
