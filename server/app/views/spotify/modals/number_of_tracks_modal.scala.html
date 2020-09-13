@@ -1,0 +1,27 @@
+@()
+<div class="modal fade" id="modal-tracks" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <a class="close" data-dismiss="modal" aria-label="Close">
+                        <span class="sr-only">Close</span>
+                    </a>
+                    <h4 class="modal-title" id="modal-label">Select number of tracks</h4>
+                </div>
+                <div class="modal-body">
+                    <label>
+                        <input type="number" id="input-length" min="5" max="50"
+                        onkeypress="return isEnterKeyPressed(event, 'submit-length')">
+                    </label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
+                    <button type="button" id="submit-length" class="btn btn-success"
+                    onclick="selectNumberOfTracks()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Number of tracks modal -->

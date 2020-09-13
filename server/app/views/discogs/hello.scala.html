@@ -1,0 +1,16 @@
+@import views.common.Tab
+@import io.bartholomews.discogs4s.entities.UserIdentity
+@import io.bartholomews.musicgene.controllers
+@(user: UserIdentity)(implicit requestHeader: RequestHeader)
+@main(activeTab = Tab.Discogs) {
+    <div class="main-section">
+        <h2>Hello, @user.username</h2>
+        <hr class="horizontal-rule">
+        <form action="@controllers.routes.DiscogsController.logout()">
+            <button class="btn btn-outline-dark"
+            type="submit"
+            formtarget="_blank"
+            onclick="redirect(`@Tab.Home.href.url`)">Revoke app</button>
+        </form>
+    </div>
+}

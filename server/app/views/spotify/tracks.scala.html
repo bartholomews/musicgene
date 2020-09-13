@@ -1,0 +1,136 @@
+@import io.bartholomews.spotify4s.entities.FullTrack
+@import views.common.Tab
+@import io.bartholomews.spotify4s.entities.Page
+@import views.spotify.requests.PlaylistRequest
+
+@import io.bartholomews.musicgene.model.music.MusicUtil
+@(tracksPage: Page[FullTrack])(implicit requestHeader: RequestHeader, messages: Messages)
+    @css = @{
+        List(
+            routes.Assets.versioned("stylesheets/common/c3.min.css"),
+            routes.Assets.versioned("stylesheets/common/c3.min.css"),
+            routes.Assets.versioned("stylesheets/spotify/tracks.css")
+        )
+    }
+
+    @js = @{
+        List(
+            routes.Assets.versioned("js/common/player.js"),
+            routes.Assets.versioned("js/common/fetch.js"),
+            routes.Assets.versioned("js/common/d3.min.js"),
+            routes.Assets.versioned("js/common/c3.min.js"),
+            routes.Assets.versioned("js/spotify/tracks.js"),
+            routes.Assets.versioned("js/spotify/charts.js"),
+        )
+    }
+
+    @main(activeTab = Tab.Spotify, styles = css, scripts = js) {
+        <div class="container">
+            <h1>
+                <span id="playlist-title">Tracks</span>
+            </h1>
+            <p id="playlist-paragraph">Select restriction on the playlist to be generated.
+                Click on a track to listen to a short preview.
+                After sending a request, a new playlist will return shortly,
+                together with the plotting of its audio analysis features.
+            </p>
+            <div>
+                    <!-- https://www.playframework.com/documentation/latest/ScalaForms -->
+                @* @helper.form(action = routes.SpotifyController.generatePlaylist) {*@
+                @* @CSRF.formField*@
+                @* @inputText(PlaylistRequest.form("name"))*@
+                @* @(PlaylistRequest.form("name"))*@
+                @* @helper.input(PlaylistRequest.form("range")) { (id, name, value, args) =>*@
+                @* <label for="playlist-size"></label>*@
+                @* <input type="number" id="playlist-size">*@
+                @* }*@
+                @* }*@
+            </div>
+            <button
+            type="button"
+            onclick="generatePlaylist('My playlist', 20)"
+            class="btn btn-outline-dark"
+            data-toggle="modal"
+            data-target="#modal-playlistName">Generate
+            </button>
+
+            <div class="chart" id="confidence-chart"></div>
+            <div class="chart" id="bpm-db-chart"></div>
+
+                <!-- Constraints area: an inline div  -->
+                @*
+                <div class="constraints">
+                <div id="constraints-firstLine" class="inline">
+                <p class="inline" id="constraints-firstLine-1">A</p>
+                <button type="button" class="btn btn-secondary btn-lg" id="length" value="10"
+                data-toggle="modal" data-target="#modal-tracks">10 tracks</button>
+                <p class="inline" id="constraints-firstLine-2">playlist with no constraints</p>
+                </div>
+                <ul id="input-constraints" data-clean="true">
+                <!-- here javaScript will dynamically add <p> elements -->
+                </ul>
+                </div>
+                <br/>
+                <!-- Dropdown button Constraints modal -->
+                <!-- MonotonicValue constraints -->
+                <button type="button" class="btn btn-primary" id="monotonicValue-constraints-button"
+                data-toggle="modal" data-target="#modal-monotonicValue">
+                VALUE CONSTRAINTS</button>
+                <!-- MonotonicTransition constraints -->
+                <button type="button" class="btn btn-primary" id="monotonicTransition-constraints-button"
+                data-toggle="modal" data-target="#modal-monotonicTransition">
+                SORT CONSTRAINTS</button>
+                <!-- IndexedConstraint (e.g. Include, Exclude) -->
+                <button type="button" class="btn btn-primary" id="indexedConstraint-constraints-button"
+                data-toggle="modal" data-target="#modal-indexedConstraint">
+                TEXTUAL CONSTRAINTS</button>
+                <br/><br/>
+                <button type="button" class="btn btn-primary" id="reset-constraints"
+                onclick="resetConstraints()">CLEAR CONSTRAINTS</button>
+                </div>
+                *@
+
+                @*
+                <div class="container">
+                <!--Generated playlist chart with C3.js -->
+                <div id="playlist-chart"></div>
+                <!-- Generated playlist float chart with C3.js -->
+                <div id="playlist-float-chart"></div>
+                </div>
+                *@
+                <!-- Existing Music collection -->
+            <div class="container">
+                <div class="music-collection" id="music-collection">
+                    <table class="table table-responsive table-hover table-sm" id="music-collection-table">
+                        <thead>
+                            <tr>
+                                <th>Duration</th>
+                                <th>Title</th>
+                                <th>Artist</th>
+                                <th>Album</th>
+                            </tr>
+                        </thead>
+                        <tbody class="music-collection-tbody">
+                        @tracksPage.items.map { track =>
+                            <tr class="@PlaylistRequest.trackRowClassNames(track)"
+                            id="@track.id.map(_.value)" data-preview="@track.previewUrl.map(_.renderString).getOrElse("")">
+                                <th scope="row">@MusicUtil.millisecondsToMinutesAndSeconds(track.durationMs)</th>
+                                <td id="@track.id-title">@track.name</td>
+                                <td id="@track.id-artist">@track.artists.map(_.name).mkString(", ")</td>
+                                <td id="@track.id-album">@track.album.name</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+                <!-- /Existing Music collection -->
+
+                <!-- Newly generated playlist - via createNewPlaylistTable()-->
+                @* <div class="container">*@
+                @* <div class="new-playlist" id="new-playlist">*@
+                @* <table class="table table-responsive table-hover" id="new-playlist-table">*@
+                @* <thead>*@
+                <!-- /Newly generated playlist -->
+        </div>
+    }
