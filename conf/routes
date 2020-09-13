@@ -7,17 +7,17 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # An example controller showing a sample home page
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-GET         /                                            controllers.HomeController.index
-GET         /discogs/hello                               controllers.DiscogsController.hello
-GET         /discogs/callback                            controllers.DiscogsController.callback
-GET         /discogs/logout                              controllers.DiscogsController.logout
-GET         /spotify/hello                               controllers.SpotifyController.hello
-GET         /spotify/callback                            controllers.SpotifyController.callback
-GET         /spotify/logout                              controllers.SpotifyController.logout
-GET         /spotify/:userId/playlists                   controllers.SpotifyController.playlists(userId: io.bartholomews.spotify4s.entities.SpotifyUserId, page: Int ?= 1)
-GET         /spotify/playlists/:playlistId/tracks        controllers.SpotifyController.tracks(playlistId: io.bartholomews.spotify4s.entities.SpotifyId)
-POST        /spotify/playlist/generate                   controllers.SpotifyController.generatePlaylist
-GET         /spotify/playlist/generate/:id               controllers.SpotifyController.renderGeneratedPlaylist(id: views.spotify.responses.GeneratedPlaylistResultId)
+GET         /                                            io.bartholomews.musicgene.controllers.HomeController.index
+GET         /discogs/hello                               io.bartholomews.musicgene.controllers.DiscogsController.hello
+GET         /discogs/callback                            io.bartholomews.musicgene.controllers.DiscogsController.callback
+GET         /discogs/logout                              io.bartholomews.musicgene.controllers.DiscogsController.logout
+GET         /spotify/hello                               io.bartholomews.musicgene.controllers.SpotifyController.hello
+GET         /spotify/callback                            io.bartholomews.musicgene.controllers.SpotifyController.callback
+GET         /spotify/logout                              io.bartholomews.musicgene.controllers.SpotifyController.logout
+GET         /spotify/:userId/playlists                   io.bartholomews.musicgene.controllers.SpotifyController.playlists(userId: SpotifyUserId, page: Int ?= 1)
+GET         /spotify/playlists/:playlistId/tracks        io.bartholomews.musicgene.controllers.SpotifyController.tracks(playlistId: SpotifyId)
+POST        /spotify/playlist/generate                   io.bartholomews.musicgene.controllers.SpotifyController.generatePlaylist
+GET         /spotify/playlist/generate/:id               io.bartholomews.musicgene.controllers.SpotifyController.renderGeneratedPlaylist(id: GeneratedPlaylistResultId)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Map static resources from the /public folder to the /assets URL path

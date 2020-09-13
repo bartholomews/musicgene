@@ -1,4 +1,5 @@
 @import io.bartholomews.spotify4s.entities.SimplePlaylist
+@import io.bartholomews.musicgene.controllers
 @import views.common.Tab
 
 @(title: String, playlists: Seq[SimplePlaylist], page: Int)(implicit requestHeader: RequestHeader)
@@ -26,7 +27,7 @@
             </thead>
                 <!-- TODO you already have tracks here, should probl collapse and show them -->
             <tbody class="music-collection-tbody">@playlists.zipWithIndex.map { case (p, index) =>
-            <tr class="clickable" onclick="redirect(`@routes.SpotifyController.tracks(p.id).url`)">
+            <tr class="clickable" onclick="redirect(`@controllers.routes.SpotifyController.tracks(p.id).url`)">
                     <th scope="row">@index</th>
                     <td>@p.name</td>
                     <td>@p.description.getOrElse("-")</td>

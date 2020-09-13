@@ -1,6 +1,6 @@
 @import views.common.Tab
-@import model.music.AudioTrack
-@import model.music.MusicUtil
+@import io.bartholomews.musicgene.model.music.AudioTrack
+@import io.bartholomews.musicgene.model.music.MusicUtil
 @import views.spotify.responses.{GeneratedPlaylistResultId, SpotifyAudioTrackResponse}
 @(result: GeneratedPlaylistResultId, audioTracks: List[SpotifyAudioTrackResponse])(implicit requestHeader: RequestHeader)
     @main(activeTab = Tab.Spotify) {

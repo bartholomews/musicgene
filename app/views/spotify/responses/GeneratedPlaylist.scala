@@ -1,7 +1,7 @@
 package views.spotify.responses
 
-import model.genetic.Playlist
-import model.music.{Acousticness, Album, Artist, AudioTrack, Danceability, Energy, Liveness, Loudness, PreviewUrl, Speechiness, Tempo, Title}
+import io.bartholomews.musicgene.model.genetic.Playlist
+import io.bartholomews.musicgene.model.music.{Acousticness, Album, Artist, AudioTrack, Danceability, Energy, Liveness, Loudness, PreviewUrl, Speechiness, Tempo, Title}
 import play.api.libs.json.{Json, OWrites}
 
 case class GeneratedPlaylist(name: String,

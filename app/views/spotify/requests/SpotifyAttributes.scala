@@ -1,11 +1,11 @@
 package views.spotify.requests
 
-import controllers.http.codecs.withDiscriminator
-import model.{constraints, music}
+import io.bartholomews.musicgene.controllers.http.codecs.withDiscriminator
+import io.bartholomews.musicgene.model.{constraints, music}
 import play.api.libs.json.{Json, Reads}
 
 sealed trait SpotifyAttributes {
-  def toDomain: model.constraints.Constraint[_]
+  def toDomain: constraints.Constraint[_]
 }
 
 object SpotifyAttributes {
@@ -16,19 +16,19 @@ object SpotifyAttributes {
 // FIXME: Try to use the model entity straight away
 // All songs must include `attribute`
 case class IncludeAll(attribute: AttributeRequest) extends SpotifyAttributes {
-  override def toDomain: model.constraints.Constraint[_] = attribute match {
+  override def toDomain: constraints.Constraint[_] = attribute match {
     case Acousticness(value) =>
-      model.constraints.IncludeAll(music.Acousticness(value))
+      constraints.IncludeAll(music.Acousticness(value))
 
     case Tempo(value, min, max) =>
-      model.constraints.DecreasingTransition(
+      constraints.DecreasingTransition(
         lo = 0,
         hi = 10,
         that = music.Tempo(value, min.getOrElse(0.0), max.getOrElse(240))
       )
 
     case Loudness(value, min, max) =>
-      model.constraints.IncludeAll(music.Loudness(value, min.getOrElse(-60.0), max.getOrElse(0.0)))
+      constraints.IncludeAll(music.Loudness(value, min.getOrElse(-60.0), max.getOrElse(0.0)))
   }
 }
 object IncludeAll {
@@ -37,7 +37,6 @@ object IncludeAll {
 
 sealed trait AttributeRequest
 object AttributeRequest {
-  import controllers.http.codecs._
   implicit val reads: Reads[AttributeRequest] =
     withDiscriminator.reads[AttributeRequest]
 }

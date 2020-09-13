@@ -1,3 +1,5 @@
+const jsRoutesControllers = jsRoutes.io.bartholomews.musicgene.controllers
+
 function redirect(href) {
     location.href = href;
 }

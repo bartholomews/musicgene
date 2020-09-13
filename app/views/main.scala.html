@@ -3,7 +3,7 @@
 @(activeTab: Tab, styles: List[Call] = List.empty, scripts: List[Call] = List.empty)(content: Html)(implicit requestHeader: RequestHeader)
     @* https://www.playframework.com/documentation/latest/ScalaJavascriptRouting *@
     @helper.javascriptRouter("jsRoutes")(
-        routes.javascript.SpotifyController.generatePlaylist,
+        io.bartholomews.musicgene.controllers.routes.javascript.SpotifyController.generatePlaylist,
     )
 <!DOCTYPE html>
     <html lang="en">

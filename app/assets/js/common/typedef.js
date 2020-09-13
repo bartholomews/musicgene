@@ -1,6 +1,6 @@
 /**
  @typedef jsRoutes
- @property controllers
+ @property io.bartholomews.musicgene.controllers
  */
 
 /**

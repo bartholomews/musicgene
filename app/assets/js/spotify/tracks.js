@@ -1,5 +1,5 @@
 function generatePlaylist(name, length) {
-    const route = jsRoutes.controllers.SpotifyController.generatePlaylist();
+    const route = jsRoutesControllers.SpotifyController.generatePlaylist();
     const constraints = [
         // TODO
         {
