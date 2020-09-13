@@ -19,4 +19,4 @@ function generatePlaylist(name, length) {
                     generateBpmDbChart(playlistResponse.songs)
                 }
     );
-}g
+}

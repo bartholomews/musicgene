@@ -2,47 +2,49 @@ package io.bartholomews.musicgene.controllers
 
 import cats.data.EitherT
 import cats.effect.{ContextShift, IO}
+import cats.implicits._
 import com.google.inject.Inject
-<<<<<<< HEAD:server/app/io.bartholomews.musicgene/controllers/DiscogsController.scala
-import io.bartholomews.musicgene.controllers.http.DiscogsCookies
-import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs._
-=======
->>>>>>> 45d698521366e6ca02d3dfa73e89182be6a6da13:server/app/io/bartholomews/musicgene/controllers/DiscogsController.scala
 import io.bartholomews.discogs4s.DiscogsClient
+import io.bartholomews.discogs4s.endpoints.DiscogsAuthEndpoint
 import io.bartholomews.discogs4s.entities.RequestToken
-import io.bartholomews.fsclient.entities.oauth.{AccessTokenCredentials, SignerV1, TokenCredentials}
 import io.bartholomews.fsclient.entities.oauth.v1.OAuthV1AuthorizationFramework.SignerType
+import io.bartholomews.fsclient.entities.oauth.{
+  AccessTokenCredentials,
+  SignerV1,
+  TokenCredentials
+}
 import io.bartholomews.musicgene.controllers.http.DiscogsCookies
 import javax.inject._
 import org.http4s.Uri
 import play.api.mvc._
-import cats.implicits._
-import io.bartholomews.discogs4s.endpoints.DiscogsAuthEndpoint
 
 import scala.concurrent.ExecutionContext
 
 /**
- *
- */
+  *
+  */
 @Singleton
-class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: ExecutionContext)
-    extends AbstractControllerIO(cc) {
+class DiscogsController @Inject()(cc: ControllerComponents)(
+  implicit ec: ExecutionContext
+) extends AbstractControllerIO(cc) {
 
-<<<<<<< HEAD:server/app/io.bartholomews.musicgene/controllers/DiscogsController.scala
-=======
-  import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs._
->>>>>>> 45d698521366e6ca02d3dfa73e89182be6a6da13:server/app/io/bartholomews/musicgene/controllers/DiscogsController.scala
   import io.bartholomews.musicgene.controllers.http.DiscogsHttpResults._
+  import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs._
   implicit val cs: ContextShift[IO] = IO.contextShift(ec)
 
   // TODO: load from config
-  private val discogsCallback = Uri.unsafeFromString("http://localhost:9000/discogs/callback")
+  private val discogsCallback =
+    Uri.unsafeFromString("http://localhost:9000/discogs/callback")
 
   val discogsClient: DiscogsClient[IO] =
     DiscogsClient.unsafeFromConfig(SignerType.BasicSignature)
 
-  private def hello(signer: SignerV1)(implicit request: Request[AnyContent]): IO[Result] =
-    discogsClient.auth.me(signer).map(_.toResult(me => Ok(views.html.discogs.hello(me))))
+  private def hello(
+    signer: SignerV1
+  )(implicit request: Request[AnyContent]): IO[Result] =
+    discogsClient.auth
+      .me(signer)
+      .map(_.toResult(me => Ok(views.html.discogs.hello(me))))
 
   def hello(): Action[AnyContent] = ActionIO.async { implicit request =>
     withToken(hello)
@@ -54,7 +56,9 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
       .map(hello)
       .getOrElse {
 
-        val maybeUri = Uri.fromString(s"${requestHost(request)}/${request.uri.stripPrefix("/")}")
+        val maybeUri = Uri.fromString(
+          s"${requestHost(request)}/${request.uri.stripPrefix("/")}"
+        )
 
         def extractSessionRequestToken: Either[Result, RequestToken] =
           DiscogsCookies
@@ -68,13 +72,17 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
           callbackUri <- EitherT.fromEither[IO](
             maybeUri.leftMap(parseFailure => badRequest(parseFailure.details))
           )
-          maybeAccessToken <- EitherT.liftF(discogsClient.auth.fromUri(requestToken, callbackUri))
-          accessTokenCredentials <- EitherT.fromEither[IO](maybeAccessToken.entity.leftMap(errorToResult))
+          maybeAccessToken <- EitherT
+            .liftF(discogsClient.auth.fromUri(requestToken, callbackUri))
+          accessTokenCredentials <- EitherT
+            .fromEither[IO](maybeAccessToken.entity.leftMap(errorToResult))
         } yield accessTokenCredentials).value
           .flatMap(
             _.fold(
               errorResult => IO.pure(errorResult),
-              signer => hello(signer).map(_.withCookies(DiscogsCookies.accessCookie(signer)))
+              signer =>
+                hello(signer)
+                  .map(_.withCookies(DiscogsCookies.accessCookie(signer)))
             )
           )
       }
@@ -92,13 +100,15 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   }
 
   /**
-   * Redirect a user to authenticate with Discogs and grant permissions to the application
-   *
-   * @return a Redirect Action (play.api.mvc.Action type is a wrapper around the type `Request[A] => Result`,
-   */
+    * Redirect a user to authenticate with Discogs and grant permissions to the application
+    *
+    * @return a Redirect Action (play.api.mvc.Action type is a wrapper around the type `Request[A] => Result`,
+    */
   private def authenticate(implicit request: Request[AnyContent]): IO[Result] =
     discogsClient.auth
-      .getRequestToken(discogsClient.temporaryCredentialsRequest(discogsCallback))
+      .getRequestToken(
+        discogsClient.temporaryCredentialsRequest(discogsCallback)
+      )
       .map(
         _.entity
           .fold(
@@ -110,7 +120,9 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
       )
 
   // http://pauldijou.fr/jwt-scala/samples/jwt-play/
-  def withToken[A](f: SignerV1 => IO[Result])(implicit request: Request[AnyContent]): IO[Result] =
+  def withToken[A](
+    f: SignerV1 => IO[Result]
+  )(implicit request: Request[AnyContent]): IO[Result] =
     DiscogsCookies.extract[AccessTokenCredentials](request) match {
       case None              => authenticate(request)
       case Some(accessToken) => f(accessToken)

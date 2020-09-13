@@ -2,31 +2,20 @@ package io.bartholomews.musicgene.controllers
 
 import cats.data.EitherT
 import cats.effect.{ContextShift, IO}
-import com.google.inject.Inject
-<<<<<<< HEAD:server/app/io.bartholomews.musicgene/controllers/SpotifyController.scala
-import io.bartholomews.musicgene.controllers.http.SpotifyCookies
-import eu.timepit.refined.api.Refined
-import io.bartholomews.fsclient.entities.oauth.{AuthorizationCode, SignerV2}
-=======
->>>>>>> 45d698521366e6ca02d3dfa73e89182be6a6da13:server/app/io/bartholomews/musicgene/controllers/SpotifyController.scala
-import io.bartholomews.spotify4s.SpotifyClient
-import javax.inject._
-<<<<<<< HEAD:server/app/io.bartholomews.musicgene/controllers/SpotifyController.scala
-import io.bartholomews.musicgene.model.genetic.GA
-import io.bartholomews.musicgene.model.music._
-=======
->>>>>>> 45d698521366e6ca02d3dfa73e89182be6a6da13:server/app/io/bartholomews/musicgene/controllers/SpotifyController.scala
-import org.http4s.Uri
-import play.api.libs.json.{JsError, JsValue, Json}
-import play.api.mvc._
 import cats.implicits._
+import com.google.inject.Inject
 import eu.timepit.refined.api.Refined
 import io.bartholomews.fsclient.entities.oauth.{AuthorizationCode, SignerV2}
 import io.bartholomews.musicgene.controllers.http.SpotifyCookies
 import io.bartholomews.musicgene.model.genetic.GA
 import io.bartholomews.musicgene.model.music.{MusicCollection, MusicUtil}
+import io.bartholomews.spotify4s.SpotifyClient
 import io.bartholomews.spotify4s.api.SpotifyApi.{Limit, Offset}
 import io.bartholomews.spotify4s.entities.{AudioFeatures, FullTrack, SpotifyId, SpotifyUserId}
+import javax.inject._
+import org.http4s.Uri
+import play.api.libs.json.{JsError, JsValue, Json}
+import play.api.mvc._
 import views.spotify.requests.PlaylistRequest
 import views.spotify.responses.{GeneratedPlaylist, GeneratedPlaylistResultId}
 
@@ -41,9 +30,9 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
 ) extends AbstractControllerIO(cc)
     with play.api.i18n.I18nSupport {
 
+  import eu.timepit.refined.auto.autoRefineV
   import io.bartholomews.musicgene.controllers.http.SpotifyHttpResults._
   import io.bartholomews.musicgene.model.helpers.CollectionsHelpers._
-  import eu.timepit.refined.auto.autoRefineV
 
   implicit val cs: ContextShift[IO] = IO.contextShift(ec)
   val spotifyClient: SpotifyClient = SpotifyClient.unsafeFromConfig()
