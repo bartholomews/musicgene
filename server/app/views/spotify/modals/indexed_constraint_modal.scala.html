@@ -1,0 +1,58 @@
+@()
+<div class="modal fade" id="modal-indexedConstraint" tabindex="-1"
+role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </a>
+                <h4 class="modal-title" id="modal-label">Add a textual constraint</h4>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <strong>TRACK#:</strong>&nbsp;&nbsp;&nbsp;
+                        </div>
+                        <div class="row">
+                            <div class=col-lg-12>   "col-xs-8 col-sm-6">
+                                <div id="slider-indexedConstraint-div">
+                                    <label for="slider-indexedConstraint"></label><input id="slider-indexedConstraint" type="text">
+                                    <input type="hidden" id="slider-indexedConstraint-from" name="slider-from" value="1">
+                                    <input type="hidden" id="slider-indexedConstraint-to" name="slider-to" value="1">
+                                </div>
+                            </div>
+                        </div>
+                        <br/>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="radio-Include" class="radio-inline"><input type="radio" id="radio-Include" name="indexedConstraint" value="Include" checked="checked">
+                                include</label>
+                            <label for="radio-Exclude" class="radio-inline"><input type="radio" id="radio-Exclude" name="indexedConstraint" value="Exclude">
+                                exclude</label>
+                            <label for="indexedConstraint-attr-select"></label><select class="form-control" id="indexedConstraint-attr-select">
+                            <option id="indexedConstraint-title" class="submitModal" value="Title">Title</option>
+                            <option id="indexedConstraint-artist" value="Artist">Artist</option>
+                            <option id="indexedConstraint-album" value="Album">Album</option>
+                        </select>
+                            <br/>
+                            <label class="inline" for="unary-input">
+                                <input type="text" class="inline" id="indexedConstraint-input"
+                                onkeypress="return isEnterKeyPressed(event, 'indexedConstraint')">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Undo</button>
+                <button type="button" class="btn btn-primary" id="indexedConstraint"
+                onclick="saveModal('indexedConstraint')">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

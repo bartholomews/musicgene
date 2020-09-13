@@ -1,0 +1,23 @@
+@import views.common.Tab
+@import io.bartholomews.musicgene.controllers
+@import io.bartholomews.spotify4s.entities.PrivateUser
+
+@(user: PrivateUser)(implicit requestHeader: RequestHeader)
+@main(activeTab = Tab.Spotify) {
+    <div class="main-section">
+        <div class="custom-asd-inline">
+            <h2>Hello, @user.displayName.getOrElse(user.id)</h2>
+        </div>
+        <hr class="horizontal-rule">
+            <!-- TODO: https://www.playframework.com/documentation/2.8.x/ScalaForms -->
+        <div class="btn-group">
+            <!-- TODO: pagination -->
+            <form action = "@controllers.routes.SpotifyController.playlists(user.id)">
+                <button class="btn btn-outline-dark">Get Your Playlists</button>
+            </form>
+            <form action="@controllers.routes.SpotifyController.logout()">
+                <button class="btn btn-outline-dark" type="submit">Revoke app</button>
+            </form>
+        </div>
+    </div>
+}
