@@ -22,7 +22,7 @@ case class IncludeAll(attribute: AttributeRequest) extends SpotifyAttributes {
 
     case Tempo(value, min, max) =>
       model.constraints.DecreasingTransition(
-        lo = 1,
+        lo = 0,
         hi = 10,
         that = music.Tempo(value, min.getOrElse(0.0), max.getOrElse(240))
       )

@@ -1,17 +1,8 @@
-package model.music
+package views.spotify.responses
 
-import model.constraints.Constraint
 import model.genetic.Playlist
+import model.music.{Acousticness, Album, Artist, AudioTrack, Danceability, Energy, Liveness, Loudness, PreviewUrl, Speechiness, Tempo, Title}
 import play.api.libs.json.{Json, OWrites}
-
-/**
-  * A Playlist request contains the name of the playlist, the length,
-  * an ordered sequence of String IDs and a Set of Constraints
-  */
-case class PlaylistRequest(name: String,
-                           length: Int,
-                           ids: Vector[String],
-                           constraints: Set[Constraint[_]])
 
 case class GeneratedPlaylist(name: String,
                              songs: List[SpotifyAudioTrackResponse])

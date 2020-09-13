@@ -15,8 +15,9 @@ lazy val root = (project in file("."))
 scalaVersion := "2.13.2"
 
 routesImport ++= Seq(
+  "views.spotify.responses._",
   "io.bartholomews.spotify4s.entities._",
-  "model.music.GeneratedPlaylistResultId"
+  "views.spotify.responses.GeneratedPlaylistResultId"
 )
 
 resolvers +=
@@ -24,7 +25,7 @@ resolvers +=
 
 libraryDependencies += guice
 libraryDependencies ++=  Seq(
-  "io.bartholomews" %% "spotify4s" % "0.0.0+57-f0138648-SNAPSHOT",
+  "io.bartholomews" %% "spotify4s" % "0.0.0+57-1741a301-SNAPSHOT",
   "io.bartholomews" %% "discogs4s" % "0.0.1+13-bbb90ce2-SNAPSHOT",
   // https://github.com/pauldijou/jwt-scala/releases
   "com.pauldijou" %% "jwt-play" % "4.2.0",

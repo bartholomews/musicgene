@@ -1,7 +1,7 @@
 @import io.bartholomews.spotify4s.entities.SimplePlaylist
 @import views.common.Tab
 
-@(title: String, playlists: Seq[SimplePlaylist])(implicit requestHeader: RequestHeader)
+@(title: String, playlists: Seq[SimplePlaylist], page: Int)(implicit requestHeader: RequestHeader)
 @css = @{List(
     routes.Assets.versioned("stylesheets/spotify/playlists.css")
 )}

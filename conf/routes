@@ -14,10 +14,10 @@ GET         /discogs/logout                              controllers.DiscogsCont
 GET         /spotify/hello                               controllers.SpotifyController.hello
 GET         /spotify/callback                            controllers.SpotifyController.callback
 GET         /spotify/logout                              controllers.SpotifyController.logout
-GET         /spotify/:userId/playlists                   controllers.SpotifyController.playlists(userId: io.bartholomews.spotify4s.entities.SpotifyUserId)
+GET         /spotify/:userId/playlists                   controllers.SpotifyController.playlists(userId: io.bartholomews.spotify4s.entities.SpotifyUserId, page: Int ?= 1)
 GET         /spotify/playlists/:playlistId/tracks        controllers.SpotifyController.tracks(playlistId: io.bartholomews.spotify4s.entities.SpotifyId)
 POST        /spotify/playlist/generate                   controllers.SpotifyController.generatePlaylist
-GET         /spotify/playlist/generate/:id               controllers.SpotifyController.renderGeneratedPlaylist(id: model.music.GeneratedPlaylistResultId)
+GET         /spotify/playlist/generate/:id               controllers.SpotifyController.renderGeneratedPlaylist(id: views.spotify.responses.GeneratedPlaylistResultId)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Map static resources from the /public folder to the /assets URL path

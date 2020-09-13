@@ -1,4 +1,4 @@
-package model.music
+package views.spotify.responses
 
 import java.util.UUID
 

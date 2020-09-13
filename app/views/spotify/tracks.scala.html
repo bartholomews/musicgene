@@ -3,6 +3,7 @@
 @import views.common.Tab
 @import io.bartholomews.spotify4s.entities.Page
 @import views.spotify.requests.PlaylistRequest
+
 @(tracksPage: Page[FullTrack])(implicit requestHeader: RequestHeader, messages: Messages)
     @css = @{
         List(
