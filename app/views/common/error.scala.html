@@ -1,8 +1,0 @@
-@import views.common.Tab
-@(error: String, tab: Tab)(implicit requestHeader: RequestHeader)
-
-@main(activeTab = tab) {
-    <div class="main-section">
-        <h4>@error</h4>
-    </div>
-}

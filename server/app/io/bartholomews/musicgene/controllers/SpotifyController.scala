@@ -3,8 +3,24 @@ package io.bartholomews.musicgene.controllers
 import cats.data.EitherT
 import cats.effect.{ContextShift, IO}
 import com.google.inject.Inject
+<<<<<<< HEAD
 import io.bartholomews.spotify4s.SpotifyClient
 import javax.inject._
+=======
+<<<<<<< HEAD:server/app/io.bartholomews.musicgene/controllers/SpotifyController.scala
+import io.bartholomews.musicgene.controllers.http.SpotifyCookies
+import eu.timepit.refined.api.Refined
+import io.bartholomews.fsclient.entities.oauth.{AuthorizationCode, SignerV2}
+=======
+>>>>>>> 45d698521366e6ca02d3dfa73e89182be6a6da13:server/app/io/bartholomews/musicgene/controllers/SpotifyController.scala
+import io.bartholomews.spotify4s.SpotifyClient
+import javax.inject._
+<<<<<<< HEAD:server/app/io.bartholomews.musicgene/controllers/SpotifyController.scala
+import io.bartholomews.musicgene.model.genetic.GA
+import io.bartholomews.musicgene.model.music._
+=======
+>>>>>>> 45d698521366e6ca02d3dfa73e89182be6a6da13:server/app/io/bartholomews/musicgene/controllers/SpotifyController.scala
+>>>>>>> 45d698521366e6ca02d3dfa73e89182be6a6da13
 import org.http4s.Uri
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc._

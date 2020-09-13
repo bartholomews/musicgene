@@ -2,18 +2,22 @@ package io.bartholomews.musicgene.controllers
 
 import cats.data.EitherT
 import cats.effect.{ContextShift, IO}
-import cats.implicits._
 import com.google.inject.Inject
+<<<<<<< HEAD:server/app/io.bartholomews.musicgene/controllers/DiscogsController.scala
 import io.bartholomews.musicgene.controllers.http.DiscogsCookies
 import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs._
+=======
+>>>>>>> 45d698521366e6ca02d3dfa73e89182be6a6da13:server/app/io/bartholomews/musicgene/controllers/DiscogsController.scala
 import io.bartholomews.discogs4s.DiscogsClient
-import io.bartholomews.discogs4s.endpoints.DiscogsAuthEndpoint
 import io.bartholomews.discogs4s.entities.RequestToken
-import io.bartholomews.fsclient.entities.oauth.v1.OAuthV1AuthorizationFramework.SignerType
 import io.bartholomews.fsclient.entities.oauth.{AccessTokenCredentials, SignerV1, TokenCredentials}
+import io.bartholomews.fsclient.entities.oauth.v1.OAuthV1AuthorizationFramework.SignerType
+import io.bartholomews.musicgene.controllers.http.DiscogsCookies
 import javax.inject._
 import org.http4s.Uri
 import play.api.mvc._
+import cats.implicits._
+import io.bartholomews.discogs4s.endpoints.DiscogsAuthEndpoint
 
 import scala.concurrent.ExecutionContext
 
@@ -24,6 +28,10 @@ import scala.concurrent.ExecutionContext
 class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: ExecutionContext)
     extends AbstractControllerIO(cc) {
 
+<<<<<<< HEAD:server/app/io.bartholomews.musicgene/controllers/DiscogsController.scala
+=======
+  import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs._
+>>>>>>> 45d698521366e6ca02d3dfa73e89182be6a6da13:server/app/io/bartholomews/musicgene/controllers/DiscogsController.scala
   import io.bartholomews.musicgene.controllers.http.DiscogsHttpResults._
   implicit val cs: ContextShift[IO] = IO.contextShift(ec)
 

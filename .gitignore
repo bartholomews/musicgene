@@ -14,6 +14,32 @@ dist
 /RUNNING_PID
 .settings
 .DS_Store
+<<<<<<< HEAD
+=======
+
+# hidden cross project folders
+shared/.js
+shared/.jvm
+
+# temp files
+.~*
+*~
+*.orig
+
+# eclipse
+.scala_dependencies
+.buildpath
+.cache
+.target
+bin/
+
+/.idea
+/.idea_modules
+/.classpath
+/.project
+/.settings
+node_modules
+>>>>>>> 45d698521366e6ca02d3dfa73e89182be6a6da13
 
 # hidden cross project folders
 shared/.js

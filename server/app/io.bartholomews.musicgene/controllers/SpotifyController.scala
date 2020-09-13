@@ -2,20 +2,31 @@ package io.bartholomews.musicgene.controllers
 
 import cats.data.EitherT
 import cats.effect.{ContextShift, IO}
-import cats.implicits._
 import com.google.inject.Inject
+<<<<<<< HEAD:server/app/io.bartholomews.musicgene/controllers/SpotifyController.scala
 import io.bartholomews.musicgene.controllers.http.SpotifyCookies
 import eu.timepit.refined.api.Refined
 import io.bartholomews.fsclient.entities.oauth.{AuthorizationCode, SignerV2}
+=======
+>>>>>>> 45d698521366e6ca02d3dfa73e89182be6a6da13:server/app/io/bartholomews/musicgene/controllers/SpotifyController.scala
 import io.bartholomews.spotify4s.SpotifyClient
-import io.bartholomews.spotify4s.api.SpotifyApi.{Limit, Offset}
-import io.bartholomews.spotify4s.entities._
 import javax.inject._
+<<<<<<< HEAD:server/app/io.bartholomews.musicgene/controllers/SpotifyController.scala
 import io.bartholomews.musicgene.model.genetic.GA
 import io.bartholomews.musicgene.model.music._
+=======
+>>>>>>> 45d698521366e6ca02d3dfa73e89182be6a6da13:server/app/io/bartholomews/musicgene/controllers/SpotifyController.scala
 import org.http4s.Uri
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc._
+import cats.implicits._
+import eu.timepit.refined.api.Refined
+import io.bartholomews.fsclient.entities.oauth.{AuthorizationCode, SignerV2}
+import io.bartholomews.musicgene.controllers.http.SpotifyCookies
+import io.bartholomews.musicgene.model.genetic.GA
+import io.bartholomews.musicgene.model.music.{MusicCollection, MusicUtil}
+import io.bartholomews.spotify4s.api.SpotifyApi.{Limit, Offset}
+import io.bartholomews.spotify4s.entities.{AudioFeatures, FullTrack, SpotifyId, SpotifyUserId}
 import views.spotify.requests.PlaylistRequest
 import views.spotify.responses.{GeneratedPlaylist, GeneratedPlaylistResultId}
 
@@ -81,9 +92,7 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
             _.toResult(
               me =>
                 Ok(views.html.spotify.hello(me))
-                  .withCookies(
-                    SpotifyCookies.accessCookies(authorizationCode): _*
-                )
+                  .withCookies(SpotifyCookies.accessCookies(authorizationCode): _*)
             )
           )
       )
@@ -92,7 +101,7 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
 
   def logout(): Action[AnyContent] = ActionIO.async { implicit request =>
     IO.pure(
-      Ok(views.html.index())
+      Ok(views.html.index2("FIXME"))
         .discardingCookies(SpotifyCookies.discardCookies: _*)
     )
   }

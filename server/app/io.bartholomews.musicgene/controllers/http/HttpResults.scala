@@ -3,10 +3,11 @@ package io.bartholomews.musicgene.controllers.http
 import cats.Applicative
 import io.bartholomews.fsclient.entities.{ErrorBody, ErrorBodyJson, ErrorBodyString}
 import io.bartholomews.fsclient.utils.HttpTypes.HttpResponse
+import views.common.Tab
+import views.html.common.error
 import play.api.libs.json.Json
 import play.api.mvc.Results.BadRequest
 import play.api.mvc.{AnyContent, Request, Result}
-import views.common.Tab
 
 sealed abstract class HttpResults(tab: Tab) {
 
@@ -33,7 +34,7 @@ sealed abstract class HttpResults(tab: Tab) {
   }
 
   def badRequest(message: String)(implicit request: Request[AnyContent]): Result =
-    BadRequest(views.html.common.error(message, tab))
+    BadRequest(error(message, tab))
 }
 
 case object DiscogsHttpResults extends HttpResults(Tab.Discogs)

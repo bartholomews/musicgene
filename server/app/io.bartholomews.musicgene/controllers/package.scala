@@ -15,9 +15,9 @@ package object controllers {
     Uri.fromString(s"${requestHost(request)}/${request.uri.stripPrefix("/")}")
 
   val userAgent: UserAgent = UserAgent(
-    appName = musicgene.BuildInfo.name,
-    appVersion = Some(musicgene.BuildInfo.version),
-    appUrl = musicgene.BuildInfo.homepage.map(_.toExternalForm)
+    appName = BuildInfo.name,
+    appVersion = Some(BuildInfo.version),
+    appUrl = BuildInfo.homepage.map(_.toExternalForm)
   )
 
   def redirect(uri: Uri): Result = Redirect(Call("GET", uri.renderString))
