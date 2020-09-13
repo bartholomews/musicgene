@@ -1,6 +1,4 @@
 logs
-project/project
-project/target
 target
 tmp
 .history
@@ -30,3 +28,14 @@ shared/.jvm
 .cache
 .target
 bin/
+
+/.idea
+/.idea_modules
+/.classpath
+/.project
+/.settings
+node_modules
+
+.bloop
+.metals
+/project/metals.sbt

@@ -54,6 +54,12 @@ lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
 
 lazy val commonSettings = Seq(
-  scalaVersion := "2.13.1",
+  scalaVersion := "2.13.2",
   organization := "io.bartholomews"
 )
+
+// Adds additional packages into Twirl
+//TwirlKeys.templateImports += "io.bartholomews.controllers._"
+
+// Adds additional packages into conf/routes
+// play.sbt.routes.RoutesKeys.routesImport += "io.bartholomews.binders._"
