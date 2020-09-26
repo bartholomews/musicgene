@@ -44,10 +44,10 @@ object GA {
     */
   @tailrec
   private def evolve(pop: Population, generation: Int): Playlist = {
-    println(s"generation: $generation")
-    println(s"popSize: ${pop.popSize}")
+//    println(s"generation: $generation")
+//    println(s"popSize: ${pop.popSize}")
     if (generation >= GASettings.maxGen || pop.maxFitness >= GASettings.maxFitness) {
-      println("End of the evolution.")
+//      println("End of the evolution.")
       pop.fittest
     }
     else evolve(pop.evolve, generation + 1)

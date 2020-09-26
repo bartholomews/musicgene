@@ -4,16 +4,7 @@
  */
 
 /**
- @typedef controllers
- @property SpotifyController
- */
-
-/**
- @typedef SpotifyController
- @property {function} generatePlaylist()
- */
-
-/**
- @typedef playlistResponse
- @property {array} songs
+ * https://seiyria.com/bootstrap-slider
+ @class Slider
+ @property {function} getValue
  */

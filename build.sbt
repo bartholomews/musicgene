@@ -25,8 +25,8 @@ resolvers +=
 
 libraryDependencies += guice
 libraryDependencies ++=  Seq(
-  "io.bartholomews" %% "spotify4s" % "0.0.0+57-1741a301-SNAPSHOT",
-  "io.bartholomews" %% "discogs4s" % "0.0.1+13-bbb90ce2-SNAPSHOT",
+  "io.bartholomews" %% "spotify4s" % "0.0.0+50-322f689d-SNAPSHOT",
+  "io.bartholomews" %% "discogs4s" % "0.0.1+15-cb2660f4-SNAPSHOT",
   // https://github.com/pauldijou/jwt-scala/releases
   "com.pauldijou" %% "jwt-play" % "4.2.0",
   // https://mvnrepository.com/artifact/com.adrianhurt/play-bootstrap

@@ -16,7 +16,6 @@ function jsonRequest(route, payload, onError, onSuccess) {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
-
     })
         .then(handleResponse)
         .then(onSuccess)

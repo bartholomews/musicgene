@@ -10,7 +10,7 @@ case class PlaylistRequest(
   length: Int,
   tracks: Set[SpotifyId],
   range: Option[Int],
-  constraints: Set[SpotifyAttributes]
+  constraints: Set[SpotifyConstraint]
 )
 
 object PlaylistRequest {

@@ -1,3 +1,37 @@
 .chart {
   margin-top: 50px;
 }
+
+#playlist-input-length {
+  background-color: lightgrey;
+  margin-left: 3px;
+  max-width: 50px;
+}
+
+.playlist-description {
+  margin-top: 20px;
+}
+
+#constraints-modal {
+  .playlist-constraint-section {
+    margin-top: 20px;
+
+    label {
+      font-style: italic;
+    }
+
+    .attribute-value-col {
+      text-align: right;
+      margin-right: 10px;
+
+      #attribute-value {
+        max-width: 50px;
+      }
+    }
+
+    .slider {
+      margin-left: 10px;
+      margin-top: 7px;
+    }
+  }
+}
