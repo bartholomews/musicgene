@@ -1,20 +1,22 @@
 package io.bartholomews.musicgene.controllers
 
-import cats.data.EitherT
+import cats.data.{EitherT, Ior, IorNel, NonEmptyList}
 import cats.effect.{ContextShift, IO}
 import cats.implicits._
 import com.google.inject.Inject
-import io.bartholomews.musicgene.controllers.http.SpotifyCookies
 import eu.timepit.refined.api.Refined
 import io.bartholomews.fsclient.entities.oauth.{AuthorizationCode, SignerV2}
+import io.bartholomews.fsclient.utils.HttpTypes.HttpResponse
+import io.bartholomews.musicgene.controllers.http.SpotifyCookies.extractAllSessionNumbers
+import io.bartholomews.musicgene.controllers.http.{SessionKeys, SpotifyCookies}
+import io.bartholomews.musicgene.model.genetic.GA
+import io.bartholomews.musicgene.model.music._
 import io.bartholomews.spotify4s.SpotifyClient
 import io.bartholomews.spotify4s.api.SpotifyApi.{Limit, Offset}
 import io.bartholomews.spotify4s.entities._
 import javax.inject._
-import io.bartholomews.musicgene.model.genetic.GA
-import io.bartholomews.musicgene.model.music._
 import org.http4s.Uri
-import play.api.libs.json.{JsError, JsValue, Json}
+import play.api.libs.json.{JsArray, JsError, JsValue, Json}
 import play.api.mvc._
 import views.spotify.requests.PlaylistRequest
 import views.spotify.responses.{GeneratedPlaylist, GeneratedPlaylistResultId}
@@ -22,97 +24,127 @@ import views.spotify.responses.{GeneratedPlaylist, GeneratedPlaylistResultId}
 import scala.concurrent.ExecutionContext
 
 /**
-  *
-  */
+ *
+ */
 @Singleton
-class SpotifyController @Inject()(cc: ControllerComponents)(
+class SpotifyController @Inject() (cc: ControllerComponents)(
   implicit ec: ExecutionContext
 ) extends AbstractControllerIO(cc)
     with play.api.i18n.I18nSupport {
 
+  import eu.timepit.refined.auto.autoRefineV
   import io.bartholomews.musicgene.controllers.http.SpotifyHttpResults._
   import io.bartholomews.musicgene.model.helpers.CollectionsHelpers._
-  import eu.timepit.refined.auto.autoRefineV
 
   implicit val cs: ContextShift[IO] = IO.contextShift(ec)
   val spotifyClient: SpotifyClient = SpotifyClient.unsafeFromConfig()
 
+  def authenticate(sessionNumber: Int): Action[AnyContent] = ActionIO.async { implicit request =>
+    println("A" * 50)
+    println("authenticate")
+    println(sessionNumber)
+    println("A" * 50)
+    IO.pure(authenticate(request.addAttr(SessionKeys.spotifySessionKey, sessionNumber)))
+
+  }
+
   /**
-    * Redirect a user to authenticate with Spotify and grant permissions to the application
-    *
-    * @return a Redirect Action (play.api.mvc.Action type is a wrapper around the type `Request[A] => Result`,
-    */
-  private def authenticate(request: Request[AnyContent]): Result =
-    redirect {
-      spotifyClient.auth.authorizeUrl(
-        // TODO: load from config
-        redirectUri =
-          Uri.unsafeFromString(s"${requestHost(request)}/spotify/callback"),
-        state = None,
-        scopes = List.empty,
-        showDialog = true
-      )
+   * Redirect a user to authenticate with Spotify and grant permissions to the application
+   *
+   * @return a Redirect Action (play.api.mvc.Action type is a wrapper around the type `Request[A] => Result`,
+   */
+  private def authenticate(implicit request: Request[AnyContent]): Result = {
+    println("authenticate")
+    val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
+    println(maybeSessionNumber)
+    maybeSessionNumber
+      .map { sessionNumber =>
+        redirect(
+          spotifyClient.auth.authorizeUrl(
+            // TODO: load from config
+            redirectUri = Uri.unsafeFromString(s"${requestHost(request)}/spotify/$sessionNumber/callback"),
+            state = None,
+            scopes = List.empty,
+            showDialog = true
+          )
+        )
+      }
+      .getOrElse(InternalServerError("Something went wrong handling spotify session, please contact support."))
+  }
+
+  private def getAuthenticatedUsers(sessionNumbers: List[Int], userResponses: List[(HttpResponse[PrivateUser], Int)])(
+    implicit request: Request[AnyContent]
+  ): IO[Result] = {
+    sessionNumbers match {
+      case Nil =>
+        IO.pure {
+          userResponses
+            .foldLeft[IorNel[JsValue, List[(PrivateUser, Int)]]](Ior.Right(List.empty))((result, curr) =>
+              result.combine(
+                curr._1.entity
+                  .bimap(err => NonEmptyList.one(errorToJsValue(err)), user => List(Tuple2(user, curr._2)))
+                  .toIor
+              )
+            )
+            .fold(
+              errors => BadRequest(JsArray.apply(errors.toList)),
+              users => Ok(views.html.spotify.hello(users)),
+              (_, users) => Ok(views.html.spotify.hello(users))
+            )
+        }
+
+      case x :: xs =>
+        withToken { signer =>
+          spotifyClient.users
+            .me(signer)
+            .flatMap(userResponse => {
+              println(s"$x -> ${userResponse.entity.right.get.id.value}")
+              getAuthenticatedUsers(xs, Tuple2(userResponse, x) :: userResponses)
+            })
+        }(request.addAttr(SessionKeys.spotifySessionKey, x))
     }
+  }
 
   def hello(): Action[AnyContent] = ActionIO.async { implicit request =>
-    withToken { signer =>
-      spotifyClient.users
-        .me(signer)
-        .map(_.toResult(me => Ok(views.html.spotify.hello(me))))
+    extractAllSessionNumbers.map(_.toInt) match {
+      case Nil      => IO.pure(authenticate(request.addAttr(SessionKeys.spotifySessionKey, 0)))
+      case sessions => getAuthenticatedUsers(sessions, List.empty)
     }
   }
 
-  def callback: Action[AnyContent] = ActionIO.async { implicit request =>
+  def callback(sessionNumber: Int): Action[AnyContent] = ActionIO.asyncWithSession(sessionNumber) { implicit request =>
     (for {
-      uri <- EitherT.fromEither[IO](
-        requestUri(request)
-          .leftMap(parseFailure => badRequest(parseFailure.details))
-      )
-      maybeToken <- EitherT.liftF(
-        spotifyClient.auth.AuthorizationCode.fromUri(uri)
-      )
-      authorizationCode <- EitherT.fromEither[IO](
-        maybeToken.entity.leftMap(errorToResult)
-      )
-      result <- EitherT.right[Result](
-        spotifyClient.users
-          .me(authorizationCode)
-          .map(
-            _.toResult(
-              me =>
-                Ok(views.html.spotify.hello(me))
-                  .withCookies(
-                    SpotifyCookies.accessCookies(authorizationCode): _*
-                )
-            )
-          )
-      )
-    } yield result).value.map(_.fold(identity, identity))
+      uri <- EitherT.fromEither[IO](requestUri(request).leftMap(parseFailure => badRequest(parseFailure.details)))
+      maybeToken <- EitherT.liftF(spotifyClient.auth.AuthorizationCode.fromUri(uri))
+      authorizationCode <- EitherT.fromEither[IO](maybeToken.entity.leftMap(errorToResult))
+    } yield Redirect(routes.SpotifyController.hello()).withCookies(
+      SpotifyCookies.accessCookies(authorizationCode): _*
+    )).value.map(_.fold(identity, identity))
   }
 
-  def logout(): Action[AnyContent] = ActionIO.async { implicit request =>
+  def logout(sessionNumber: Int): Action[AnyContent] = ActionIO.asyncWithSession(sessionNumber) { implicit request => {
+    println(s"LOGOUT => $sessionNumber")
     IO.pure(
       Ok(views.html.index())
         .discardingCookies(SpotifyCookies.discardCookies: _*)
     )
-  }
+  }}
 
   private def refresh(
     f: SignerV2 => IO[Result]
   )(implicit request: Request[AnyContent]): IO[Result] =
     SpotifyCookies
       .extractRefreshToken(request)
-      .fold(IO.pure(authenticate(request)))(
-        token =>
-          spotifyClient.auth.AuthorizationCode
-            .refresh(token)
-            .flatMap(_.toResultF { authorizationCode =>
-              f(authorizationCode).map(
-                _.withCookies(
-                  SpotifyCookies.accessCookies(authorizationCode): _*
-                )
+      .fold(IO.pure(authenticate(request)))(token =>
+        spotifyClient.auth.AuthorizationCode
+          .refresh(token)
+          .flatMap(_.toResultF { authorizationCode =>
+            f(authorizationCode).map(
+              _.withCookies(
+                SpotifyCookies.accessCookies(authorizationCode): _*
               )
-            })
+            )
+          })
       )
 
   // http://pauldijou.fr/jwt-scala/samples/jwt-play/
@@ -127,32 +159,27 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
     }
 
   /**
-    * @param userId the Spotify id of the logged-in user
-    * @return the FIRST PAGE of a user playlists TODO
-    */
-  def playlists(userId: SpotifyUserId, page: Int): Action[AnyContent] =
-    ActionIO.async { implicit request =>
+   * @param userId the Spotify id of the logged-in user
+   * @return the FIRST PAGE of a user playlists TODO
+   */
+  def playlists(sessionNumber: Int, userId: SpotifyUserId, page: Int): Action[AnyContent] =
+    ActionIO.asyncWithSession(sessionNumber) { implicit request =>
       withToken { accessToken =>
-        {
-          val pageLimit: Limit = 50
-          val pageOffset: Offset = Refined.unsafeApply((page - 1) * pageLimit.value)
-          spotifyClient.playlists
-            .getUserPlaylists(
-              userId = userId,
-              limit = pageLimit,
-              offset = pageOffset
-            )(accessToken)
-            .map(
-              _.toResult(
-                pg =>
-                  Ok(views.html.spotify.playlists("Playlists", pg.items, page))
-              )
-            )
-        }
+        val pageLimit: Limit = 50
+        val pageOffset: Offset = Refined.unsafeApply((page - 1) * pageLimit.value)
+        spotifyClient.playlists
+          .getUserPlaylists(
+            userId = userId,
+            limit = pageLimit,
+            offset = pageOffset
+          )(accessToken)
+          .map(
+            _.toResult(pg => Ok(views.html.spotify.playlists("Playlists", pg.items, page)))
+          )
       }
     }
 
-  def tracks(playlistId: SpotifyId): Action[AnyContent] = ActionIO.async {
+  def tracks(sessionNumber: Int, playlistId: SpotifyId): Action[AnyContent] = ActionIO.asyncWithSession(sessionNumber) {
     implicit request =>
       withToken { implicit accessToken =>
         spotifyClient.playlists
@@ -164,24 +191,24 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
       }
   }
 
-  val generatePlaylist: Action[JsValue] = ActionIO.async[JsValue](parse.json) {
-    implicit request =>
-      val playlistRequestJson = request.body.validate[PlaylistRequest]
-      playlistRequestJson.fold(
-        errors =>
-          IO.pure(
-            BadRequest(
-              Json.obj(
-                "error" -> "invalid_playlist_request_payload",
-                "message" -> JsError.toJson(errors)
-              )
+  // FIXME: Add sessionNumber to request
+  val generatePlaylist: Action[JsValue] = ActionIO.async[JsValue](parse.json) { implicit request =>
+    val playlistRequestJson = request.body.validate[PlaylistRequest]
+    playlistRequestJson.fold(
+      errors =>
+        IO.pure(
+          BadRequest(
+            Json.obj(
+              "error" -> "invalid_playlist_request_payload",
+              "message" -> JsError.toJson(errors)
             )
+          )
         ),
-        playlistRequest =>
-          // val db = getFromRedisThenMongo(p)
-          //        Ok(Json.toJson(PlaylistResponse.fromPlaylist(p)))
-          generatePlaylist(playlistRequest)(request.map(AnyContentAsJson))
-      )
+      playlistRequest =>
+        // val db = getFromRedisThenMongo(p)
+        //        Ok(Json.toJson(PlaylistResponse.fromPlaylist(p)))
+        generatePlaylist(playlistRequest)(request.map(AnyContentAsJson))
+    )
   }
 
   private def generatePlaylist(
@@ -191,11 +218,10 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
       val getTracks: IO[Either[Result, List[FullTrack]]] =
         playlistRequest.tracks
           .groupedNes(size = 50)
-          .map(
-            xs =>
-              spotifyClient.tracks
-                .getTracks(xs, market = None)
-                .map(_.entity.leftMap(errorToJsonResult))
+          .map(xs =>
+            spotifyClient.tracks
+              .getTracks(xs, market = None)
+              .map(_.entity.leftMap(errorToJsonResult))
           )
           .parSequence
           .map(_.sequence.map(_.flatten))
@@ -203,11 +229,10 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
       val getAudioFeatures: IO[Either[Result, List[AudioFeatures]]] =
         playlistRequest.tracks
           .groupedNes(size = 100)
-          .map(
-            xs =>
-              spotifyClient.tracks
-                .getAudioFeatures(xs)
-                .map(_.entity.leftMap(errorToJsonResult))
+          .map(xs =>
+            spotifyClient.tracks
+              .getAudioFeatures(xs)
+              .map(_.entity.leftMap(errorToJsonResult))
           )
           .parSequence
           .map(_.sequence.map(_.flatten))
@@ -223,9 +248,7 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
               track.id.fold(MusicUtil.toAudioTrack(track)) { trackId =>
                 audioFeaturesLookup
                   .get(trackId)
-                  .fold(MusicUtil.toAudioTrack(track))(
-                    af => MusicUtil.toAudioTrack2(track, af)
-                  )
+                  .fold(MusicUtil.toAudioTrack(track))(af => MusicUtil.toAudioTrack2(track, af))
               }
             }
             playlist = GA.generatePlaylist(
@@ -233,13 +256,11 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
               c = playlistRequest.constraints.map(_.toDomain),
               playlistRequest.length
             )
-          } yield
-            Ok(
-              Json.toJson(
-                GeneratedPlaylist.fromPlaylist(playlistRequest.name, playlist)
-              )
-            ))
-            .fold(identity, identity)
+          } yield Ok(
+            Json.toJson(
+              GeneratedPlaylist.fromPlaylist(playlistRequest.name, playlist)
+            )
+          )).fold(identity, identity)
       })
     }
 
@@ -257,8 +278,8 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
     }
 
   /**
-    * The 'tracks' collection at injected MongoDB server
-    */
+   * The 'tracks' collection at injected MongoDB server
+   */
   //  val dbTracks: Imports.MongoCollection = MongoController.getCollection(
   //    configuration.underlying.getString("mongodb.uri"),
   //    configuration.underlying.getString("mongodb.db"),
@@ -266,11 +287,11 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
   //  )
 
   /**
-    * Retrieve a playlist's underlying tracks' audio attributes.
-    *
-    * @return a SimplePlaylist with associated sequence of Song instances
-    *         wrapped in an Option, if an error occurred None is returned
-    */
+   * Retrieve a playlist's underlying tracks' audio attributes.
+   *
+   * @return a SimplePlaylist with associated sequence of Song instances
+   *         wrapped in an Option, if an error occurred None is returned
+   */
   //  def getPlaylistCollection(userId: String, playlistId: String): Option[(SimplePlaylist, Vector[Song])] = {
   //    try {
   //      // get each playlist's tracks (only ids and basic access data)

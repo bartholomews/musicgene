@@ -3,7 +3,7 @@ package io.bartholomews.musicgene.controllers.http
 import cats.Applicative
 import io.bartholomews.fsclient.entities.{ErrorBody, ErrorBodyJson, ErrorBodyString}
 import io.bartholomews.fsclient.utils.HttpTypes.HttpResponse
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Results.BadRequest
 import play.api.mvc.{AnyContent, Request, Result}
 import views.common.Tab
@@ -20,11 +20,14 @@ sealed abstract class HttpResults(tab: Tab) {
       httpResponse.foldBody(err => f.pure(errorToResult(err)), responseToResult)
   }
 
-  def errorToJsonResult(error: ErrorBody)(implicit request: Request[AnyContent]): Result = error match {
-    case ErrorBodyString(value) => BadRequest(value)
+  def errorToJsValue(error: ErrorBody)(implicit request: Request[AnyContent]): JsValue = error match {
+    case ErrorBodyString(value) => Json.parse(value)
     // TODO: https://github.com/jilen/play-circe
-    case ErrorBodyJson(value) => BadRequest(Json.parse(value.noSpaces))
+    case ErrorBodyJson(value) => Json.parse(value.noSpaces)
   }
+
+  def errorToJsonResult(error: ErrorBody)(implicit request: Request[AnyContent]): Result =
+    BadRequest(errorToJsValue(error))
 
   def errorToResult(error: ErrorBody)(implicit request: Request[AnyContent]): Result = error match {
     case ErrorBodyJson(value) => badRequest(value.spaces2)

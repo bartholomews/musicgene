@@ -2,32 +2,71 @@ package io.bartholomews.musicgene.controllers.http
 
 import java.time.Clock
 
-import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs.{authorizationTokenReads, authorizationTokenWrites, refreshTokenFormat}
 import io.bartholomews.fsclient.entities.oauth.AuthorizationCode
 import io.bartholomews.fsclient.entities.oauth.v2.OAuthV2AuthorizationFramework.RefreshToken
+import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs.{
+  authorizationTokenReads,
+  authorizationTokenWrites,
+  refreshTokenFormat
+}
 import pdi.jwt.JwtSession
 import play.api.Configuration
 import play.api.libs.json.{Reads, Writes}
+import play.api.libs.typedmap.TypedKey
 import play.api.mvc._
 
 case object SpotifyCookies {
-  final val accessSessionKey: String = "spotify4s_access_session"
-  final val refreshSessionKey: String = "spotify4s_refresh_session"
+  object SessionKey {
+    def access(sessionNumber: Int): String = s"spotify4s_access_session_$sessionNumber"
+    def refresh(sessionNumber: Int): String = s"spotify4s_refresh_session_$sessionNumber"
+  }
 
-  def accessCookies(accessToken: AuthorizationCode): List[Cookie] =
-    JwtCookies.withCookie(accessSessionKey, accessToken) +:
-      accessToken.refreshToken.toList
-        .map(rt => JwtCookies.withCookie(refreshSessionKey, rt))
+  def extractAllSessionNumbers(implicit request: Request[AnyContent]): List[String] =
+    request.cookies
+      .map(_.name)
+      .collect({
+        case s"spotify4s_access_session_$sessionNumber" => sessionNumber
+      })
+      .toList
+
+  def accessCookies(accessToken: AuthorizationCode)(implicit request: Request[AnyContent]): List[Cookie] = {
+    val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
+    println(s"accessCookies => $maybeSessionNumber")
+    maybeSessionNumber.fold(List.empty[Cookie])(sessionNumber =>
+      JwtCookies.withCookie(SessionKey.access(sessionNumber), accessToken) +:
+        accessToken.refreshToken.toList
+          .map(rt => JwtCookies.withCookie(SessionKey.refresh(sessionNumber), rt))
+    )
+  }
 
   // Todo S <: SignerV2
-  def extractAuthCode(request: Request[AnyContent]): Option[AuthorizationCode] =
-    JwtCookies.extractCookie[AuthorizationCode](accessSessionKey, request)
+  def extractAuthCode(request: Request[AnyContent]): Option[AuthorizationCode] = {
+    val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
+    println(s"extractAuthCode => $maybeSessionNumber")
+    maybeSessionNumber.flatMap(sessionNumber =>
+      JwtCookies.extractCookie[AuthorizationCode](SessionKey.access(sessionNumber), request)
+    )
+  }
 
-  def extractRefreshToken(request: Request[AnyContent]): Option[RefreshToken] =
-    JwtCookies.extractCookie[RefreshToken](refreshSessionKey, request)
+  def extractRefreshToken(request: Request[AnyContent]): Option[RefreshToken] = {
+    val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
+    println(s"extractRefreshToken => $maybeSessionNumber")
+    maybeSessionNumber.flatMap(sessionNumber =>
+      JwtCookies.extractCookie[RefreshToken](SessionKey.refresh(sessionNumber), request)
+    )
+  }
 
-  val discardCookies: List[DiscardingCookie] =
-    List(DiscardingCookie(accessSessionKey), DiscardingCookie(refreshSessionKey))
+  def discardCookies(implicit request: Request[AnyContent]): List[DiscardingCookie] = {
+    val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
+    println(s"discardCookies => $maybeSessionNumber")
+    maybeSessionNumber
+      .fold(List.empty[DiscardingCookie])(sessionNumber =>
+        List(
+          DiscardingCookie(SessionKey.access(sessionNumber)),
+          DiscardingCookie(SessionKey.refresh(sessionNumber))
+        )
+      )
+  }
 }
 
 case object DiscogsCookies {
@@ -74,4 +113,8 @@ object JwtCookies {
     )
 
   def discard(cookieName: String): DiscardingCookie = DiscardingCookie(cookieName, path, domain, secure)
+}
+
+object SessionKeys {
+  val spotifySessionKey: TypedKey[Int] = TypedKey[Int](displayName = "spotify_session")
 }
