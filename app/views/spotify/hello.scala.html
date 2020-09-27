@@ -2,25 +2,20 @@
 @import io.bartholomews.spotify4s.entities.PrivateUser
 @import io.bartholomews.musicgene.controllers
 
-@(users: List[(PrivateUser, Int)])(implicit requestHeader: RequestHeader)
+@(user: PrivateUser)(implicit requestHeader: RequestHeader)
     @main(activeTab = Tab.Spotify) {
         <div class="main-section">
-            @users.map { case (user, i) =>
             <div class="custom-asd-inline"><h2>@user.displayName.getOrElse(user.id)</h2></div>
             <div class="btn-group">
                     <!-- TODO: pagination -->
-                <form action="@controllers.routes.SpotifyController.playlists(i, user.id)">
+                <form action="@controllers.routes.SpotifyController.playlists(0, user.id)">
                     <button class="btn btn-outline-dark">Get Your Playlists</button>
                 </form>
 
-                <form action=@controllers.routes.SpotifyController.logout(i)>
-                <button class="btn btn-outline-dark" type="submit">Revoke app</button>
-            </form>
+                <form action=@controllers.routes.SpotifyController.logout(0)>
+                    <button class="btn btn-outline-dark" type="submit">Revoke app</button>
+                </form>
             </div>
-                <hr class="horizontal-rule"/>
+            <hr class="horizontal-rule"/>
             }
-            <form action="@controllers.routes.SpotifyController.authenticate(users.size)">
-                <button class="btn btn-outline-dark">Add another user</button>
-            </form>
-        </div>
-    }
+</div>

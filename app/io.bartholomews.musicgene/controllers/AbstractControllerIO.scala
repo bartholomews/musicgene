@@ -14,6 +14,9 @@ abstract class AbstractControllerIO(override protected val controllerComponents:
     final def asyncWithSession(sessionNumber: Int)(block: Request[AnyContent] => IO[Result]): Action[AnyContent] =
       self.Action.async(req => block(req.addAttr(SessionKeys.spotifySessionKey, sessionNumber)).unsafeToFuture())
 
+    final def asyncWithDefaultUser(block: Request[AnyContent] => IO[Result]): Action[AnyContent] =
+      self.Action.async(req => block(req.addAttr(SessionKeys.spotifySessionKey, 0)).unsafeToFuture())
+
     final def async(block: Request[AnyContent] => IO[Result]): Action[AnyContent] =
       self.Action.async(block.andThen(_.unsafeToFuture()))
 

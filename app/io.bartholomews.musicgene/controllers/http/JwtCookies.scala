@@ -31,7 +31,7 @@ case object SpotifyCookies {
 
   def accessCookies(accessToken: AuthorizationCode)(implicit request: Request[AnyContent]): List[Cookie] = {
     val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
-    println(s"accessCookies => $maybeSessionNumber")
+    //    println(s"accessCookies => $maybeSessionNumber")
     maybeSessionNumber.fold(List.empty[Cookie])(sessionNumber =>
       JwtCookies.withCookie(SessionKey.access(sessionNumber), accessToken) +:
         accessToken.refreshToken.toList
@@ -42,7 +42,7 @@ case object SpotifyCookies {
   // Todo S <: SignerV2
   def extractAuthCode(request: Request[AnyContent]): Option[AuthorizationCode] = {
     val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
-    println(s"extractAuthCode => $maybeSessionNumber")
+//    println(s"extractAuthCode => $maybeSessionNumber")
     maybeSessionNumber.flatMap(sessionNumber =>
       JwtCookies.extractCookie[AuthorizationCode](SessionKey.access(sessionNumber), request)
     )
@@ -50,7 +50,7 @@ case object SpotifyCookies {
 
   def extractRefreshToken(request: Request[AnyContent]): Option[RefreshToken] = {
     val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
-    println(s"extractRefreshToken => $maybeSessionNumber")
+//    println(s"extractRefreshToken => $maybeSessionNumber")
     maybeSessionNumber.flatMap(sessionNumber =>
       JwtCookies.extractCookie[RefreshToken](SessionKey.refresh(sessionNumber), request)
     )
@@ -58,7 +58,7 @@ case object SpotifyCookies {
 
   def discardCookies(implicit request: Request[AnyContent]): List[DiscardingCookie] = {
     val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
-    println(s"discardCookies => $maybeSessionNumber")
+//    println(s"discardCookies => $maybeSessionNumber")
     maybeSessionNumber
       .fold(List.empty[DiscardingCookie])(sessionNumber =>
         List(

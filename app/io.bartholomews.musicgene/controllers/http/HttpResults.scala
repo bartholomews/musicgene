@@ -20,11 +20,14 @@ sealed abstract class HttpResults(tab: Tab) {
       httpResponse.foldBody(err => f.pure(errorToResult(err)), responseToResult)
   }
 
-  def errorToJsValue(error: ErrorBody)(implicit request: Request[AnyContent]): JsValue = error match {
-    case ErrorBodyString(value) => Json.parse(value)
+  def errorToString(error: ErrorBody)(implicit request: Request[AnyContent]): String = error match {
+    case ErrorBodyString(value) => value
     // TODO: https://github.com/jilen/play-circe
-    case ErrorBodyJson(value) => Json.parse(value.noSpaces)
+    case ErrorBodyJson(value) => value.noSpaces
   }
+
+  def errorToJsValue(error: ErrorBody)(implicit request: Request[AnyContent]): JsValue =
+    Json.parse(errorToString(error))
 
   def errorToJsonResult(error: ErrorBody)(implicit request: Request[AnyContent]): Result =
     BadRequest(errorToJsValue(error))
