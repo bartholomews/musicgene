@@ -1,0 +1,63 @@
+@()
+<div class="modal fade" id="constraints-modal" aria-labelledby="constraints-modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Add constraints</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="playlist-constraints-form">
+                    <div class="form-group">
+                            <!-- constraint type -->
+                        <div class="row">
+                            <div class="col">
+                                <label for="constraint-type">Constraint type</label>
+                                <select class="form-control" id="constraint-type" name="constraint_type">
+                                    <option value="increasing">Increasing</option>
+                                    <option value="decreasing">Decreasing</option>
+                                </select>
+                            </div>
+                        </div>
+                            <!-- attribute type -->
+                        <div class="playlist-constraint-section row">
+                            <div class="col">
+                                <label for="attribute-type">Attribute type</label>
+                                <select class="form-control" id="attribute-type" name="attribute_type">
+                                    <option value="tempo">Tempo</option>
+                                    <option value="acousticness">Acousticness</option>
+                                </select>
+                            </div>
+                        </div>
+                            <!-- playlist constraints index range -->
+                        <div class="playlist-constraint-section">
+                            <div class="row">
+                                <div class="col">
+                                    <label for="constraints-index-range">Playlist index range</label>
+                                </div>
+                                <div class="col attribute-value-col">
+                                    <label for="attribute-value">Value</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <input id="constraints-index-range" value="index_range" type="text"/>
+                                </div>
+                                <div class="col attribute-value-col">
+                                    <input id="attribute-value" name="attribute_value" type="number" min="5" max="50">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-outline-dark" onclick="applyPlaylistConstraints()">
+                    Save</button>
+            </div>
+        </div>
+    </div>
+</div>
