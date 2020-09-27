@@ -32,21 +32,22 @@ case object SpotifyCookies extends Logging {
     )
   }
 
+  def extractAuthCode(session: SpotifySessionUser)(implicit request: Request[AnyContent]): Option[AuthorizationCode] = {
+    logger.debug(s"extractAuthCode => $session")
+    JwtCookies.extractCookie[AuthorizationCode](SessionKey.access(session), request)
+  }
+
   // Todo S <: SignerV2
   def extractAuthCode(request: Request[AnyContent]): Option[AuthorizationCode] = {
     val maybeSession = request.attrs.get(SpotifySessionKeys.spotifySessionUser)
     logger.debug(s"extractAuthCode => $maybeSession")
-    maybeSession.flatMap(session =>
-      JwtCookies.extractCookie[AuthorizationCode](SessionKey.access(session), request)
-    )
+    maybeSession.flatMap(session => JwtCookies.extractCookie[AuthorizationCode](SessionKey.access(session), request))
   }
 
   def extractRefreshToken(request: Request[AnyContent]): Option[RefreshToken] = {
     val maybeSession = request.attrs.get(SpotifySessionKeys.spotifySessionUser)
     logger.debug(s"extractRefreshToken => $maybeSession")
-    maybeSession.flatMap(session =>
-      JwtCookies.extractCookie[RefreshToken](SessionKey.refresh(session), request)
-    )
+    maybeSession.flatMap(session => JwtCookies.extractCookie[RefreshToken](SessionKey.refresh(session), request))
   }
 
   def discardCookies(session: SpotifySessionUser): List[DiscardingCookie] = {

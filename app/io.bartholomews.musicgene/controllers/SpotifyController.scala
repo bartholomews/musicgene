@@ -61,7 +61,10 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
             // TODO: load from config
             redirectUri = Uri.unsafeFromString(s"${requestHost(request)}/spotify/${session.entryName}/callback"),
             state = None,
-            scopes = List.empty,
+            scopes = List(
+              SpotifyScope.PLAYLIST_READ_PRIVATE,
+              SpotifyScope.PLAYLIST_READ_COLLABORATIVE,
+            ),
             showDialog = true
           )
         )
@@ -100,9 +103,11 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
   def logout(session: SpotifySessionUser): Action[AnyContent] = ActionIO.async { implicit request =>
     logger.debug(s"Logout session $session")
     IO.pure(session match {
-        case SpotifySessionUser.Main   => Redirect(routes.HomeController.index())
+      case SpotifySessionUser.Main =>
+        Redirect(routes.HomeController.index())
           .discardingCookies(SpotifyCookies.discardAllCookies: _*)
-        case SpotifySessionUser.Source => Redirect(routes.SpotifyController.migrate())
+      case SpotifySessionUser.Source =>
+        Redirect(routes.SpotifyController.migrate())
           .discardingCookies(SpotifyCookies.discardCookies(session): _*)
     })
   }
@@ -135,8 +140,8 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
         else f(accessToken)
     }
 
-  def withOptToken[A, R](f: SignerV2 => IO[Result])(implicit request: Request[AnyContent]): IO[Option[Result]] =
-    SpotifyCookies.extractAuthCode(request) match {
+  def withSourceUserToken[A, R](f: SignerV2 => IO[Result])(implicit request: Request[AnyContent]): IO[Option[Result]] =
+    SpotifyCookies.extractAuthCode(SpotifySessionUser.Source) match {
       case None => IO.pure(None)
       case Some(accessToken: AuthorizationCode) =>
         if (accessToken.isExpired()) refresh(f).map(_.some)
@@ -185,7 +190,9 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       playlistRequest =>
         // val db = getFromRedisThenMongo(p)
         //        Ok(Json.toJson(PlaylistResponse.fromPlaylist(p)))
-        generatePlaylist(playlistRequest)(request.map(AnyContentAsJson))
+        generatePlaylist(playlistRequest)(request
+          .addAttr(SpotifySessionKeys.spotifySessionUser, SpotifySessionUser.Main)
+          .map(AnyContentAsJson))
     )
   }
 
@@ -255,27 +262,53 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       )
     }
 
-  // FIXME: Return user + playlists, not Result
-  private def getSourceUserForMigration(mainUser: PrivateUser)(implicit request: Request[AnyContent]): IO[Result] =
-    withOptToken { implicit signer =>
+  // FIXME: Unify main and source requests, ideally in parallel
+  private def getSourceUserForMigration(mainUser: (PrivateUser, Page[SimplePlaylist]))(implicit request: Request[AnyContent]): IO[Result] =
+    withSourceUserToken { implicit signer =>
       logger.info("getSourceUserForMigration")
-      spotifyClient.users.me
-        .map(_.toResult(me => Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, Some(me)))))))
+
+      val getSourceUser = spotifyClient.users.me.map(_.entity)
+      val getSourceUserPlaylists = spotifyClient.users.getPlaylists(limit = 50).map(_.entity)
+
+      (getSourceUser, getSourceUserPlaylists)
+        .parMapN({
+          case (aaa, bbb) =>
+            for {
+              privateUser <- aaa
+              playlists <- bbb
+            } yield Tuple2(privateUser, playlists)
+        })
+        .map(_.fold(
+          errorToResult,
+          res => Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, Some(res)))))
+        ))
     }.map(_.getOrElse(Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, None))))))
+
+  private def getMainUserAndPlaylists(
+    andThen: ((PrivateUser, Page[SimplePlaylist])) => IO[Result]
+  )(implicit request: Request[AnyContent]): IO[Result] =
+    withToken { implicit signer =>
+      val getMainUser = spotifyClient.users.me.map(_.entity)
+      val getMainUserPlaylists = spotifyClient.users.getPlaylists(limit = 50).map(_.entity)
+
+      (getMainUser, getMainUserPlaylists)
+        .parMapN({
+          case (aaa, bbb) =>
+            for {
+              privateUser <- aaa
+              playlists <- bbb
+            } yield Tuple2(privateUser, playlists)
+        })
+        .flatMap(_.fold(
+          _ => Ok(views.html.spotify.migrate(Left("Something went wrong while fetching the main user"))).pure[IO],
+          res => andThen(res)
+        ))
+    }
 
   def migrate(): Action[AnyContent] = ActionIO.asyncWithMainUser { implicit request =>
     withToken { implicit signer =>
       logger.info("migrate")
-      spotifyClient.users.me
-        .flatMap(
-          _.foldBody(
-            _ => IO.pure(Ok(views.html.spotify.migrate(Left("Something went wrong while fetching the main user")))),
-            mainUser =>
-              getSourceUserForMigration(mainUser)(
-                request.addAttr(SpotifySessionKeys.spotifySessionUser, SpotifySessionUser.Source)
-              )
-          )
-        )
+      getMainUserAndPlaylists(getSourceUserForMigration)
     }
   }
 }
