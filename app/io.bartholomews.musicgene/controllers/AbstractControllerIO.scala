@@ -1,7 +1,8 @@
 package io.bartholomews.musicgene.controllers
 
 import cats.effect.IO
-import io.bartholomews.musicgene.controllers.http.SessionKeys
+import io.bartholomews.musicgene.controllers.http.SpotifySessionKeys
+import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 import play.api.mvc._
 
 abstract class AbstractControllerIO(override protected val controllerComponents: ControllerComponents)
@@ -11,11 +12,16 @@ abstract class AbstractControllerIO(override protected val controllerComponents:
 
   object ActionIO {
     // FIXME: This is spotify-specific
-    final def asyncWithSession(sessionNumber: Int)(block: Request[AnyContent] => IO[Result]): Action[AnyContent] =
-      self.Action.async(req => block(req.addAttr(SessionKeys.spotifySessionKey, sessionNumber)).unsafeToFuture())
+    final def asyncWithSession(
+      session: SpotifySessionUser
+    )(block: Request[AnyContent] => IO[Result]): Action[AnyContent] =
+      self.Action.async(req => block(req.addAttr(SpotifySessionKeys.spotifySessionUser, session)).unsafeToFuture())
 
-    final def asyncWithDefaultUser(block: Request[AnyContent] => IO[Result]): Action[AnyContent] =
-      self.Action.async(req => block(req.addAttr(SessionKeys.spotifySessionKey, 0)).unsafeToFuture())
+    // FIXME: This is spotify-specific
+    final def asyncWithMainUser(block: Request[AnyContent] => IO[Result]): Action[AnyContent] =
+      self.Action.async(req =>
+        block(req.addAttr(SpotifySessionKeys.spotifySessionUser, SpotifySessionUser.Main)).unsafeToFuture()
+      )
 
     final def async(block: Request[AnyContent] => IO[Result]): Action[AnyContent] =
       self.Action.async(block.andThen(_.unsafeToFuture()))

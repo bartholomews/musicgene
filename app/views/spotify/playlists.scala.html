@@ -2,6 +2,7 @@
 @import io.bartholomews.musicgene.controllers
 @import views.common.Tab
 
+@import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 @(title: String, playlists: Seq[SimplePlaylist], page: Int)(implicit requestHeader: RequestHeader)
 @css = @{List(
     routes.Assets.versioned("stylesheets/spotify/playlists.css")
@@ -27,7 +28,7 @@
             </thead>
                 <!-- TODO you already have tracks here, should probl collapse and show them -->
             <tbody class="music-collection-tbody">@playlists.zipWithIndex.map { case (p, index) =>
-            <tr class="clickable" onclick="redirect(`@controllers.routes.SpotifyController.tracks(0, p.id).url`)">
+            <tr class="clickable" onclick="redirect(`@controllers.routes.SpotifyController.tracks(SpotifySessionUser.Main, p.id).url`)">
                     <th scope="row">@index</th>
                     <td>@p.name</td>
                     <td>@p.description.getOrElse("-")</td>

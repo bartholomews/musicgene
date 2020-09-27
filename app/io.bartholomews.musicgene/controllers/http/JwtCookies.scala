@@ -4,7 +4,12 @@ import java.time.Clock
 
 import io.bartholomews.fsclient.entities.oauth.AuthorizationCode
 import io.bartholomews.fsclient.entities.oauth.v2.OAuthV2AuthorizationFramework.RefreshToken
-import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs.{authorizationTokenReads, authorizationTokenWrites, refreshTokenFormat}
+import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs.{
+  authorizationTokenReads,
+  authorizationTokenWrites,
+  refreshTokenFormat
+}
+import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 import pdi.jwt.JwtSession
 import play.api.{Configuration, Logging}
 import play.api.libs.json.{Reads, Writes}
@@ -13,56 +18,47 @@ import play.api.mvc._
 
 case object SpotifyCookies extends Logging {
   object SessionKey {
-    def access(sessionNumber: Int): String = s"spotify4s_access_session_$sessionNumber"
-    def refresh(sessionNumber: Int): String = s"spotify4s_refresh_session_$sessionNumber"
+    def access(session: SpotifySessionUser): String = s"spotify4s_access_session_${session.entryName}"
+    def refresh(session: SpotifySessionUser): String = s"spotify4s_refresh_session_${session.entryName}"
   }
 
-  def extractAllSessionNumbers(implicit request: Request[AnyContent]): List[String] =
-    request.cookies
-      .map(_.name)
-      .collect({
-        case s"spotify4s_access_session_$sessionNumber" => sessionNumber
-      })
-      .toList
-
   def accessCookies(accessToken: AuthorizationCode)(implicit request: Request[AnyContent]): List[Cookie] = {
-    val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
-    logger.debug(s"accessCookies => $maybeSessionNumber")
-    maybeSessionNumber.fold(List.empty[Cookie])(sessionNumber =>
-      JwtCookies.withCookie(SessionKey.access(sessionNumber), accessToken) +:
+    val maybeSession = request.attrs.get(SpotifySessionKeys.spotifySessionUser)
+    logger.debug(s"accessCookies => $maybeSession")
+    maybeSession.fold(List.empty[Cookie])(session =>
+      JwtCookies.withCookie(SessionKey.access(session), accessToken) +:
         accessToken.refreshToken.toList
-          .map(rt => JwtCookies.withCookie(SessionKey.refresh(sessionNumber), rt))
+          .map(rt => JwtCookies.withCookie(SessionKey.refresh(session), rt))
     )
   }
 
   // Todo S <: SignerV2
   def extractAuthCode(request: Request[AnyContent]): Option[AuthorizationCode] = {
-    val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
-    logger.debug(s"extractAuthCode => $maybeSessionNumber")
-    maybeSessionNumber.flatMap(sessionNumber =>
-      JwtCookies.extractCookie[AuthorizationCode](SessionKey.access(sessionNumber), request)
+    val maybeSession = request.attrs.get(SpotifySessionKeys.spotifySessionUser)
+    logger.debug(s"extractAuthCode => $maybeSession")
+    maybeSession.flatMap(session =>
+      JwtCookies.extractCookie[AuthorizationCode](SessionKey.access(session), request)
     )
   }
 
   def extractRefreshToken(request: Request[AnyContent]): Option[RefreshToken] = {
-    val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
-    logger.debug(s"extractRefreshToken => $maybeSessionNumber")
-    maybeSessionNumber.flatMap(sessionNumber =>
-      JwtCookies.extractCookie[RefreshToken](SessionKey.refresh(sessionNumber), request)
+    val maybeSession = request.attrs.get(SpotifySessionKeys.spotifySessionUser)
+    logger.debug(s"extractRefreshToken => $maybeSession")
+    maybeSession.flatMap(session =>
+      JwtCookies.extractCookie[RefreshToken](SessionKey.refresh(session), request)
     )
   }
 
-  def discardCookies(implicit request: Request[AnyContent]): List[DiscardingCookie] = {
-    val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
-    logger.debug(s"discardCookies => $maybeSessionNumber")
-    maybeSessionNumber
-      .fold(List.empty[DiscardingCookie])(sessionNumber =>
-        List(
-          DiscardingCookie(SessionKey.access(sessionNumber)),
-          DiscardingCookie(SessionKey.refresh(sessionNumber))
-        )
-      )
+  def discardCookies(session: SpotifySessionUser): List[DiscardingCookie] = {
+    logger.debug(s"discardCookies => $session")
+    List(
+      DiscardingCookie(SessionKey.access(session)),
+      DiscardingCookie(SessionKey.refresh(session))
+    )
   }
+
+  def discardAllCookies: List[DiscardingCookie] =
+    SpotifySessionUser.values.toList.flatMap(discardCookies)
 }
 
 case object DiscogsCookies {
@@ -111,6 +107,6 @@ object JwtCookies {
   def discard(cookieName: String): DiscardingCookie = DiscardingCookie(cookieName, path, domain, secure)
 }
 
-object SessionKeys {
-  val spotifySessionKey: TypedKey[Int] = TypedKey[Int](displayName = "spotify_session")
+object SpotifySessionKeys {
+  val spotifySessionUser: TypedKey[SpotifySessionUser] = TypedKey[SpotifySessionUser](displayName = "spotify_session")
 }

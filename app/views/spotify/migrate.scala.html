@@ -2,6 +2,7 @@
 @import io.bartholomews.spotify4s.entities.PrivateUser
 @import views.common.Tab
 
+@import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 @(result: Either[String, (PrivateUser, Option[PrivateUser])])(implicit requestHeader: RequestHeader)
 @main(activeTab = Tab.Spotify) {
 
@@ -12,14 +13,14 @@
             <div class="row">
             @result match {
                 case Left(error) => {
-                  <div class="col-sm"><h2>@error</h2></div>
+                    <div class="col-sm"><h2>@error</h2></div>
                 }
                 case Right((mainUser, None)) => {
                     <div class="col-sm">
-                        <h2>@mainUser.displayName.getOrElse(mainUser.id)</h2>
+                        <h2>@{mainUser.displayName.getOrElse(mainUser.id)}</h2>
                     </div>
                     <div class="col-sm">
-                        <form action=@controllers.routes.SpotifyController.authenticate(1)>
+                        <form action=@controllers.routes.SpotifyController.authenticate(SpotifySessionUser.Source)>
                             <button class="btn btn-outline-dark" type="submit">Login</button>
                         </form>
                     </div>
@@ -30,7 +31,7 @@
                     </div>
                     <div class="col-sm">
                         <h2>@sourceUser.displayName.getOrElse(sourceUser.id)</h2>
-                        <form action=@controllers.routes.SpotifyController.logout(1)>
+                        <form action=@controllers.routes.SpotifyController.logout(SpotifySessionUser.Source)>
                             <button class="btn btn-outline-dark" type="submit">Revoke</button>
                         </form>
                     </div>
