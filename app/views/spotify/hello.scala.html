@@ -1,21 +1,24 @@
-@import views.common.Tab
-@import io.bartholomews.spotify4s.entities.PrivateUser
 @import io.bartholomews.musicgene.controllers
+@import io.bartholomews.spotify4s.entities.PrivateUser
+@import views.common.Tab
 
 @(user: PrivateUser)(implicit requestHeader: RequestHeader)
-    @main(activeTab = Tab.Spotify) {
-        <div class="main-section">
-            <div class="custom-asd-inline"><h2>@user.displayName.getOrElse(user.id)</h2></div>
-            <div class="btn-group">
-                    <!-- TODO: pagination -->
-                <form action="@controllers.routes.SpotifyController.playlists(0, user.id)">
-                    <button class="btn btn-outline-dark">Get Your Playlists</button>
-                </form>
+@main(activeTab = Tab.Spotify) {
+    <div class="main-section">
+        <div class="custom-asd-inline"><h2>@user.displayName.getOrElse(user.id)</h2></div>
+        <div class="btn-group">
+                <!-- TODO: pagination -->
+            <form action="@controllers.routes.SpotifyController.playlists(0, user.id)">
+                <button class="btn btn-outline-dark">Get Your Playlists</button>
+            </form>
 
-                <form action=@controllers.routes.SpotifyController.logout(0)>
-                    <button class="btn btn-outline-dark" type="submit">Revoke app</button>
-                </form>
-            </div>
-            <hr class="horizontal-rule"/>
-            }
-</div>
+            <form action=@controllers.routes.SpotifyController.logout(0)>
+                <button class="btn btn-outline-dark" type="submit">Revoke</button>
+            </form>
+        </div>
+        <hr class="horizontal-rule"/>
+        <form action=@controllers.routes.SpotifyController.migrate()>
+            <button class="btn btn-outline-dark" type="submit">Migrate</button>
+        </form>
+    </div>
+}

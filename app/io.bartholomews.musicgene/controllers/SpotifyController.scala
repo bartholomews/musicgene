@@ -67,45 +67,45 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       .getOrElse(InternalServerError("Something went wrong handling spotify session, please contact support."))
   }
 
-//  private def getAuthenticatedUsers(sessionNumbers: List[Int], userResponses: List[(HttpResponse[PrivateUser], Int)])(
-//    implicit request: Request[AnyContent]
-//  ): IO[Result] = {
-//    sessionNumbers match {
-//      case Nil =>
-//        IO.pure {
-//          userResponses
-//            .foldLeft[IorNel[JsValue, List[(PrivateUser, Int)]]](Ior.Right(List.empty))((result, curr) =>
-//              result.combine(
-//                curr._1.entity
-//                  .bimap(err => NonEmptyList.one(errorToJsValue(err)), user => List(Tuple2(user, curr._2)))
-//                  .toIor
-//              )
-//            )
-//            .fold(
-//              errors => BadRequest(JsArray.apply(errors.toList)),
-//              users => Ok(views.html.spotify.hello(users)),
-//              (_, users) => Ok(views.html.spotify.hello(users))
-//            )
-//        }
-//
-//      case x :: xs =>
-//        withToken { signer =>
-//          spotifyClient.users
-//            .me(signer)
-//            .flatMap(userResponse => {
-//              println(s"$x -> ${userResponse.entity.right.get.id.value}")
-//              getAuthenticatedUsers(xs, Tuple2(userResponse, x) :: userResponses)
-//            })
-//        }(request.addAttr(SessionKeys.spotifySessionKey, x))
-//    }
-//  }
+  //  private def getAuthenticatedUsers(sessionNumbers: List[Int], userResponses: List[(HttpResponse[PrivateUser], Int)])(
+  //    implicit request: Request[AnyContent]
+  //  ): IO[Result] = {
+  //    sessionNumbers match {
+  //      case Nil =>
+  //        IO.pure {
+  //          userResponses
+  //            .foldLeft[IorNel[JsValue, List[(PrivateUser, Int)]]](Ior.Right(List.empty))((result, curr) =>
+  //              result.combine(
+  //                curr._1.entity
+  //                  .bimap(err => NonEmptyList.one(errorToJsValue(err)), user => List(Tuple2(user, curr._2)))
+  //                  .toIor
+  //              )
+  //            )
+  //            .fold(
+  //              errors => BadRequest(JsArray.apply(errors.toList)),
+  //              users => Ok(views.html.spotify.hello(users)),
+  //              (_, users) => Ok(views.html.spotify.hello(users))
+  //            )
+  //        }
+  //
+  //      case x :: xs =>
+  //        withToken { signer =>
+  //          spotifyClient.users
+  //            .me(signer)
+  //            .flatMap(userResponse => {
+  //              println(s"$x -> ${userResponse.entity.right.get.id.value}")
+  //              getAuthenticatedUsers(xs, Tuple2(userResponse, x) :: userResponses)
+  //            })
+  //        }(request.addAttr(SessionKeys.spotifySessionKey, x))
+  //    }
+  //  }
 
-//  def helloAll(): Action[AnyContent] = ActionIO.async { implicit request =>
-//    extractAllSessionNumbers.map(_.toInt) match {
-//      case Nil      => IO.pure(authenticate(request.addAttr(SessionKeys.spotifySessionKey, 0)))
-//      case sessions => getAuthenticatedUsers(sessions, List.empty)
-//    }
-//  }
+  //  def helloAll(): Action[AnyContent] = ActionIO.async { implicit request =>
+  //    extractAllSessionNumbers.map(_.toInt) match {
+  //      case Nil      => IO.pure(authenticate(request.addAttr(SessionKeys.spotifySessionKey, 0)))
+  //      case sessions => getAuthenticatedUsers(sessions, List.empty)
+  //    }
+  //  }
 
   def hello(): Action[AnyContent] = ActionIO.asyncWithDefaultUser { implicit request =>
     withToken { signer =>
@@ -118,13 +118,13 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
 
   def callback(sessionNumber: Int): Action[AnyContent] = ActionIO.asyncWithSession(sessionNumber) { implicit request =>
     (for {
+      _ <- EitherT.pure[IO, String](logger.debug(s"Callback for session: $sessionNumber"))
       uri <- EitherT.fromEither[IO](requestUri(request).leftMap(parseFailure => parseFailure.details))
       authorizationCode <- EitherT(
         spotifyClient.auth.AuthorizationCode.fromUri(uri).map(_.entity.leftMap(errorToString))
       )
-    } yield Redirect(routes.SpotifyController.hello()).withCookies(
-      SpotifyCookies.accessCookies(authorizationCode): _*
-    )).value.map(_.fold(errorString => {
+    } yield Redirect(if (sessionNumber == 1) routes.SpotifyController.migrate() else routes.SpotifyController.hello())
+      .withCookies(SpotifyCookies.accessCookies(authorizationCode): _*)).value.map(_.fold(errorString => {
       logger.error(errorString)
       Redirect(routes.HomeController.index())
     }, identity))
@@ -164,6 +164,14 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       case Some(accessToken: AuthorizationCode) =>
         if (accessToken.isExpired()) refresh(f)
         else f(accessToken)
+    }
+
+  def withOptToken[A, R](f: SignerV2 => IO[Result])(implicit request: Request[AnyContent]): IO[Option[Result]] =
+    SpotifyCookies.extractAuthCode(request) match {
+      case None => IO.pure(None)
+      case Some(accessToken: AuthorizationCode) =>
+        if (accessToken.isExpired()) refresh(f).map(_.some)
+        else f(accessToken).map(_.some)
     }
 
   /**
@@ -284,4 +292,25 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
         )
       )
     }
+
+  // FIXME: Return user + playlists, not Result
+  private def getSourceUserForMigration(mainUser: PrivateUser)(implicit request: Request[AnyContent]): IO[Result] =
+    withOptToken { implicit signer =>
+      logger.info("getSourceUserForMigration")
+      spotifyClient.users.me
+        .map(_.toResult(me => Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, Some(me)))))))
+    }.map(_.getOrElse(Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, None))))))
+
+  def migrate(): Action[AnyContent] = ActionIO.asyncWithDefaultUser { implicit request =>
+    withToken { implicit signer =>
+      logger.info("migrate")
+      spotifyClient.users.me
+        .flatMap(
+          _.foldBody(
+            _ => IO.pure(Ok(views.html.spotify.migrate(Left("Something went wrong while fetching the main user")))),
+            mainUser => getSourceUserForMigration(mainUser)(request.addAttr(SessionKeys.spotifySessionKey, 1))
+          )
+        )
+    }
+  }
 }

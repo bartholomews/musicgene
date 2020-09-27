@@ -17,7 +17,8 @@ scalaVersion := "2.13.2"
 routesImport ++= Seq(
   "views.spotify.responses._",
   "io.bartholomews.spotify4s.entities._",
-  "views.spotify.responses.GeneratedPlaylistResultId"
+  "views.spotify.responses.GeneratedPlaylistResultId",
+  "io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser"
 )
 
 resolvers +=
@@ -25,6 +26,7 @@ resolvers +=
 
 libraryDependencies += guice
 libraryDependencies ++=  Seq(
+  "com.beachape" %% "enumeratum-play" % "1.6.1",
   "io.bartholomews" %% "spotify4s" % "0.0.0+50-322f689d-SNAPSHOT",
   "io.bartholomews" %% "discogs4s" % "0.0.1+15-cb2660f4-SNAPSHOT",
   // https://github.com/pauldijou/jwt-scala/releases

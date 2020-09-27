@@ -4,18 +4,14 @@ import java.time.Clock
 
 import io.bartholomews.fsclient.entities.oauth.AuthorizationCode
 import io.bartholomews.fsclient.entities.oauth.v2.OAuthV2AuthorizationFramework.RefreshToken
-import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs.{
-  authorizationTokenReads,
-  authorizationTokenWrites,
-  refreshTokenFormat
-}
+import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs.{authorizationTokenReads, authorizationTokenWrites, refreshTokenFormat}
 import pdi.jwt.JwtSession
-import play.api.Configuration
+import play.api.{Configuration, Logging}
 import play.api.libs.json.{Reads, Writes}
 import play.api.libs.typedmap.TypedKey
 import play.api.mvc._
 
-case object SpotifyCookies {
+case object SpotifyCookies extends Logging {
   object SessionKey {
     def access(sessionNumber: Int): String = s"spotify4s_access_session_$sessionNumber"
     def refresh(sessionNumber: Int): String = s"spotify4s_refresh_session_$sessionNumber"
@@ -31,7 +27,7 @@ case object SpotifyCookies {
 
   def accessCookies(accessToken: AuthorizationCode)(implicit request: Request[AnyContent]): List[Cookie] = {
     val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
-    //    println(s"accessCookies => $maybeSessionNumber")
+    logger.debug(s"accessCookies => $maybeSessionNumber")
     maybeSessionNumber.fold(List.empty[Cookie])(sessionNumber =>
       JwtCookies.withCookie(SessionKey.access(sessionNumber), accessToken) +:
         accessToken.refreshToken.toList
@@ -42,7 +38,7 @@ case object SpotifyCookies {
   // Todo S <: SignerV2
   def extractAuthCode(request: Request[AnyContent]): Option[AuthorizationCode] = {
     val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
-//    println(s"extractAuthCode => $maybeSessionNumber")
+    logger.debug(s"extractAuthCode => $maybeSessionNumber")
     maybeSessionNumber.flatMap(sessionNumber =>
       JwtCookies.extractCookie[AuthorizationCode](SessionKey.access(sessionNumber), request)
     )
@@ -50,7 +46,7 @@ case object SpotifyCookies {
 
   def extractRefreshToken(request: Request[AnyContent]): Option[RefreshToken] = {
     val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
-//    println(s"extractRefreshToken => $maybeSessionNumber")
+    logger.debug(s"extractRefreshToken => $maybeSessionNumber")
     maybeSessionNumber.flatMap(sessionNumber =>
       JwtCookies.extractCookie[RefreshToken](SessionKey.refresh(sessionNumber), request)
     )
@@ -58,7 +54,7 @@ case object SpotifyCookies {
 
   def discardCookies(implicit request: Request[AnyContent]): List[DiscardingCookie] = {
     val maybeSessionNumber = request.attrs.get(SessionKeys.spotifySessionKey)
-//    println(s"discardCookies => $maybeSessionNumber")
+    logger.debug(s"discardCookies => $maybeSessionNumber")
     maybeSessionNumber
       .fold(List.empty[DiscardingCookie])(sessionNumber =>
         List(
