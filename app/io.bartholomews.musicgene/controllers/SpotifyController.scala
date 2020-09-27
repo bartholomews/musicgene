@@ -69,46 +69,6 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       .getOrElse(InternalServerError("Something went wrong handling spotify session, please contact support."))
   }
 
-  //  private def getAuthenticatedUsers(sessionNumbers: List[Int], userResponses: List[(HttpResponse[PrivateUser], Int)])(
-  //    implicit request: Request[AnyContent]
-  //  ): IO[Result] = {
-  //    sessionNumbers match {
-  //      case Nil =>
-  //        IO.pure {
-  //          userResponses
-  //            .foldLeft[IorNel[JsValue, List[(PrivateUser, Int)]]](Ior.Right(List.empty))((result, curr) =>
-  //              result.combine(
-  //                curr._1.entity
-  //                  .bimap(err => NonEmptyList.one(errorToJsValue(err)), user => List(Tuple2(user, curr._2)))
-  //                  .toIor
-  //              )
-  //            )
-  //            .fold(
-  //              errors => BadRequest(JsArray.apply(errors.toList)),
-  //              users => Ok(views.html.spotify.hello(users)),
-  //              (_, users) => Ok(views.html.spotify.hello(users))
-  //            )
-  //        }
-  //
-  //      case x :: xs =>
-  //        withToken { signer =>
-  //          spotifyClient.users
-  //            .me(signer)
-  //            .flatMap(userResponse => {
-  //              println(s"$x -> ${userResponse.entity.right.get.id.value}")
-  //              getAuthenticatedUsers(xs, Tuple2(userResponse, x) :: userResponses)
-  //            })
-  //        }(request.addAttr(SessionKeys.spotifySessionKey, x))
-  //    }
-  //  }
-
-  //  def helloAll(): Action[AnyContent] = ActionIO.async { implicit request =>
-  //    extractAllSessionNumbers.map(_.toInt) match {
-  //      case Nil      => IO.pure(authenticate(request.addAttr(SessionKeys.spotifySessionKey, 0)))
-  //      case sessions => getAuthenticatedUsers(sessions, List.empty)
-  //    }
-  //  }
-
   def hello(): Action[AnyContent] = ActionIO.asyncWithMainUser { implicit request =>
     withToken { signer =>
       logger.info("hello")
