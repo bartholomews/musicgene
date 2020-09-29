@@ -1,6 +1,4 @@
 @import io.bartholomews.spotify4s.entities.SimplePlaylist
-@import io.bartholomews.musicgene.controllers
-@import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 
 @(playlists: List[SimplePlaylist])
 <table class="table table-hover" id="music-collection-table">
@@ -13,7 +11,7 @@
     </thead>
         <!-- TODO you already have tracks here, should probl collapse and show them -->
     <tbody class="music-collection-tbody">@playlists.zipWithIndex.map { case (p, index) =>
-    <tr class="clickable" onclick="redirect(`@controllers.routes.SpotifyController.tracks(SpotifySessionUser.Main, p.id).url`)">
+    <tr id="@p.id.value">
         <th scope="row">@index</th>
         <td>@p.name</td>
         <td>@p.description.getOrElse("-")</td>

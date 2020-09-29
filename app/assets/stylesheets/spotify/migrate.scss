@@ -1,0 +1,14 @@
+th {
+  .form-check {
+    label {
+      min-width: 75px;
+    }
+  }
+}
+
+tr {
+  &.selected {
+    background: lightseagreen;
+    border-style: dotted;
+  }
+}

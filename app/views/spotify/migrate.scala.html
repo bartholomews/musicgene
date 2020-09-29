@@ -1,12 +1,21 @@
 @import io.bartholomews.musicgene.controllers
-@import io.bartholomews.spotify4s.entities.PrivateUser
 @import views.common.Tab
 @import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 @import views.spotify.responses.SpotifyUserAndPlaylists.TheTuple
-@import views.html.spotify.playlistTable
 
+@import views.html.spotify.playlistTable
 @(result: Either[String, (TheTuple, Option[TheTuple])])(implicit requestHeader: RequestHeader)
-@main(activeTab = Tab.Spotify) {
+@css = @{
+    List(
+        routes.Assets.versioned("stylesheets/spotify/migrate.css")
+    )
+}
+@js = @{
+    List(
+        routes.Assets.versioned("js/spotify/migrate.js"),
+    )
+}
+@main(activeTab = Tab.Spotify, scripts = js, styles = css) {
 
     <div class="main-section">
         <h2><i>Migrate data from another Spotify account</i></h2>
@@ -21,7 +30,9 @@
             case Right(((mainUser, playlists), None)) => {
                 <div class="row">
                     <div class="col-md pull-left">
-                        <h2>@{mainUser.displayName.getOrElse(mainUser.id)}</h2>
+                        <h2>@{
+                            mainUser.displayName.getOrElse(mainUser.id)
+                        }</h2>
                     </div>
                     <div class="col-md pull-right">
                         <form action=@controllers.routes.SpotifyController.authenticate(SpotifySessionUser.Source)>
@@ -31,16 +42,16 @@
                 </div>
                 <div class="row">
                     <div class="col-md">
-                        <div>@playlistTable(playlists.items)</div>
+                        <div class="playlist-table">@playlistTable(playlists.items)</div>
                     </div>
                 </div>
             }
             case Right(((mainUser, playlists), Some((sourceUser, sourcePlaylists)))) => {
                 <div class="row">
-                    <div class="col-md">
+                    <div class="col-sm">
                         <h2>@mainUser.displayName.getOrElse(mainUser.id)</h2>
                     </div>
-                    <div class="col-md">
+                    <div class="col-sm">
                         <h2>@sourceUser.displayName.getOrElse(sourceUser.id)</h2>
                         <form action=@controllers.routes.SpotifyController.logout(SpotifySessionUser.Source)>
                             <button class="btn btn-outline-dark" type="submit">Revoke</button>
@@ -48,11 +59,42 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md">
+                    <div class="col-sm">
                         <div>@playlistTable(playlists.items)</div>
                     </div>
-                    <div class="col-md">
-                        <div>@playlistTable(sourcePlaylists.items)</div>
+                    <div class="col-sm">
+                        <table class="table table-hover" id="migrate-playlist-table-source">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <div class="form-check">
+                                            <input id="migrate-playlist-source-select-all"
+                                            onclick="onSelectAllPlaylists(this)"
+                                            class="form-check-input" type="checkbox">
+                                            <label class="form-check-label" for="migrate-playlist-source-select-all">
+                                                <span>Select all</span>
+                                            </label>
+                                        </div>
+                                        @* <label class="checkbox-inline" for="migrate-playlist-select-all" style="word-wrap: break-word">*@
+                                        @* <input id="migrate-playlist-select-all" type="checkbox" value="test" />*@
+                                        @* testdata*@
+                                        @* </label>*@
+                                    </th>
+                                    <th>Title</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                                <!-- TODO you already have tracks here, should probl collapse and show them -->
+                            <tbody id="migrate-source-playlist-tbody">@sourcePlaylists.items.zipWithIndex.map { case (p, index) =>
+                            <tr id="@p.id.value" class="clickable" onclick="onPlaylistRowClick(
+                                    this)">
+                                <th scope="row">@index</th>
+                                <td>@p.name</td>
+                                <td>@p.description.getOrElse("-")</td>
+                            </tr>
+                            }
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             }
