@@ -63,7 +63,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
             state = None,
             scopes = List(
               SpotifyScope.PLAYLIST_READ_PRIVATE,
-              SpotifyScope.PLAYLIST_READ_COLLABORATIVE,
+              SpotifyScope.PLAYLIST_READ_COLLABORATIVE
             ),
             showDialog = true
           )
@@ -144,7 +144,9 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
     SpotifyCookies.extractAuthCode(SpotifySessionUser.Source) match {
       case None => IO.pure(None)
       case Some(accessToken: AuthorizationCode) =>
-        if (accessToken.isExpired()) refresh(f).map(_.some)
+        if (accessToken.isExpired())
+          refresh(f)(request.addAttr(SpotifySessionKeys.spotifySessionUser, SpotifySessionUser.Source))
+            .map(_.some)
         else f(accessToken).map(_.some)
     }
 
@@ -190,9 +192,11 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       playlistRequest =>
         // val db = getFromRedisThenMongo(p)
         //        Ok(Json.toJson(PlaylistResponse.fromPlaylist(p)))
-        generatePlaylist(playlistRequest)(request
-          .addAttr(SpotifySessionKeys.spotifySessionUser, SpotifySessionUser.Main)
-          .map(AnyContentAsJson))
+        generatePlaylist(playlistRequest)(
+          request
+            .addAttr(SpotifySessionKeys.spotifySessionUser, SpotifySessionUser.Main)
+            .map(AnyContentAsJson)
+        )
     )
   }
 
@@ -263,7 +267,9 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
     }
 
   // FIXME: Unify main and source requests, ideally in parallel
-  private def getSourceUserForMigration(mainUser: (PrivateUser, Page[SimplePlaylist]))(implicit request: Request[AnyContent]): IO[Result] =
+  private def getSourceUserForMigration(
+    mainUser: (PrivateUser, Page[SimplePlaylist])
+  )(implicit request: Request[AnyContent]): IO[Result] =
     withSourceUserToken { implicit signer =>
       logger.info("getSourceUserForMigration")
 
@@ -278,10 +284,12 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
               playlists <- bbb
             } yield Tuple2(privateUser, playlists)
         })
-        .map(_.fold(
-          errorToResult,
-          res => Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, Some(res)))))
-        ))
+        .map(
+          _.fold(
+            errorToResult,
+            res => Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, Some(res)))))
+          )
+        )
     }.map(_.getOrElse(Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, None))))))
 
   private def getMainUserAndPlaylists(
@@ -299,10 +307,12 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
               playlists <- bbb
             } yield Tuple2(privateUser, playlists)
         })
-        .flatMap(_.fold(
-          _ => Ok(views.html.spotify.migrate(Left("Something went wrong while fetching the main user"))).pure[IO],
-          res => andThen(res)
-        ))
+        .flatMap(
+          _.fold(
+            _ => Ok(views.html.spotify.migrate(Left("Something went wrong while fetching the main user"))).pure[IO],
+            res => andThen(res)
+          )
+        )
     }
 
   def migrate(): Action[AnyContent] = ActionIO.asyncWithMainUser { implicit request =>
