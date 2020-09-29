@@ -12,37 +12,51 @@
         <h2><i>Migrate data from another Spotify account</i></h2>
         <br/>
         <div class="container">
-            <div class="row">
-            @result match {
-                case Left(error) => {
+        @result match {
+            case Left(error) => {
+                <div class="row">
                     <div class="col-md"><h2>@error</h2></div>
-                }
-                case Right(((mainUser, playlists), None)) => {
-                    <div class="col-md">
+                </div>
+            }
+            case Right(((mainUser, playlists), None)) => {
+                <div class="row">
+                    <div class="col-md pull-left">
                         <h2>@{mainUser.displayName.getOrElse(mainUser.id)}</h2>
-                        <div>@playlistTable(playlists.items)</div>
                     </div>
-                    <div class="col-md">
+                    <div class="col-md pull-right">
                         <form action=@controllers.routes.SpotifyController.authenticate(SpotifySessionUser.Source)>
                             <button class="btn btn-outline-dark" type="submit">Login</button>
                         </form>
                     </div>
-                }
-                case Right(((mainUser, playlists), Some((sourceUser, sourcePlaylists)))) => {
+                </div>
+                <div class="row">
+                    <div class="col-md">
+                        <div>@playlistTable(playlists.items)</div>
+                    </div>
+                </div>
+            }
+            case Right(((mainUser, playlists), Some((sourceUser, sourcePlaylists)))) => {
+                <div class="row">
                     <div class="col-md">
                         <h2>@mainUser.displayName.getOrElse(mainUser.id)</h2>
-                        <div>@playlistTable(playlists.items)</div>
                     </div>
                     <div class="col-md">
                         <h2>@sourceUser.displayName.getOrElse(sourceUser.id)</h2>
                         <form action=@controllers.routes.SpotifyController.logout(SpotifySessionUser.Source)>
                             <button class="btn btn-outline-dark" type="submit">Revoke</button>
                         </form>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md">
+                        <div>@playlistTable(playlists.items)</div>
+                    </div>
+                    <div class="col-md">
                         <div>@playlistTable(sourcePlaylists.items)</div>
                     </div>
-                }
+                </div>
             }
-            </div>
+        }
         </div>
         <hr class="horizontal-rule"/>
     </div>
