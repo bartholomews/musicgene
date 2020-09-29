@@ -28,9 +28,12 @@
     <logger name="application" level="DEBUG"/>
 
     <logger name="akka.actor.CoordinatedShutdown" level="OFF"/>
+    <logger name="akka.io.TcpListener" level="OFF"/>
+    <logger name="akka.stream.impl.io.TcpConnectionStage$TcpStreamLogic" level="OFF"/>
     <logger name="akka.serialization.jackson.JacksonObjectMapperProvider$" level="OFF"/>
     <logger name="play.api.libs.Files$DefaultTemporaryFileCreator" level="OFF"/>
     <logger name="org.http4s.blaze" level="OFF"/>
+    <logger name="org.http4s.blazecore.IdleTimeoutStage" level="OFF"/>
     <logger name="org.http4s.client" level="OFF"/>
 
     <root level="DEBUG">
