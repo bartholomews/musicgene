@@ -47,11 +47,11 @@
                 </div>
             }
             case Right(((mainUser, playlists), Some((sourceUser, sourcePlaylists)))) => {
-                <div class="row">
-                    <div class="col-sm">
+                <div class="row main-section">
+                    <div class="col-sm main">
                         <h2>@mainUser.displayName.getOrElse(mainUser.id)</h2>
                     </div>
-                    <div class="col-sm">
+                    <div class="col-sm source">
                         <h2>@sourceUser.displayName.getOrElse(sourceUser.id)</h2>
                         <form action=@controllers.routes.SpotifyController.logout(SpotifySessionUser.Source)>
                             <button class="btn btn-outline-dark" type="submit">Revoke</button>
@@ -60,9 +60,11 @@
                 </div>
                 <div class="row">
                     <div class="col-sm">
+                        <div>A</div>
                         <div>@playlistTable(playlists.items)</div>
                     </div>
                     <div class="col-sm">
+                        <div>B</div>
                         <table class="table table-hover" id="migrate-playlist-table-source">
                             <thead>
                                 <tr>
