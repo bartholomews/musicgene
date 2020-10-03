@@ -36,6 +36,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
   import eu.timepit.refined.auto.autoRefineV
   import io.bartholomews.musicgene.controllers.http.SpotifyHttpResults._
   import io.bartholomews.musicgene.model.helpers.CollectionsHelpers._
+  import io.bartholomews.musicgene.controllers.http.codecs.SpotifyCodecs._
 
   implicit val cs: ContextShift[IO] = IO.contextShift(ec)
   val spotifyClient: SpotifyClient = SpotifyClient.unsafeFromConfig()
@@ -320,5 +321,30 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       logger.info("migrate")
       getMainUserAndPlaylists(getSourceUserForMigration)
     }
+  }
+
+  val migratePlaylists: Action[JsValue] = ActionIO.async[JsValue](parse.json) { implicit request =>
+    val playlistIdsRequest = request.body.validate[List[SpotifyId]]
+    playlistIdsRequest.fold(
+      errors =>
+        IO.pure(
+          BadRequest(
+            Json.obj(
+              "error" -> "invalid_playlist_request_payload",
+              "message" -> JsError.toJson(errors)
+            )
+          )
+        ),
+      playlistIds => {
+        logger.debug(playlistIds.mkString(","))
+        IO.pure(
+          Ok(
+            Json.obj(
+              "ok" -> "yes",
+            )
+          )
+        )
+      }
+    )
   }
 }

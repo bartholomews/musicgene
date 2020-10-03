@@ -1,5 +1,17 @@
-.main-section {
-  margin-bottom: 30px;
+.migrate-section-top {
+  height: 100px;
+}
+
+.migrate-section-actions {
+  height: 30px;
+
+  &.source {
+    float: left;
+    margin-left: 10px;
+  }
+
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 th {

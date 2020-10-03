@@ -4,6 +4,7 @@
     @* https://www.playframework.com/documentation/latest/ScalaJavascriptRouting *@
     @helper.javascriptRouter("jsRoutes")(
         io.bartholomews.musicgene.controllers.routes.javascript.SpotifyController.generatePlaylist,
+        io.bartholomews.musicgene.controllers.routes.javascript.SpotifyController.migratePlaylists,
     )
 <!DOCTYPE html>
     <html lang="en">
@@ -54,6 +55,7 @@
             <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js" integrity="sha512-f0VlzJbcEB6KiW8ZVtL+5HWPDyW1+nJEjguZ5IVnSQkvZbwBt2RfCBY0CBO1PsMAqxxrG4Di6TfsCPP3ZRwKpA==" crossorigin="anonymous"></script>
             <script type="text/javascript" src="@routes.Assets.versioned("js/common/main.js")"></script>
+            <script type="text/javascript" src="@routes.Assets.versioned("js/common/fetch.js")"></script>
             @for(js <- scripts) {
                 <script type="text/javascript" src="@js"></script>
             }

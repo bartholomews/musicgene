@@ -9,6 +9,11 @@
  */
 
 /**
+ @typedef SpotifyController
+ @property {function} migratePlaylists()
+ */
+
+/**
  @typedef playlistResponse
  @property {array} songs
  */

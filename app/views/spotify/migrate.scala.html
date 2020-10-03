@@ -47,56 +47,66 @@
                 </div>
             }
             case Right(((mainUser, playlists), Some((sourceUser, sourcePlaylists)))) => {
-                <div class="row main-section">
+                <div class="migrate-section row">
+                        <!-- main user column -->
                     <div class="col-sm main">
-                        <h2>@mainUser.displayName.getOrElse(mainUser.id)</h2>
+                        <div class="migrate-section-top">
+                            <h2>@mainUser.displayName.getOrElse(mainUser.id)</h2>
+                        </div>
+                        <div class="migrate-section-actions main"></div>
+                        <div class="migrate-section-table">
+                            <div>@playlistTable(playlists.items)</div>
+                        </div>
                     </div>
+                        <!-- source user column -->
                     <div class="col-sm source">
-                        <h2>@sourceUser.displayName.getOrElse(sourceUser.id)</h2>
-                        <form action=@controllers.routes.SpotifyController.logout(SpotifySessionUser.Source)>
-                            <button class="btn btn-outline-dark" type="submit">Revoke</button>
-                        </form>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-sm">
-                        <div>A</div>
-                        <div>@playlistTable(playlists.items)</div>
-                    </div>
-                    <div class="col-sm">
-                        <div>B</div>
-                        <table class="table table-hover" id="migrate-playlist-table-source">
-                            <thead>
-                                <tr>
-                                    <th>
-                                        <div class="form-check">
-                                            <input id="migrate-playlist-source-select-all"
-                                            onclick="onSelectAllPlaylists(this)"
-                                            class="form-check-input" type="checkbox">
-                                            <label class="form-check-label" for="migrate-playlist-source-select-all">
-                                                <span>Select all</span>
-                                            </label>
-                                        </div>
-                                        @* <label class="checkbox-inline" for="migrate-playlist-select-all" style="word-wrap: break-word">*@
-                                        @* <input id="migrate-playlist-select-all" type="checkbox" value="test" />*@
-                                        @* testdata*@
-                                        @* </label>*@
-                                    </th>
-                                    <th>Title</th>
-                                    <th>Description</th>
+                        <div class="migrate-section-top">
+                            <h2>@sourceUser.displayName.getOrElse(sourceUser.id)</h2>
+                            <form action=@controllers.routes.SpotifyController.logout(SpotifySessionUser.Source)>
+                                <button class="btn btn-outline-danger" type="submit">Revoke</button>
+                            </form>
+                        </div>
+                        <div class="migrate-section-actions source">
+                            <div>
+                                <button type="button"
+                                onclick="migrate()"
+                                class="btn btn-outline-dark btn-sm">Migrate</button>
+                            </div>
+                        </div>
+                        <div class="migrate-section-table">
+                            <table class="table table-hover" id="migrate-playlist-table-source">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            <div class="form-check">
+                                                <input id="migrate-playlist-source-select-all"
+                                                onclick="onSelectAllPlaylists(this)"
+                                                class="form-check-input" type="checkbox">
+                                                <label class="form-check-label" for="migrate-playlist-source-select-all">
+                                                    <span>Select all</span>
+                                                </label>
+                                            </div>
+                                            @* <label class="checkbox-inline" for="migrate-playlist-select-all" style="word-wrap: break-word">*@
+                                            @* <input id="migrate-playlist-select-all" type="checkbox" value="test" />*@
+                                            @* testdata*@
+                                            @* </label>*@
+                                        </th>
+                                        <th>Title</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                    <!-- TODO you already have tracks here, should probl collapse and show them -->
+                                <tbody id="migrate-source-playlist-tbody">@sourcePlaylists.items.zipWithIndex.map { case (p, index) =>
+                                <tr id="@p.id.value" class="clickable" onclick="onPlaylistRowClick(
+                                        this)">
+                                    <th scope="row">@index</th>
+                                    <td>@p.name</td>
+                                    <td>@p.description.getOrElse("-")</td>
                                 </tr>
-                            </thead>
-                                <!-- TODO you already have tracks here, should probl collapse and show them -->
-                            <tbody id="migrate-source-playlist-tbody">@sourcePlaylists.items.zipWithIndex.map { case (p, index) =>
-                            <tr id="@p.id.value" class="clickable" onclick="onPlaylistRowClick(
-                                    this)">
-                                <th scope="row">@index</th>
-                                <td>@p.name</td>
-                                <td>@p.description.getOrElse("-")</td>
-                            </tr>
-                            }
-                            </tbody>
-                        </table>
+                                }
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             }
