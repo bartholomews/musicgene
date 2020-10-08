@@ -1,15 +1,17 @@
 package views.spotify.requests
 
-import io.bartholomews.spotify4s.entities.SpotifyUserId
+import io.bartholomews.spotify4s.entities.SpotifyId
 import play.api.libs.json.{Json, OFormat}
 
+/*
+  A request to clone a playlist to the main user
+ */
 case class PlaylistMigrationRequest(
-  userId: SpotifyUserId,
-  playlistName: String,
-  public: Boolean = true,
-  collaborative: Boolean = false,
-  description: Option[String] = None,
-  uris: List[String]
+  id: SpotifyId,
+  name: String,
+  public: Boolean,
+  collaborative: Boolean,
+  description: Option[String],
   // uris: SpotifyUris,
 )
 

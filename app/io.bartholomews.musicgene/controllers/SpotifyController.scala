@@ -5,6 +5,7 @@ import cats.effect.{ContextShift, IO}
 import cats.implicits._
 import com.google.inject.Inject
 import eu.timepit.refined.api.Refined
+import io.bartholomews.fsclient.entities.ErrorBody
 import io.bartholomews.fsclient.entities.oauth.{AuthorizationCode, SignerV2}
 import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 import io.bartholomews.musicgene.controllers.http.{SpotifyCookies, SpotifySessionKeys}
@@ -18,7 +19,7 @@ import org.http4s.Uri
 import play.api.Logging
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc._
-import views.spotify.requests.PlaylistRequest
+import views.spotify.requests.{PlaylistMigrationRequest, PlaylistRequest}
 import views.spotify.responses.{GeneratedPlaylist, GeneratedPlaylistResultId}
 
 import scala.concurrent.ExecutionContext
@@ -246,11 +247,8 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
               c = playlistRequest.constraints.map(_.toDomain),
               playlistRequest.length
             )
-          } yield Ok(
-            Json.toJson(
-              GeneratedPlaylist.fromPlaylist(playlistRequest.name, playlist)
-            )
-          )).fold(identity, identity)
+          } yield Ok(Json.toJson(GeneratedPlaylist.fromPlaylist(playlistRequest.name, playlist))))
+            .fold(identity, identity)
       })
     }
 
@@ -267,7 +265,10 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       )
     }
 
-  def getUserAndPlaylists() = {
+  def getUserAndPlaylists(
+    implicit request: Request[AnyContent],
+    signer: SignerV2
+  ): IO[Either[ErrorBody, (PrivateUser, Page[SimplePlaylist])]] = {
 
     val getUser = spotifyClient.users.me.map(_.entity)
     val getUserPlaylists = spotifyClient.users.getPlaylists(limit = 50).map(_.entity)
@@ -280,60 +281,28 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
             playlists <- bbb
           } yield Tuple2(privateUser, playlists)
       })
-
   }
 
-  // FIXME: Unify main and source requests, ideally in parallel
   private def getSourceUserForMigration(
     mainUser: (PrivateUser, Page[SimplePlaylist])
   )(implicit request: Request[AnyContent]): IO[Result] =
     withSourceUserToken { implicit signer =>
       logger.info("getSourceUserForMigration")
-
-      val getSourceUser = spotifyClient.users.me.map(_.entity)
-      val getSourceUserPlaylists = spotifyClient.users.getPlaylists(limit = 50).map(_.entity)
-
-      (getSourceUser, getSourceUserPlaylists)
-        .parMapN({
-          case (aaa, bbb) =>
-            for {
-              privateUser <- aaa
-              playlists <- bbb
-            } yield Tuple2(privateUser, playlists)
-        })
-        .map(
-          _.fold(
-            errorToResult,
-            res => {
-
-
-              Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, Some(res)))))
-            }
-          )
-        )
+      getUserAndPlaylists.map(
+        _.toResulto(entity => Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, Some(entity))))))
+      )
     }.map(_.getOrElse(Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, None))))))
 
   private def getMainUserAndPlaylists(
     andThen: ((PrivateUser, Page[SimplePlaylist])) => IO[Result]
   )(implicit request: Request[AnyContent]): IO[Result] =
     withToken { implicit signer =>
-      val getMainUser = spotifyClient.users.me.map(_.entity)
-      val getMainUserPlaylists = spotifyClient.users.getPlaylists(limit = 50).map(_.entity)
-
-      (getMainUser, getMainUserPlaylists)
-        .parMapN({
-          case (aaa, bbb) =>
-            for {
-              privateUser <- aaa
-              playlists <- bbb
-            } yield Tuple2(privateUser, playlists)
-        })
-        .flatMap(
-          _.fold(
-            _ => Ok(views.html.spotify.migrate(Left("Something went wrong while fetching the main user"))).pure[IO],
-            res => andThen(res)
-          )
+      getUserAndPlaylists.flatMap(
+        _.fold(
+          _ => Ok(views.html.spotify.migrate(Left("Something went wrong while fetching the main user"))).pure[IO],
+          entity => andThen(entity)
         )
+      )
     }
 
   def migrate(): Action[AnyContent] = ActionIO.asyncWithMainUser { implicit request =>
@@ -344,7 +313,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
   }
 
   val migratePlaylists: Action[JsValue] = ActionIO.async[JsValue](parse.json) { implicit request =>
-    val playlistIdsRequest = request.body.validate[List[SpotifyId]]
+    val playlistIdsRequest = request.body.validate[List[PlaylistMigrationRequest]]
     playlistIdsRequest.fold(
       errors =>
         IO.pure(
@@ -355,8 +324,10 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
             )
           )
         ),
-      playlistIds => {
-        logger.debug(playlistIds.mkString(","))
+      playlistRequests => {
+        playlistIdsRequest.foreach(pr => {
+          logger.debug(pr.toString)
+        })
         IO.pure(
           Ok(
             Json.obj(

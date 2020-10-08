@@ -10,6 +10,11 @@ import views.common.Tab
 
 sealed abstract class HttpResults(tab: Tab) {
 
+  implicit class HttpResultResponseImplicits[A](httpResponseEntity: Either[ErrorBody, A]) {
+    def toResulto(f: A => Result)(implicit request: Request[AnyContent]): Result =
+      httpResponseEntity.fold(errorToResult, f)
+  }
+
   implicit class HttpResponseImplicits[A](httpResponse: HttpResponse[A]) {
     def toResult(responseToResult: A => Result)(implicit request: Request[AnyContent]): Result =
       httpResponse.foldBody(errorToResult, responseToResult)

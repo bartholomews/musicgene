@@ -96,23 +96,16 @@
                                 <tbody id="migrate-source-playlist-tbody">@sourcePlaylists.items.zipWithIndex.map { case (p, index) =>
                                 <span>
                                     <tr id="@p.id.value" class="clickable"
-                                        data-name="@p.name"
-                                        data-public="@p.public"
-                                        data-collaborative="@p.collaborative"
-                                        data-description="@p.description"
+                                    data-name="@p.name"
+                                    data-public="@p.public"
+                                    data-collaborative="@p.collaborative"
+                                    data-description="@p.description"
                                     onclick="onPlaylistRowClick(this)">
                                         <th scope="row">@index</th>
                                         <td>@p.name</td>
                                         <td>@p.description.getOrElse("-")</td>
-                                    </tr>
+                                </tr>
                                         <!-- FIXME: Would be nice collapsible (and selectable) inner rows -->
-                                    @p.tracks.items.map { case playlistTrack =>
-                                    <tr hidden class="playlist-@{p.id.value}-track" id="@playlistTrack.track.id.map(_.value).orNull">
-                                        <td>@index-T</td>
-                                        <td>@playlistTrack.track.name</td>
-                                        <td>@playlistTrack.track.id</td>
-                                    </tr>
-                                    }
                                 }
                                 </span>
                                 </tbody>
