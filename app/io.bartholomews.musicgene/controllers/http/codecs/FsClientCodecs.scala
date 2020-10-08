@@ -21,7 +21,7 @@ import org.http4s.client.oauth1.{Consumer, Token}
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.{Format, JsPath, Json, OFormat, OWrites, Reads, Writes}
 
-object FsClientCodecs {
+object FsClientCodecs extends CodecsConfiguration {
   implicit val accessTokenFormat: Format[AccessToken] = Json.valueFormat[AccessToken]
   implicit val refreshTokenFormat: Format[RefreshToken] = Json.valueFormat[RefreshToken]
   implicit val clientIdFormat: Format[ClientId] = Json.valueFormat[ClientId]

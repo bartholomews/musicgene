@@ -1,6 +1,5 @@
 package views.spotify.requests
 
-import io.bartholomews.musicgene.controllers.http.codecs.withDiscriminator
 import play.api.libs.json.{Json, Reads}
 
 sealed trait SpotifyAttribute

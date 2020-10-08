@@ -1,7 +1,5 @@
 package views.spotify.requests
 
-import io.bartholomews.musicgene.controllers.http.codecs.config
-import io.bartholomews.musicgene.controllers.http.codecs.withDiscriminator
 import io.bartholomews.musicgene.model.{constraints, music}
 import play.api.libs.json.{Json, Reads}
 

@@ -2,6 +2,18 @@ const selectedPlaylists = [];
 
 function onPlaylistRowClick(playlistRow) {
     const playlistId = playlistRow.getAttribute('id');
+    const name = playlistRow.dataset.name;
+    const isPublic = playlistRow.dataset.public;
+    const collaborative = playlistRow.dataset.collaborative;
+    const description = playlistRow.dataset.description;
+    console.log(name);
+    console.log(isPublic);
+    console.log(collaborative);
+    console.log(description);
+    const tracks = document.getElementsByClassName(`playlist-${playlistId}-track`);
+    for (let track of tracks) {
+        console.log(track.id);
+    }
     document.getElementById('migrate-playlist-source-select-all').checked = false;
     const isSelected = toggleClass(playlistRow, 'selected');
     isSelected ?
@@ -26,9 +38,17 @@ function onSelectAllPlaylists(selectAllCheckbox) {
     }
 }
 
-function migrate() {
+function migrate(e) {
+    console.log(e);
     const route = jsRoutesControllers.SpotifyController.migratePlaylists();
-    jsonRequest(route, selectedPlaylists,
+    jsonRequest(route, {
+                    user_id: 'ME!',
+                    playlist_name: 'Some playlist',
+                    public: true,
+                    collaborative: false,
+                    description: 'Optional string description',
+                    uris: []
+                },
                 err => console.log(err),
                 playlistResponse => {
                     console.log(playlistResponse)

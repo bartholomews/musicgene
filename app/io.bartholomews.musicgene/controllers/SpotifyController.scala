@@ -267,6 +267,22 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       )
     }
 
+  def getUserAndPlaylists() = {
+
+    val getUser = spotifyClient.users.me.map(_.entity)
+    val getUserPlaylists = spotifyClient.users.getPlaylists(limit = 50).map(_.entity)
+
+    (getUser, getUserPlaylists)
+      .parMapN({
+        case (aaa, bbb) =>
+          for {
+            privateUser <- aaa
+            playlists <- bbb
+          } yield Tuple2(privateUser, playlists)
+      })
+
+  }
+
   // FIXME: Unify main and source requests, ideally in parallel
   private def getSourceUserForMigration(
     mainUser: (PrivateUser, Page[SimplePlaylist])
@@ -288,7 +304,11 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
         .map(
           _.fold(
             errorToResult,
-            res => Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, Some(res)))))
+            res => {
+
+
+              Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, Some(res)))))
+            }
           )
         )
     }.map(_.getOrElse(Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, None))))))
@@ -340,7 +360,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
         IO.pure(
           Ok(
             Json.obj(
-              "ok" -> "yes",
+              "ok" -> "yes"
             )
           )
         )

@@ -1,10 +1,11 @@
 @import io.bartholomews.musicgene.controllers
 @import views.common.Tab
 @import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
-@import views.spotify.responses.SpotifyUserAndPlaylists.TheTuple
+@import views.spotify.responses.SpotifyUserAndPlaylists.SrcUserAndFullPlaylists
 
 @import views.html.spotify.playlistTable
-@(result: Either[String, (TheTuple, Option[TheTuple])])(implicit requestHeader: RequestHeader)
+@import views.spotify.responses.SpotifyUserAndPlaylists.MainUserAndSimplePlaylists
+@(result: Either[String, (MainUserAndSimplePlaylists, Option[SrcUserAndFullPlaylists])])(implicit requestHeader: RequestHeader)
 @css = @{
     List(
         routes.Assets.versioned("stylesheets/spotify/migrate.css")
@@ -86,10 +87,6 @@
                                                     <span>Select all</span>
                                                 </label>
                                             </div>
-                                            @* <label class="checkbox-inline" for="migrate-playlist-select-all" style="word-wrap: break-word">*@
-                                            @* <input id="migrate-playlist-select-all" type="checkbox" value="test" />*@
-                                            @* testdata*@
-                                            @* </label>*@
                                         </th>
                                         <th>Title</th>
                                         <th>Description</th>
@@ -97,13 +94,27 @@
                                 </thead>
                                     <!-- TODO you already have tracks here, should probl collapse and show them -->
                                 <tbody id="migrate-source-playlist-tbody">@sourcePlaylists.items.zipWithIndex.map { case (p, index) =>
-                                <tr id="@p.id.value" class="clickable" onclick="onPlaylistRowClick(
-                                        this)">
-                                    <th scope="row">@index</th>
-                                    <td>@p.name</td>
-                                    <td>@p.description.getOrElse("-")</td>
-                                </tr>
+                                <span>
+                                    <tr id="@p.id.value" class="clickable"
+                                        data-name="@p.name"
+                                        data-public="@p.public"
+                                        data-collaborative="@p.collaborative"
+                                        data-description="@p.description"
+                                    onclick="onPlaylistRowClick(this)">
+                                        <th scope="row">@index</th>
+                                        <td>@p.name</td>
+                                        <td>@p.description.getOrElse("-")</td>
+                                    </tr>
+                                        <!-- FIXME: Would be nice collapsible (and selectable) inner rows -->
+                                    @p.tracks.items.map { case playlistTrack =>
+                                    <tr hidden class="playlist-@{p.id.value}-track" id="@playlistTrack.track.id.map(_.value).orNull">
+                                        <td>@index-T</td>
+                                        <td>@playlistTrack.track.name</td>
+                                        <td>@playlistTrack.track.id</td>
+                                    </tr>
+                                    }
                                 }
+                                </span>
                                 </tbody>
                             </table>
                         </div>

@@ -1,11 +1,11 @@
-package io.bartholomews.musicgene.controllers.http
+package io.bartholomews.musicgene.controllers.http.codecs
 
 import play.api.libs.json.JsonConfiguration.Aux
 import play.api.libs.json.JsonNaming.SnakeCase
 import play.api.libs.json.{Json, JsonConfiguration, JsonNaming}
 
 // https://www.playframework.com/documentation/latest/ScalaJsonAutomated
-package object codecs {
+trait CodecsConfiguration {
   // TODO: test if this works, shouldn't need the manual key conversions e.g. in `nonRefreshableTokenReads`
   implicit val config: Aux[Json.MacroOptions] = JsonConfiguration(SnakeCase)
   val withDiscriminator: Json.WithOptions[Json.MacroOptions] = {
@@ -23,3 +23,5 @@ package object codecs {
     )
   }
 }
+
+object CodecsConfiguration extends CodecsConfiguration {}
