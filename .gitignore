@@ -1,5 +1,6 @@
 logs
 target
+/project/project
 /.idea
 /.idea_modules
 /.classpath
@@ -11,4 +12,5 @@ node_modules
 .bloop
 .bsp
 .metals
+.vscode
 /project/metals.sbt
