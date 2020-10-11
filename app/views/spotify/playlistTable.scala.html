@@ -1,21 +1,54 @@
 @import io.bartholomews.spotify4s.entities.SimplePlaylist
-
-@(playlists: List[SimplePlaylist])
-<table class="table table-hover" id="music-collection-table">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Title</th>
-            <th>Description</th>
+@import io.bartholomews.spotify4s.entities.PrivateUser
+@import io.bartholomews.spotify4s.entities.Page
+@*TODO: Pagination*@
+@(playlists: Page[SimplePlaylist], user: PrivateUser, userType: String)
+<div class="migrate-section-actions @{
+    userType
+}">
+    <div>
+        <button
+        type="button"
+        data-action="@userType"
+        data-user="@user.id.value"
+        onclick="onSubmit(this)"
+        class="btn btn-outline-dark btn-sm">Migrate</button>
+    </div>
+</div>
+<div class="migrate-section-table">
+    <table
+    class="table table-hover"
+    data-action="@userType"
+    id="migrate-playlist-table-source">
+        <thead>
+            <tr>
+                <th>
+                    <div class="form-check">
+                        <input id="migrate-playlist-@{userType}-select-all"
+                        onclick="onSelectAllPlaylists(this)"
+                        class="select-all-checkbox form-check-input" type="checkbox">
+                        <label class="form-check-label" for="migrate-playlist-@{userType}-select-all">
+                            <span>Select all</span>
+                        </label>
+                    </div>
+                </th>
+                <th>Title</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody id="migrate-source-playlist-tbody">@playlists.items.zipWithIndex.map { case (p, index) =>
+        <tr id="@p.id.value" class="clickable"
+        data-name="@p.name"
+        data-public="@p.public"
+        data-collaborative="@p.collaborative"
+        data-description="@p.description"
+        onclick="onPlaylistRowClick(this)">
+            <th scope="row">@index</th>
+            <td>@p.name</td>
+            <td>@p.description.getOrElse("-")</td>
         </tr>
-    </thead>
-        <!-- TODO you already have tracks here, should probl collapse and show them -->
-    <tbody class="music-collection-tbody">@playlists.zipWithIndex.map { case (p, index) =>
-    <tr id="@p.id.value">
-        <th scope="row">@index</th>
-        <td>@p.name</td>
-        <td>@p.description.getOrElse("-")</td>
-    </tr>
-    }
-    </tbody>
-</table>
+                <!-- FIXME: Would be nice collapsible (and selectable) inner rows -->
+        }
+        </tbody>
+    </table>
+</div>

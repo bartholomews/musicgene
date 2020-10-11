@@ -1,15 +1,32 @@
-const selectedPlaylists = [];
+const selectedMainPlaylists = [];
+const selectedSrcPlaylists = [];
 
 function onPlaylistRowClick(playlistRow) {
-    const playlist = makePlaylistObject(playlistRow);
-    document.getElementById('migrate-playlist-source-select-all').checked = false;
+    const table = getParentTable(playlistRow);
+    console.log(table);
+    const action = table.dataset.action;
+    table.querySelector('thead tr th .form-check .select-all-checkbox').checked = false;
+
+    const {playlists, makePayload} = getActionPayload(action);
+    const payload = makePayload(playlistRow);
+
     const isSelected = toggleClass(playlistRow, 'selected');
     isSelected ?
-    selectedPlaylists.push(playlist) :
-    selectedPlaylists.splice(selectedPlaylists.map(p => p.id).indexOf(playlist.id), 1);
+        playlists.push(payload) :
+        playlists.splice(playlists.map(p => p.id).indexOf(payload.id), 1);
 }
 
-function makePlaylistObject(playlistRow) {
+function getActionPayload(action) {
+    switch (action) {
+        case 'main':
+            return {makePayload: playlistUnfollowPayload, playlists: selectedMainPlaylists, action: 'unfollow'}
+
+        case 'source':
+            return {makePayload: playlistMigrationPayload, playlists: selectedSrcPlaylists, action: 'migrate'}
+    }
+}
+
+function playlistMigrationPayload(playlistRow) {
     return {
         id: playlistRow.getAttribute('id'),
         name: playlistRow.dataset.name,
@@ -19,30 +36,50 @@ function makePlaylistObject(playlistRow) {
     }
 }
 
+function playlistUnfollowPayload(playlistRow) {
+    return {id: playlistRow.getAttribute('id')};
+}
+
 function onSelectAllPlaylists(selectAllCheckbox) {
+    const table = getParentTable(selectAllCheckbox);
+    console.log(table);
+    const action = table.dataset.action;
+    const {playlists, makePayload} = getActionPayload(action);
+
     const onToggledPlaylistRow = row => {
         if (selectAllCheckbox.checked) {
             row.classList.add('selected');
-            selectedPlaylists.push(makePlaylistObject(row));
+            playlists.push(makePayload(row));
         } else {
             row.classList.remove('selected');
         }
     }
 
-    const rows = document.getElementById("migrate-source-playlist-tbody").rows;
-    selectedPlaylists.splice(0, selectedPlaylists.length)
-    for (let row of rows) {
+    flushArray(playlists);
+    for (let row of table.querySelector('tbody').rows) {
         onToggledPlaylistRow(row);
     }
 }
 
-function migrate(btn) {
-    console.log(btn.dataset.user)
-    const route = jsRoutesControllers.SpotifyController.migratePlaylists();
-    jsonRequest(route, {user_id: btn.dataset.user, playlists: selectedPlaylists},
-                err => console.log(err),
-                playlistResponse => {
-                    console.log(playlistResponse)
-                }
-    );
+function onSubmit(btn) {
+    const {playlists, action} = getActionPayload(btn.dataset.action);
+    const user_id = btn.dataset.user;
+    console.log(user_id);
+    switch (action) {
+        case 'unfollow':
+            console.log('TODO: unfollow');
+            console.log(playlists);
+            return 0;
+        case 'migrate':
+            console.log('TODO: migrate');
+            console.log(playlists);
+            return 0;
+    }
+    // const route = jsRoutesControllers.SpotifyController.migratePlaylists();
+    // jsonRequest(route, {user_id: btn.dataset.user, playlists: selectedSrcPlaylists},
+    //     err => console.log(err),
+    //     playlistResponse => {
+    //         console.log(playlistResponse)
+    //     }
+    // );
 }

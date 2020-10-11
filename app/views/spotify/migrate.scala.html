@@ -11,17 +11,18 @@
         routes.Assets.versioned("stylesheets/spotify/migrate.css")
     )
 }
+
 @js = @{
     List(
         routes.Assets.versioned("js/spotify/migrate.js"),
     )
 }
+
 @main(activeTab = Tab.Spotify, scripts = js, styles = css) {
 
     <div class="main-section">
         <h2><i>Migrate data from another Spotify account</i></h2>
         <br/>
-        <div class="container">
         @result match {
             case Left(error) => {
                 <div class="row">
@@ -43,81 +44,35 @@
                 </div>
                 <div class="row">
                     <div class="col-md">
-                        <div class="playlist-table">@playlistTable(playlists.items)</div>
+                        <div class="playlist-table">@playlistTable(playlists, mainUser, "main")</div>
                     </div>
                 </div>
             }
             case Right(((mainUser, playlists), Some((sourceUser, sourcePlaylists)))) => {
-                <div class="migrate-section row">
-                        <!-- main user column -->
-                    <div class="col-sm main">
-                        <div class="migrate-section-top">
-                            <h2>@mainUser.displayName.getOrElse(mainUser.id)</h2>
-                        </div>
-                        <div class="migrate-section-actions main"></div>
-                        <div class="migrate-section-table">
-                            <div>@playlistTable(playlists.items)</div>
-                        </div>
-                    </div>
-                        <!-- source user column -->
-                    <div class="col-sm source">
-                        <div class="migrate-section-top">
-                            <h2>@sourceUser.displayName.getOrElse(sourceUser.id)</h2>
-                            <form action=@controllers.routes.SpotifyController.logout(SpotifySessionUser.Source)>
-                                <button class="btn btn-outline-danger" type="submit">Revoke</button>
-                            </form>
-                        </div>
-                        <div class="migrate-section-actions source">
-                            <div>
-                                <button
-                                type="button"
-                                data-user="@mainUser.id.value"
-                                onclick="migrate(this)"
-                                class="btn btn-outline-dark btn-sm">Migrate</button>
+                <div class="container-fluid">
+                    <div class="migrate-section row">
+                            <!-- main user column -->
+                        <div class="col-sm main">
+                            <div class="migrate-section-top">
+                                <h2>@mainUser.displayName.getOrElse(mainUser.id)</h2>
                             </div>
+                            @playlistTable(playlists, mainUser, "main")
                         </div>
-                        <div class="migrate-section-table">
-                            <table class="table table-hover" id="migrate-playlist-table-source">
-                                <thead>
-                                    <tr>
-                                        <th>
-                                            <div class="form-check">
-                                                <input id="migrate-playlist-source-select-all"
-                                                onclick="onSelectAllPlaylists(this)"
-                                                class="form-check-input" type="checkbox">
-                                                <label class="form-check-label" for="migrate-playlist-source-select-all">
-                                                    <span>Select all</span>
-                                                </label>
-                                            </div>
-                                        </th>
-                                        <th>Title</th>
-                                        <th>Description</th>
-                                    </tr>
-                                </thead>
-                                    <!-- TODO you already have tracks here, should probl collapse and show them -->
-                                <tbody id="migrate-source-playlist-tbody">@sourcePlaylists.items.zipWithIndex.map { case (p, index) =>
-                                <span>
-                                    <tr id="@p.id.value" class="clickable"
-                                    data-name="@p.name"
-                                    data-public="@p.public"
-                                    data-collaborative="@p.collaborative"
-                                    data-description="@p.description"
-                                    onclick="onPlaylistRowClick(this)">
-                                        <th scope="row">@index</th>
-                                        <td>@p.name</td>
-                                        <td>@p.description.getOrElse("-")</td>
-                                </tr>
-                                        <!-- FIXME: Would be nice collapsible (and selectable) inner rows -->
-                                }
-                                </span>
-                                </tbody>
-                            </table>
+                            <!-- source user column -->
+                        <div class="col-sm source">
+                            <div class="migrate-section-top">
+                                <h2>@sourceUser.displayName.getOrElse(sourceUser.id)</h2>
+                                <form action=@controllers.routes.SpotifyController.logout(SpotifySessionUser.Source)>
+                                    <button class="btn btn-outline-danger" type="submit">Revoke</button>
+                                </form>
+                            </div>
+                            @playlistTable(sourcePlaylists, mainUser, "source")
                         </div>
                     </div>
                 </div>
+
             }
         }
-        </div>
         <hr class="horizontal-rule"/>
     </div>
 }

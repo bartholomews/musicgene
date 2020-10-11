@@ -1,9 +1,15 @@
 .migrate-section-top {
+  margin-top: 50px;
   height: 100px;
 }
 
 .migrate-section-actions {
   height: 30px;
+
+  &.main {
+    float: left;
+    margin-left: 10px;
+  }
 
   &.source {
     float: left;
