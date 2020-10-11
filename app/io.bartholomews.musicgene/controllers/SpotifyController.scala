@@ -320,7 +320,9 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
           )
           .flatMap(newPlaylistResponse => {
 
-            SpotifyUri.fromList(playlistToClone.tracks.items.map(_.track.uri)).fold(
+            SpotifyUri.fromList(playlistToClone.tracks.items
+              .filterNot(_.isLocal) // FIXME: :( maybe should add to the response to inform the user
+              .map(_.track.uri)).fold(
               err => IO.pure(BadRequest(err)),
               uris =>
                 newPlaylistResponse.toResultF { newPlaylist =>
