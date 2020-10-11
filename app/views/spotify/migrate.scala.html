@@ -69,8 +69,10 @@
                         </div>
                         <div class="migrate-section-actions source">
                             <div>
-                                <button type="button"
-                                onclick="migrate()"
+                                <button
+                                type="button"
+                                data-user="@mainUser.id.value"
+                                onclick="migrate(this)"
                                 class="btn btn-outline-dark btn-sm">Migrate</button>
                             </div>
                         </div>

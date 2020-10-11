@@ -3,6 +3,7 @@ package io.bartholomews.musicgene.controllers
 import cats.effect.IO
 import io.bartholomews.musicgene.controllers.http.SpotifySessionKeys
 import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
+import play.api.libs.json.JsValue
 import play.api.mvc._
 
 abstract class AbstractControllerIO(override protected val controllerComponents: ControllerComponents)
@@ -20,6 +21,12 @@ abstract class AbstractControllerIO(override protected val controllerComponents:
     // FIXME: This is spotify-specific
     final def asyncWithMainUser(block: Request[AnyContent] => IO[Result]): Action[AnyContent] =
       self.Action.async(req =>
+        block(req.addAttr(SpotifySessionKeys.spotifySessionUser, SpotifySessionUser.Main)).unsafeToFuture()
+      )
+
+    // FIXME: This is spotify-specific
+    final def jsonAsyncWithMainUser(block: Request[JsValue] => IO[Result]): Action[JsValue] =
+      self.Action.async[JsValue](parse.json)(req =>
         block(req.addAttr(SpotifySessionKeys.spotifySessionUser, SpotifySessionUser.Main)).unsafeToFuture()
       )
 

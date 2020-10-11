@@ -10,9 +10,8 @@ function onPlaylistRowClick(playlistRow) {
 }
 
 function makePlaylistObject(playlistRow) {
-    const playlistId = playlistRow.getAttribute('id');
     return {
-        id: playlistId,
+        id: playlistRow.getAttribute('id'),
         name: playlistRow.dataset.name,
         public: playlistRow.dataset.public === 'true',
         collaborative: playlistRow.dataset.collaborative === 'true',
@@ -37,9 +36,10 @@ function onSelectAllPlaylists(selectAllCheckbox) {
     }
 }
 
-function migrate() {
+function migrate(btn) {
+    console.log(btn.dataset.user)
     const route = jsRoutesControllers.SpotifyController.migratePlaylists();
-    jsonRequest(route, selectedPlaylists,
+    jsonRequest(route, {user_id: btn.dataset.user, playlists: selectedPlaylists},
                 err => console.log(err),
                 playlistResponse => {
                     console.log(playlistResponse)
