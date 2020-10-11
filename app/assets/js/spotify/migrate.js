@@ -3,7 +3,6 @@ const selectedSrcPlaylists = [];
 
 function onPlaylistRowClick(playlistRow) {
     const table = getParentTable(playlistRow);
-    console.log(table);
     const action = table.dataset.action;
     table.querySelector('thead tr th .form-check .select-all-checkbox').checked = false;
 
@@ -19,10 +18,18 @@ function onPlaylistRowClick(playlistRow) {
 function getActionPayload(action) {
     switch (action) {
         case 'main':
-            return {makePayload: playlistUnfollowPayload, playlists: selectedMainPlaylists, action: 'unfollow'}
+            return {
+                makePayload: playlistUnfollowPayload,
+                playlists: selectedMainPlaylists,
+                route: jsRoutesControllers.SpotifyController.unfollowPlaylists()
+            }
 
         case 'source':
-            return {makePayload: playlistMigrationPayload, playlists: selectedSrcPlaylists, action: 'migrate'}
+            return {
+                makePayload: playlistMigrationPayload,
+                playlists: selectedSrcPlaylists,
+                route: jsRoutesControllers.SpotifyController.migratePlaylists()
+            }
     }
 }
 
@@ -42,7 +49,6 @@ function playlistUnfollowPayload(playlistRow) {
 
 function onSelectAllPlaylists(selectAllCheckbox) {
     const table = getParentTable(selectAllCheckbox);
-    console.log(table);
     const action = table.dataset.action;
     const {playlists, makePayload} = getActionPayload(action);
 
@@ -62,24 +68,11 @@ function onSelectAllPlaylists(selectAllCheckbox) {
 }
 
 function onSubmit(btn) {
-    const {playlists, action} = getActionPayload(btn.dataset.action);
-    const user_id = btn.dataset.user;
-    console.log(user_id);
-    switch (action) {
-        case 'unfollow':
-            console.log('TODO: unfollow');
-            console.log(playlists);
-            return 0;
-        case 'migrate':
-            console.log('TODO: migrate');
-            console.log(playlists);
-            return 0;
-    }
-    // const route = jsRoutesControllers.SpotifyController.migratePlaylists();
-    // jsonRequest(route, {user_id: btn.dataset.user, playlists: selectedSrcPlaylists},
-    //     err => console.log(err),
-    //     playlistResponse => {
-    //         console.log(playlistResponse)
-    //     }
-    // );
+    const {playlists, route} = getActionPayload(btn.dataset.action);
+    jsonRequest(route, {user_id: btn.dataset.user, playlists},
+        err => console.log(err),
+        response => {
+            console.log(response)
+        }
+    );
 }

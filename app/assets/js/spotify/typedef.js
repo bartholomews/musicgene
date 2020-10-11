@@ -14,6 +14,11 @@
  */
 
 /**
+ @typedef SpotifyController
+ @property {function} unfollowPlaylists()
+ */
+
+/**
  @typedef playlistResponse
  @property {array} songs
  */

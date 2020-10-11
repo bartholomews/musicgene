@@ -1,33 +1,35 @@
 @import io.bartholomews.spotify4s.entities.SimplePlaylist
 @import io.bartholomews.spotify4s.entities.PrivateUser
 @import io.bartholomews.spotify4s.entities.Page
+@import views.spotify.requests.PlaylistsAction
+
 @*TODO: Pagination*@
-@(playlists: Page[SimplePlaylist], user: PrivateUser, userType: String)
+@(playlists: Page[SimplePlaylist], user: PrivateUser, action: PlaylistsAction)
 <div class="migrate-section-actions @{
-    userType
+    action.userType
 }">
     <div>
         <button
         type="button"
-        data-action="@userType"
+        data-action="@action.userType"
         data-user="@user.id.value"
         onclick="onSubmit(this)"
-        class="btn btn-outline-dark btn-sm">Migrate</button>
+        class="btn btn-outline-dark btn-sm">@action.label</button>
     </div>
 </div>
 <div class="migrate-section-table">
     <table
     class="table table-hover"
-    data-action="@userType"
+    data-action="@action.userType"
     id="migrate-playlist-table-source">
         <thead>
             <tr>
                 <th>
                     <div class="form-check">
-                        <input id="migrate-playlist-@{userType}-select-all"
+                        <input id="migrate-playlist-@{action.userType}-select-all"
                         onclick="onSelectAllPlaylists(this)"
                         class="select-all-checkbox form-check-input" type="checkbox">
-                        <label class="form-check-label" for="migrate-playlist-@{userType}-select-all">
+                        <label class="form-check-label" for="migrate-playlist-@{action.userType}-select-all">
                             <span>Select all</span>
                         </label>
                     </div>

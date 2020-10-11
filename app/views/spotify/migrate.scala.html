@@ -2,9 +2,12 @@
 @import views.common.Tab
 @import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 @import views.spotify.responses.SpotifyUserAndPlaylists.SrcUserAndFullPlaylists
-
+@import views.spotify.requests.PlaylistsAction
 @import views.html.spotify.playlistTable
 @import views.spotify.responses.SpotifyUserAndPlaylists.MainUserAndSimplePlaylists
+
+@import views.spotify.requests.UnfollowPlaylists
+@import views.spotify.requests.MigratePlaylists
 @(result: Either[String, (MainUserAndSimplePlaylists, Option[SrcUserAndFullPlaylists])])(implicit requestHeader: RequestHeader)
 @css = @{
     List(
@@ -44,7 +47,7 @@
                 </div>
                 <div class="row">
                     <div class="col-md">
-                        <div class="playlist-table">@playlistTable(playlists, mainUser, "main")</div>
+                        <div class="playlist-table">@playlistTable(playlists, mainUser, UnfollowPlaylists)</div>
                     </div>
                 </div>
             }
@@ -56,7 +59,7 @@
                             <div class="migrate-section-top">
                                 <h2>@mainUser.displayName.getOrElse(mainUser.id)</h2>
                             </div>
-                            @playlistTable(playlists, mainUser, "main")
+                            @playlistTable(playlists, mainUser, UnfollowPlaylists)
                         </div>
                             <!-- source user column -->
                         <div class="col-sm source">
@@ -66,7 +69,7 @@
                                     <button class="btn btn-outline-danger" type="submit">Revoke</button>
                                 </form>
                             </div>
-                            @playlistTable(sourcePlaylists, mainUser, "source")
+                            @playlistTable(sourcePlaylists, mainUser, MigratePlaylists)
                         </div>
                     </div>
                 </div>

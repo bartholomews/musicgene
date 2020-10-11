@@ -7,6 +7,7 @@ import com.google.inject.Inject
 import eu.timepit.refined.api.Refined
 import io.bartholomews.fsclient.entities.ErrorBody
 import io.bartholomews.fsclient.entities.oauth.{AuthorizationCode, SignerV2}
+import io.bartholomews.fsclient.utils.HttpTypes.HttpResponse
 import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 import io.bartholomews.musicgene.controllers.http.{SpotifyCookies, SpotifySessionKeys}
 import io.bartholomews.musicgene.model.genetic.GA
@@ -19,7 +20,7 @@ import org.http4s.Uri
 import play.api.Logging
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc._
-import views.spotify.requests.{PlaylistMigrationRequest, PlaylistRequest, PlaylistsMigrationRequest}
+import views.spotify.requests.{PlaylistMigrationRequest, PlaylistRequest, PlaylistsMigrationRequest, PlaylistsUnfollowRequest}
 import views.spotify.responses._
 
 import scala.concurrent.ExecutionContext
@@ -337,6 +338,19 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
     }
   }
 
+  def unfollowPlaylistsPPP(mainUserId: SpotifyUserId, playlistsToUnfollow: List[SpotifyId])(implicit request: Request[AnyContent]): IO[Result] = {
+    withToken { implicit token =>
+      playlistsToUnfollow.map(spotifyClient.follow.unfollowPlaylist).parSequence
+        .map((re: List[HttpResponse[Unit]]) => {
+          val (a, b) = re.partition(result => result.status.isSuccess)
+          Ok(Json.obj(
+            ("success", a.size),
+            ("failures", b.size)
+          ))
+        })
+    }
+  }
+
   // Would be nice to give feedback while loading spinner, e.g. "Migrating playlist xxx..."
   // https://www.playframework.com/documentation/2.8.x/ScalaWebSockets
   def migratePPP(mainUserId: SpotifyUserId, playlistRequest: PlaylistMigrationRequest)(
@@ -353,6 +367,29 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
         .flatMap(_.toResultF(playlistToClone => wwww(mainUserId, playlistRequest, playlistToClone)))
     )
       .map(_.getOrElse(BadRequest("No main user found in cookies")))
+  }
+
+  val unfollowPlaylists: Action[JsValue] = ActionIO.jsonAsyncWithMainUser { implicit request =>
+    val unfollowPlaylistsRequest = request.body.validate[PlaylistsUnfollowRequest]
+    unfollowPlaylistsRequest.fold(
+      errors =>
+        IO.pure(
+          BadRequest(
+            Json.obj(
+              "error" -> "invalid_playlist_request_payload",
+              "message" -> JsError.toJson(errors)
+            )
+          )
+        ),
+      playlistRequests => {
+        logger.debug(s"user => ${playlistRequests.userId.toString}")
+        playlistRequests.playlists.foreach { pr =>
+          logger.debug(pr.toString)
+        }
+
+        unfollowPlaylistsPPP(playlistRequests.userId, playlistRequests.playlists.map(_.id))(request.map(AnyContent.apply))
+      }
+    )
   }
 
   val migratePlaylists: Action[JsValue] = ActionIO.jsonAsyncWithMainUser { implicit request =>
@@ -384,7 +421,7 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
           val (a, b) = re.partition(result => result.header.status == 200)
           Ok(Json.obj(
             ("success", a.size),
-            ("failures", b.map(_.body).mkString(","))
+            ("failures", b.size)
           ))
         })
       }
@@ -395,3 +432,6 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
 // TODO:
 //  -> Remove duplicates (two playlists with same name and exactly same tracks)
 //  -> Remove all playlists (should do a DANGER modal)
+//  -> Websocket or something like that to provide incremental feedback and partial failures
+//  -> Also refresh playlists rows
+//  -> Get all pages

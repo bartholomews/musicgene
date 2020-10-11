@@ -21,6 +21,7 @@ POST        /spotify/playlist/generate                                  io.barth
 GET         /spotify/playlist/generate/:id                              io.bartholomews.musicgene.controllers.SpotifyController.renderGeneratedPlaylist(id: GeneratedPlaylistResultId)
 GET         /spotify/migrate                                            io.bartholomews.musicgene.controllers.SpotifyController.migrate()
 POST        /spotify/migrate                                            io.bartholomews.musicgene.controllers.SpotifyController.migratePlaylists
+POST        /spotify/unfollow                                           io.bartholomews.musicgene.controllers.SpotifyController.unfollowPlaylists
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Map static resources from the /public folder to the /assets URL path
