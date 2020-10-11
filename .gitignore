@@ -9,5 +9,6 @@ target
 node_modules
 
 .bloop
+.bsp
 .metals
 /project/metals.sbt

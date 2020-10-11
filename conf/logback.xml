@@ -41,6 +41,6 @@
         <appender-ref ref="ASYNCSTDOUT"/>
     </root>
 
-    <logger name="fsclient" level="INFO"/>
+    <logger name="fsclient" level="DEBUG"/>
 
 </configuration>

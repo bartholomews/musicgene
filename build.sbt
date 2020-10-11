@@ -27,7 +27,7 @@ resolvers +=
 libraryDependencies += guice
 libraryDependencies ++=  Seq(
   "com.beachape" %% "enumeratum-play" % "1.6.1",
-  "io.bartholomews" %% "spotify4s" % "0.0.0+50-322f689d-SNAPSHOT",
+  "io.bartholomews" %% "spotify4s" % "0.0.0+50-09e4cdce-SNAPSHOT",
   "io.bartholomews" %% "discogs4s" % "0.0.1+15-cb2660f4-SNAPSHOT",
   // https://github.com/pauldijou/jwt-scala/releases
   "com.pauldijou" %% "jwt-play" % "4.2.0",
@@ -43,3 +43,6 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0
 
 // Adds additional packages into conf/routes
 // play.sbt.routes.RoutesKeys.routesImport += "io.bartholomews.binders._"
+
+// https://stackoverflow.com/a/58456468
+ThisBuild / useCoursier := false
