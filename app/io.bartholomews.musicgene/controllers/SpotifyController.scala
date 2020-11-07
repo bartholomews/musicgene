@@ -2,45 +2,45 @@ package io.bartholomews.musicgene.controllers
 
 import cats.data.EitherT
 import cats.effect.{ContextShift, IO}
-import cats.implicits._
 import com.google.inject.Inject
-import eu.timepit.refined.api.Refined
-import io.bartholomews.fsclient.entities.ErrorBody
 import io.bartholomews.fsclient.entities.oauth.{AuthorizationCode, SignerV2}
 import io.bartholomews.fsclient.utils.HttpTypes.HttpResponse
 import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 import io.bartholomews.musicgene.controllers.http.{SpotifyCookies, SpotifySessionKeys}
 import io.bartholomews.musicgene.model.genetic.GA
 import io.bartholomews.musicgene.model.music._
-import io.bartholomews.spotify4s.SpotifyClient
-import io.bartholomews.spotify4s.api.SpotifyApi.{Limit, Offset}
+import io.bartholomews.musicgene.model.spotify.SpotifyService
+import io.bartholomews.spotify4s.api.SpotifyApi.{Offset, SpotifyUris}
 import io.bartholomews.spotify4s.entities._
 import javax.inject._
-import org.http4s.Uri
 import play.api.Logging
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc._
 import views.spotify.requests.{PlaylistMigrationRequest, PlaylistRequest, PlaylistsMigrationRequest, PlaylistsUnfollowRequest}
 import views.spotify.responses._
 
+import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 
 /**
  *
  */
 @Singleton
-class SpotifyController @Inject()(cc: ControllerComponents)(
+class SpotifyController @Inject() (cc: ControllerComponents)(
   implicit ec: ExecutionContext
 ) extends AbstractControllerIO(cc)
-  with Logging
-  with play.api.i18n.I18nSupport {
+    with Logging
+    with play.api.i18n.I18nSupport {
 
+  import cats.implicits._
   import eu.timepit.refined.auto.autoRefineV
+
+
   import io.bartholomews.musicgene.controllers.http.SpotifyHttpResults._
   import io.bartholomews.musicgene.model.helpers.CollectionsHelpers._
 
   implicit val cs: ContextShift[IO] = IO.contextShift(ec)
-  val spotifyClient: SpotifyClient = SpotifyClient.unsafeFromConfig()
+  val spotifyService: SpotifyService[IO] = new SpotifyService()
 
   def authenticate(session: SpotifySessionUser): Action[AnyContent] = ActionIO.async { implicit request =>
     logger.info(s"Authenticating session $session")
@@ -56,21 +56,13 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
     val maybeSession = request.attrs.get(SpotifySessionKeys.spotifySessionUser)
     logger.info(s"Authenticate request session: $maybeSession")
     maybeSession
-      .map { session =>
+      .map { session: SpotifySessionUser =>
         println(session.entryName)
         redirect(
-          spotifyClient.auth.authorizeUrl(
-            // TODO: load from config
-            redirectUri = Uri.unsafeFromString(s"${requestHost(request)}/spotify/${session.entryName}/callback"),
-            state = None,
-            scopes = List(
-              // FIXME: Scope based on main/src
-              SpotifyScope.PLAYLIST_MODIFY_PRIVATE,
-              SpotifyScope.PLAYLIST_MODIFY_PUBLIC,
-              SpotifyScope.PLAYLIST_READ_PRIVATE,
-              SpotifyScope.PLAYLIST_READ_COLLABORATIVE
-            ),
-            showDialog = true
+          spotifyService.authorizeUrl(
+            scheme = requestScheme(request),
+            host = requestHost(request),
+            session
           )
         )
       }
@@ -80,8 +72,7 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
   def hello(): Action[AnyContent] = ActionIO.asyncWithMainUser { implicit request =>
     withToken { signer =>
       logger.info("hello")
-      spotifyClient.users
-        .me(signer)
+      spotifyService.me(signer)
         .map(_.toResult(me => Ok(views.html.spotify.hello(me))))
     }
   }
@@ -90,13 +81,13 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
     implicit request =>
       (for {
         _ <- EitherT.pure[IO, String](logger.debug(s"Callback for session: $session"))
-        uri <- EitherT.fromEither[IO](requestUri(request).leftMap(parseFailure => parseFailure.details))
+        uri = requestUri(request)
         authorizationCode <- EitherT(
-          spotifyClient.auth.AuthorizationCode.fromUri(uri).map(_.entity.leftMap(errorToString))
+          spotifyService.client.auth.AuthorizationCode.fromUri(uri).map(_.entity.leftMap(errorToString))
         )
       } yield Redirect(
         session match {
-          case SpotifySessionUser.Main => routes.SpotifyController.hello()
+          case SpotifySessionUser.Main   => routes.SpotifyController.hello()
           case SpotifySessionUser.Source => routes.SpotifyController.migrate()
         }
       ).withCookies(SpotifyCookies.accessCookies(authorizationCode): _*)).value.map(_.fold(errorString => {
@@ -121,9 +112,9 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
     SpotifyCookies
       .extractRefreshToken(request)
       .fold(IO.pure(authenticate(request)))(token =>
-        spotifyClient.auth.AuthorizationCode
+        spotifyService.client.auth.AuthorizationCode
           .refresh(token)
-          .flatMap(_.toResultF { authorizationCode =>
+          .flatMap(_.toResultF[IO] { authorizationCode =>
             f(authorizationCode).map(
               _.withCookies(
                 SpotifyCookies.accessCookies(authorizationCode): _*
@@ -157,9 +148,9 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
   def playlists(session: SpotifySessionUser, page: Int): Action[AnyContent] =
     ActionIO.asyncWithSession(session) { implicit request =>
       withToken { accessToken =>
-        val pageLimit: Limit = 50
-        val pageOffset: Offset = Refined.unsafeApply((page - 1) * pageLimit.value)
-        spotifyClient.users
+        val pageLimit: SimplePlaylist.Limit = 50
+        val pageOffset: Offset = (page - 1) * pageLimit.value
+        spotifyService.client.users
           .getPlaylists(limit = pageLimit, offset = pageOffset)(accessToken)
           .map(_.toResult(pg => Ok(views.html.spotify.playlists("Playlists", pg.items, page))))
       }
@@ -168,7 +159,7 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
   def tracks(session: SpotifySessionUser, playlistId: SpotifyId): Action[AnyContent] =
     ActionIO.asyncWithSession(session) { implicit request =>
       withToken { implicit accessToken =>
-        spotifyClient.playlists
+        spotifyService.client.playlists
           .getPlaylist(playlistId)
           .map(_.toResult { playlist =>
             val tracks: List[FullTrack] = playlist.tracks.items.map(_.track)
@@ -202,14 +193,14 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
   }
 
   private def generatePlaylist(
-                                playlistRequest: PlaylistRequest
-                              )(implicit request: Request[AnyContent]): IO[Result] =
+    playlistRequest: PlaylistRequest
+  )(implicit request: Request[AnyContent]): IO[Result] =
     withToken { implicit accessToken =>
       val getTracks: IO[Either[Result, List[FullTrack]]] =
         playlistRequest.tracks
           .groupedNes(size = 50)
           .map(xs =>
-            spotifyClient.tracks
+            spotifyService.client.tracks
               .getTracks(xs, market = None)
               .map(_.entity.leftMap(errorToJsonResult))
           )
@@ -220,7 +211,7 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
         playlistRequest.tracks
           .groupedNes(size = 100)
           .map(xs =>
-            spotifyClient.tracks
+            spotifyService.client.tracks
               .getAudioFeatures(xs)
               .map(_.entity.leftMap(errorToJsonResult))
           )
@@ -262,34 +253,21 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
       )
     }
 
-  def getUserAndPlaylists(implicit request: Request[AnyContent], signer: SignerV2): IO[Either[ErrorBody, (PrivateUser, Page[SimplePlaylist])]] = {
-
-    val getUser = spotifyClient.users.me.map(_.entity)
-    val getUserPlaylists = spotifyClient.users.getPlaylists(limit = 50).map(_.entity)
-
-    (getUser, getUserPlaylists)
-      .parMapN({
-        case (aaa, bbb) =>
-          for {
-            privateUser <- aaa
-            playlists <- bbb
-          } yield Tuple2(privateUser, playlists)
-      })
-  }
-
-  private def getSourceUserForMigration(mainUser: (PrivateUser, Page[SimplePlaylist]))(implicit request: Request[AnyContent]): IO[Result] =
+  private def getSourceUserForMigration(
+    mainUser: (PrivateUser, Page[SimplePlaylist])
+  )(implicit request: Request[AnyContent]): IO[Result] =
     withSourceUserToken { implicit signer =>
       logger.info("getSourceUserForMigration")
-      getUserAndPlaylists.map(
+      spotifyService.getUserAndPlaylists.map(
         _.toResulto(entity => Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, Some(entity))))))
       )
     }.map(_.getOrElse(Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, None))))))
 
   private def getMainUserAndPlaylists(
-                                       andThen: ((PrivateUser, Page[SimplePlaylist])) => IO[Result]
-                                     )(implicit request: Request[AnyContent]): IO[Result] =
+    andThen: ((PrivateUser, Page[SimplePlaylist])) => IO[Result]
+  )(implicit request: Request[AnyContent]): IO[Result] =
     withToken { implicit signer =>
-      getUserAndPlaylists.flatMap(
+      spotifyService.getUserAndPlaylists.flatMap(
         _.fold(
           _ => Ok(views.html.spotify.migrate(Left("Something went wrong while fetching the main user"))).pure[IO],
           entity => andThen(entity)
@@ -304,72 +282,95 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
     }
   }
 
-  def wwww(mainUserId: SpotifyUserId,
-           playlistRequest: PlaylistMigrationRequest,
-           playlistToClone: FullPlaylist)(implicit request: Request[AnyContent]): IO[Result] = {
+  def addTracksToPlaylist(
+    playlistResult: HttpResponse[FullPlaylist],
+    tracks: SpotifyUris
+  )(implicit request: Request[AnyContent], signer: SignerV2): IO[Either[String, Result]] =
+//    playlistResult.toResultEither[IO] { playlist =>
+  playlistResult.entity.fold(
+    error => IO.pure(Left(errorToString(error))),
+    playlist =>
+      spotifyService.client.playlists
+        .addTracksToPlaylist(
+          playlistId = playlist.id,
+          uris = tracks, // FIXME: Need to get ALL pages...
+          position = None
+        )
+        .map(_.entity.bimap(
+          error => error.toString, // FIXME
+          _ => Ok("Playlist have been migrated."))
+        )
+  )
+//    }
 
-    withToken {
-      implicit mainUserToken =>
-        spotifyClient.playlists
-          .createPlaylist(
-            userId = mainUserId,
-            playlistName = playlistRequest.name,
-            public = playlistRequest.public,
-            collaborative = playlistRequest.collaborative,
-            description = playlistRequest.description
-          )
-          .flatMap(newPlaylistResponse => {
-
-            SpotifyUri.fromList(playlistToClone.tracks.items
+  private def clonePlaylist(
+    mainUserId: SpotifyUserId,
+    playlistRequest: PlaylistMigrationRequest,
+    playlistToClone: FullPlaylist
+  )(implicit request: Request[AnyContent], signer: SignerV2): IO[Either[String, Result]] =
+    spotifyService.client.playlists
+      .createPlaylist(
+        userId = mainUserId,
+        playlistName = playlistRequest.name,
+        public = playlistRequest.public,
+        collaborative = playlistRequest.collaborative,
+        description = playlistRequest.description
+      )
+      .flatMap { (newPlaylistResponse: HttpResponse[FullPlaylist]) =>
+        SpotifyUri
+          .fromList(
+            playlistToClone.tracks.items
               .filterNot(_.isLocal) // FIXME: :( maybe should add to the response to inform the user
-              .map(_.track.uri)).fold(
-              err => IO.pure(BadRequest(err)),
-              uris =>
-                newPlaylistResponse.toResultF { newPlaylist =>
-                  spotifyClient.playlists.addTracksToPlaylist(
-                    playlistId = newPlaylist.id,
-                    uris = uris, // FIXME: Need to get ALL pages...
-                    position = None
-                  ).map(wee => wee.foldBody(
-                    err => errorToResult(err),
-                    _ => Ok("Playlist have been migrated.")
-                  ))
-                }
-            )
-          })
-    }
-  }
+              .map(_.track.uri)
+          )
+          .fold(
+            error => IO.pure(Left(error)),
+            uris => addTracksToPlaylist(newPlaylistResponse, uris)
+          )
+      }
 
-  def unfollowPlaylistsPPP(mainUserId: SpotifyUserId, playlistsToUnfollow: List[SpotifyId])(implicit request: Request[AnyContent]): IO[Result] = {
-    withToken { implicit token =>
-      playlistsToUnfollow.map(spotifyClient.follow.unfollowPlaylist).parSequence
-        .map((re: List[HttpResponse[Unit]]) => {
-          val (a, b) = re.partition(result => result.status.isSuccess)
-          Ok(Json.obj(
-            ("success", a.size),
-            ("failures", b.size)
-          ))
-        })
-    }
-  }
-
-  // Would be nice to give feedback while loading spinner, e.g. "Migrating playlist xxx..."
-  // https://www.playframework.com/documentation/2.8.x/ScalaWebSockets
-  def migratePPP(mainUserId: SpotifyUserId, playlistRequest: PlaylistMigrationRequest)(
+  def unfollowPlaylistsPPP(mainUserId: SpotifyUserId, playlistsToUnfollow: List[SpotifyId])(
     implicit request: Request[AnyContent]
-  ): IO[Result] = {
+  ): IO[Result] =
+    withToken { implicit token =>
+      playlistsToUnfollow
+        .map(spotifyService.client.follow.unfollowPlaylist)
+        .parSequence
+        .map { (re: List[HttpResponse[Unit]]) =>
+          val (a, b) = re.partition(result => result.status.isSuccess)
+          Ok(
+            Json.obj(
+              ("success", a.size),
+              ("failures", b.size)
+            )
+          )
+        }
+    }
 
-    withSourceUserToken(sourceUserToken =>
-      // FIXME: Shuold probably use getPlaylistFields(/tracks)
-      spotifyClient.playlists
-        .getPlaylist(
-          playlistId = playlistRequest.id,
-          market = None
-        )(sourceUserToken)
-        .flatMap(_.toResultF(playlistToClone => wwww(mainUserId, playlistRequest, playlistToClone)))
-    )
-      .map(_.getOrElse(BadRequest("No main user found in cookies")))
+  // fields = "tracks(total,previous,next,limit,offset,items(track(id)))"
+  // FIXME: Generic and add to spotify4s
+  def getAllOffsetToFetch[A](page: Page[A], limit: Int = 100)(implicit signer: SignerV2): List[Int] = {
+    @tailrec
+    def offsets(curr: Int, acc: List[Int]): List[Int] =
+      if (curr >= page.total) acc
+      else offsets(curr + limit, curr :: acc)
+    offsets(page.items.length, Nil)
   }
+
+  private def migratePlaylist(
+    mainUserId: SpotifyUserId,
+    playlistRequest: PlaylistMigrationRequest,
+    mainUserToken: SignerV2,
+    sourceUserToken: SignerV2
+  )(implicit request: Request[AnyContent]): IO[Either[String, Result]] =
+    (for {
+      // FIXME: Should probably use getPlaylistFields(/tracks)
+      sourceUserPlaylist <- EitherT(spotifyService.client.playlists
+        .getPlaylist(playlistId = playlistRequest.id, market = None)(sourceUserToken)
+        .map(_.entity.leftMap(errorToString)))
+
+      res <- EitherT(clonePlaylist(mainUserId, playlistRequest, sourceUserPlaylist)(request, mainUserToken))
+    } yield res).value
 
   val unfollowPlaylists: Action[JsValue] = ActionIO.jsonAsyncWithMainUser { implicit request =>
     val unfollowPlaylistsRequest = request.body.validate[PlaylistsUnfollowRequest]
@@ -389,12 +390,18 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
           logger.debug(pr.toString)
         }
 
-        unfollowPlaylistsPPP(playlistRequests.userId, playlistRequests.playlists.map(_.id))(request.map(AnyContent.apply))
+        unfollowPlaylistsPPP(playlistRequests.userId, playlistRequests.playlists.map(_.id))(
+          request.map(AnyContent.apply)
+        )
       }
     )
   }
 
-  val migratePlaylists: Action[JsValue] = ActionIO.jsonAsyncWithMainUser { implicit request =>
+  // Would be nice to give feedback while loading spinner, e.g. "Migrating playlist xxx..."
+  // https://www.playframework.com/documentation/2.8.x/ScalaWebSockets
+  val migratePlaylists: Action[JsValue] = ActionIO.jsonAsyncWithMainUser { request: Request[JsValue] =>
+
+    implicit val anyContentRequest: Request[AnyContent] = request.map(AnyContent.apply)
     val playlistIdsRequest = request.body.validate[PlaylistsMigrationRequest]
     playlistIdsRequest.fold(
       errors =>
@@ -407,25 +414,40 @@ class SpotifyController @Inject()(cc: ControllerComponents)(
           )
         ),
       playlistRequests => {
-        logger.debug(s"user => ${playlistRequests.userId.toString}")
-        playlistRequests.playlists.foreach { pr =>
-          logger.debug(pr.toString)
+
+        withToken { mainUserToken =>
+
+        withSourceUserToken { sourceUserToken =>
+
+          logger.debug(s"user => ${playlistRequests.userId.toString}")
+          playlistRequests.playlists.foreach { pr =>
+            logger.debug(pr.toString)
+          }
+
+          playlistRequests.playlists
+            .map { p =>
+              migratePlaylist(
+                playlistRequests.userId,
+                p,
+                mainUserToken,
+                sourceUserToken
+              )(request.map(AnyContent.apply))
+            }
+            .sequence
+            .map { re =>
+              // Ior?
+              val (a, b) = re.partition(result => result.isRight)
+              Ok(
+                Json.obj(
+                  ("success", a.size),
+                  ("failures", b.size)
+                )
+              )
+            }
+        }.map(_.getOrElse(
+          BadRequest("Empty WAT ?")
+        ))
         }
-
-
-        playlistRequests.playlists.map(p => {
-          migratePPP(
-            playlistRequests.userId,
-            p
-          )(request.map(AnyContent.apply))
-        }).sequence.map(re => {
-          // Ior?
-          val (a, b) = re.partition(result => result.header.status == 200)
-          Ok(Json.obj(
-            ("success", a.size),
-            ("failures", b.size)
-          ))
-        })
       }
     )
   }
