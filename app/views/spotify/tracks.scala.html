@@ -123,7 +123,7 @@
                     <tbody class="music-collection-tbody">
                     @tracksPage.items.map { track =>
                         <tr class="@PlaylistRequest.trackRowClassNames(track)"
-                        id="@track.id.map(_.value)" data-preview="@track.previewUrl.map(_.renderString).getOrElse("")">
+                        id="@track.id.map(_.value)" data-preview="@track.previewUrl.map(_.toString).getOrElse("")">
                             <th scope="row">@MusicUtil.millisecondsToMinutesAndSeconds(track.durationMs)</th>
                             <td id="@track.id-title">@track.name</td>
                             <td id="@track.id-artist">@track.artists.map(_.name).mkString(", ")</td>

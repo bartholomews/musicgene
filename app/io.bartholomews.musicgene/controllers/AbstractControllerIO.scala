@@ -1,15 +1,30 @@
 package io.bartholomews.musicgene.controllers
 
-import cats.effect.IO
+import cats.effect.{ContextShift, IO}
 import io.bartholomews.musicgene.controllers.http.SpotifySessionKeys
 import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
+import org.asynchttpclient.{AsyncHttpClient, DefaultAsyncHttpClient}
 import play.api.libs.json.JsValue
 import play.api.mvc._
+import sttp.client.SttpBackend
+import sttp.client.asynchttpclient.WebSocketHandler
 
-abstract class AbstractControllerIO(override protected val controllerComponents: ControllerComponents)
-    extends AbstractController(controllerComponents) {
+import scala.concurrent.ExecutionContext
+
+abstract class AbstractControllerIO(override protected val controllerComponents: ControllerComponents)(
+  implicit ec: ExecutionContext
+) extends AbstractController(controllerComponents) {
 
   self =>
+
+  import sttp.client.asynchttpclient.cats.AsyncHttpClientCatsBackend
+
+  implicit val cs: ContextShift[IO] = IO.contextShift(ec)
+
+  // https://sttp.softwaremill.com/en/stable/backends/catseffect.html
+  val asyncHttpClient: AsyncHttpClient = new DefaultAsyncHttpClient()
+  implicit val backend: SttpBackend[IO, Nothing, WebSocketHandler] =
+    AsyncHttpClientCatsBackend.usingClient[IO](asyncHttpClient)
 
   object ActionIO {
     // FIXME: This is spotify-specific

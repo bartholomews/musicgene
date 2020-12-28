@@ -1,25 +1,12 @@
 package io.bartholomews.musicgene.controllers.http.codecs
 
-import io.bartholomews.discogs4s.entities.RequestToken
-import io.bartholomews.fsclient.entities.oauth.v2.OAuthV2AuthorizationFramework.{
-  AccessToken,
-  ClientId,
-  ClientPassword,
-  ClientSecret,
-  RefreshToken
-}
-import io.bartholomews.fsclient.entities.oauth.{
-  AccessTokenCredentials,
-  AccessTokenSignerV2,
-  AuthorizationCode,
-  ClientPasswordBasicAuthenticationV2,
-  NonRefreshableToken,
-  Scope,
-  SignerV2
-}
-import org.http4s.client.oauth1.{Consumer, Token}
+import io.bartholomews.fsclient.core.oauth._
+import io.bartholomews.fsclient.core.oauth.v1.OAuthV1.{Consumer, SignatureMethod, Token}
+import io.bartholomews.fsclient.core.oauth.v1.TemporaryCredentials
+import io.bartholomews.fsclient.core.oauth.v2.OAuthV2._
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
-import play.api.libs.json.{Format, JsPath, Json, OFormat, OWrites, Reads, Writes}
+import play.api.libs.json._
+import sttp.model.Uri
 
 object FsClientCodecs extends CodecsConfiguration {
   implicit val accessTokenFormat: Format[AccessToken] = Json.valueFormat[AccessToken]
@@ -36,10 +23,12 @@ object FsClientCodecs extends CodecsConfiguration {
   implicit val clientPasswordReads: Reads[ClientPassword] =
     (JsPath \ "client_id").read[ClientId].and((JsPath \ "client_secret").read[ClientSecret])(ClientPassword.apply _)
 
+  implicit val tokenFormat: OFormat[Token] = Json.format[Token]
   implicit val tokenWrites: OWrites[Token] = Json.writes[Token]
   implicit val tokenReads: Reads[Token] =
     (JsPath \ "value").read[String].and((JsPath \ "secret").read[String])(Token.apply _)
 
+  implicit val consumerFormat: OFormat[Consumer] = Json.format[Consumer]
   implicit val consumerWrites: OWrites[Consumer] = Json.writes[Consumer]
   implicit val consumerReads: Reads[Consumer] =
     (JsPath \ "key").read[String].and((JsPath \ "secret").read[String])(Consumer.apply _)
@@ -64,9 +53,19 @@ object FsClientCodecs extends CodecsConfiguration {
       .and((JsPath \ "refresh_token").readNullable[RefreshToken])
       .and(scopeReads)(AuthorizationCode.apply _)
 
-  implicit val accessTokenV1Writes: OWrites[AccessTokenCredentials] = Json.writes[AccessTokenCredentials]
-  implicit val accessTokenV1Reads: Reads[AccessTokenCredentials] =
-    (JsPath \ "token").read[Token].and((JsPath \ "consumer").read[Consumer])(AccessTokenCredentials.apply _)
+  implicit val signatureMethodReads: Reads[SignatureMethod] = (json: JsValue) =>
+    json.validate[String].flatMap {
+      case SignatureMethod.PLAINTEXT.value => JsSuccess(SignatureMethod.PLAINTEXT)
+      case SignatureMethod.SHA1.value      => JsSuccess(SignatureMethod.SHA1)
+      case other                           => JsError(s"Unknown signature method: [$other]")
+    }
+
+  implicit val signatureMethodWrites: Writes[SignatureMethod] = sig => JsString(sig.value)
+
+  implicit val accessTokenV1Format: OFormat[AccessTokenCredentials] = Json.format[AccessTokenCredentials]
+//  implicit val accessTokenV1Writes: OWrites[AccessTokenCredentials] = Json.writes[AccessTokenCredentials]
+//  implicit val accessTokenV1Reads: Reads[AccessTokenCredentials] =
+//    (JsPath \ "token").read[Token].and((JsPath \ "consumer").read[Consumer])(AccessTokenCredentials.apply _)
 
   implicit val clientPasswordBasicAuthenticationV2Writes: OWrites[ClientPasswordBasicAuthenticationV2] =
     Json.writes[ClientPasswordBasicAuthenticationV2]
@@ -75,7 +74,22 @@ object FsClientCodecs extends CodecsConfiguration {
 
   implicit val accessTokenSignerV2Format: OFormat[AccessTokenSignerV2] = Json.format[AccessTokenSignerV2]
 
-  implicit val requestTokenV1Writes: OWrites[RequestToken] = Json.writes[RequestToken]
-  implicit val requestTokenV1Reads: Reads[RequestToken] =
-    (JsPath \ "token").read[Token].and((JsPath \ "callback_confirmed").read[Boolean])(RequestToken.apply _)
+  import play.api.libs.json._
+
+  implicit val uriReads: Reads[Uri] =
+    _.validate[String].flatMap(str => Uri.parse(str).fold(err => JsError(err), uri => JsSuccess(uri)))
+
+  implicit val uriWrites: Writes[Uri] = uri => JsString(uri.toString)
+
+  implicit val resourceOwnerAuthorizationUri: Format[ResourceOwnerAuthorizationUri] =
+    Json.valueFormat[ResourceOwnerAuthorizationUri]
+
+  implicit val temporaryCredentialsFormat: OFormat[TemporaryCredentials] = Json.format[TemporaryCredentials]
+
+  //  implicit val uriWrites: Writes[Uri] = Json.writes[String].contramap(_.toString)
+  //   implicit val signatureMethodFormat: OFormat[SignatureMethod] = withDiscriminator.format[SignatureMethod]
+
+  //  implicit val requestTokenV1Writes: OWrites[TemporaryCredentials] = Json.writes[TemporaryCredentials]
+//  implicit val requestTokenV1Reads: Reads[TemporaryCredentials] =
+//    (JsPath \ "token").read[Token].and((JsPath \ "callback_confirmed").read[Boolean])(TemporaryCredentials.apply _)
 }

@@ -1,35 +1,33 @@
 package io.bartholomews.musicgene.model.spotify
 
 import cats.NonEmptyParallel
-import cats.effect.{ConcurrentEffect, ContextShift}
-import io.bartholomews.fsclient.entities.ErrorBody
-import io.bartholomews.fsclient.entities.oauth.SignerV2
-import io.bartholomews.fsclient.utils.HttpTypes.HttpResponse
+import cats.effect.ConcurrentEffect
+import io.bartholomews.fsclient.core.oauth.SignerV2
 import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
+import io.bartholomews.musicgene.controllers.routes
 import io.bartholomews.spotify4s.SpotifyClient
 import io.bartholomews.spotify4s.entities.{Page, PrivateUser, SimplePlaylist, SpotifyScope}
-import org.http4s.Uri
-import org.http4s.Uri.Path.Segment
+import io.circe
+import play.api.mvc.RequestHeader
+import sttp.client.{Response, ResponseError, SttpBackend, UriContext}
+import sttp.model.Uri
 
-import scala.concurrent.ExecutionContext
-
-class SpotifyService[F[_]: ConcurrentEffect: NonEmptyParallel]()(
-  implicit ec: ExecutionContext, cs: ContextShift[F]
-) {
+class SpotifyService[F[_]: ConcurrentEffect: NonEmptyParallel]()(implicit backend: SttpBackend[F, Nothing, Nothing]) {
 
   val client: SpotifyClient[F] = SpotifyClient.unsafeFromConfig[F]()
 
   import cats.implicits._
   import eu.timepit.refined.auto.autoRefineV
 
-  def me(implicit signer: SignerV2): F[HttpResponse[PrivateUser]] = client.users.me
+  def me(implicit signer: SignerV2): F[Response[Either[ResponseError[circe.Error], PrivateUser]]] = client.users.me
 
-  def authorizeUrl(scheme: Uri.Scheme, host: Uri.Path, session: SpotifySessionUser): Uri =
+  def authorizeUrl(session: SpotifySessionUser)(implicit request: RequestHeader): Uri =
     client.auth.authorizeUrl(
-      redirectUri = Uri(
-        scheme = Some(scheme),
-        path = (host / Segment("spotify") / Segment(session.entryName) / Segment("callback")).dropEndsWithSlash
-      ),
+      redirectUri = uri"${routes.SpotifyController.callback(session).absoluteURL()}",
+//      redirectUri = Uri(
+//        scheme = Some(scheme),
+//        path = (host / Segment("spotify") / Segment(session.entryName) / Segment("callback")).dropEndsWithSlash
+//      ),
       state = None,
       scopes = List(
         // FIXME: Scope based on main/src
@@ -41,9 +39,11 @@ class SpotifyService[F[_]: ConcurrentEffect: NonEmptyParallel]()(
       showDialog = true
     )
 
-  def getUserAndPlaylists(implicit signer: SignerV2): F[Either[ErrorBody, (PrivateUser, Page[SimplePlaylist])]] = {
-    val getUser = client.users.me.map(_.entity)
-    val getUserPlaylists = client.users.getPlaylists(limit = 50).map(_.entity)
+  def getUserAndPlaylists(
+    implicit signer: SignerV2
+  ): F[Either[ResponseError[circe.Error], (PrivateUser, Page[SimplePlaylist])]] = {
+    val getUser = client.users.me.map(_.body)
+    val getUserPlaylists = client.users.getPlaylists(limit = 50).map(_.body)
 
     (getUser, getUserPlaylists)
       .parMapN({

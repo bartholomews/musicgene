@@ -2,8 +2,8 @@ package io.bartholomews.musicgene.controllers.http
 
 import java.time.Clock
 
-import io.bartholomews.fsclient.entities.oauth.AuthorizationCode
-import io.bartholomews.fsclient.entities.oauth.v2.OAuthV2AuthorizationFramework.RefreshToken
+import io.bartholomews.fsclient.core.oauth.AuthorizationCode
+import io.bartholomews.fsclient.core.oauth.v2.OAuthV2.RefreshToken
 import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs.{
   authorizationTokenReads,
   authorizationTokenWrites,
@@ -11,10 +11,10 @@ import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs.{
 }
 import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 import pdi.jwt.JwtSession
-import play.api.{Configuration, Logging}
 import play.api.libs.json.{Reads, Writes}
 import play.api.libs.typedmap.TypedKey
 import play.api.mvc._
+import play.api.{Configuration, Logging}
 
 case object SpotifyCookies extends Logging {
   object SessionKey {

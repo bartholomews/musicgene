@@ -26,8 +26,9 @@ resolvers +=
 
 libraryDependencies += guice
 libraryDependencies ++=  Seq(
-  "io.bartholomews" %% "spotify4s" % "0.0.0+1-87a13c22-SNAPSHOT",
-  "io.bartholomews" %% "discogs4s" % "0.0.0+1-46464d2f-SNAPSHOT",
+  "io.bartholomews" %% "spotify4s" % "0.0.0+122-87a13c22+20201228-1221-SNAPSHOT",
+  "io.bartholomews" %% "discogs4s" % "0.0.1+23-46464d2f+20201228-1223-SNAPSHOT",
+  "com.softwaremill.sttp.client" %% "async-http-client-backend-cats" % "2.2.9",
   // https://github.com/lloydmeta/enumeratum/releases
   "com.beachape" %% "enumeratum-play" % "1.6.1",
   // https://github.com/pauldijou/jwt-scala/releases

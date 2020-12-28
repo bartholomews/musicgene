@@ -10,7 +10,7 @@ object MusicUtil {
     AudioTrack(
       t.id.map(_.value).getOrElse("N/A"), // .getOrElse(randomUUID().toString
       Set[Attribute[_]](
-        PreviewUrl(t.previewUrl.map(_.renderString).getOrElse("")),
+        PreviewUrl(t.previewUrl.map(_.toString).getOrElse("")),
         Title(t.name),
         Album(t.album.name),
         Artist(t.artists.head.name),
@@ -35,7 +35,7 @@ object MusicUtil {
     AudioTrack(
       t.id.map(_.value).getOrElse("N/A"), // .getOrElse(randomUUID().toString),
       Set[Attribute[_]](
-        PreviewUrl(t.previewUrl.map(_.renderString).getOrElse("")),
+        PreviewUrl(t.previewUrl.map(_.toString).getOrElse("")),
         Title(t.name),
         Album(t.album.name),
         Artist(t.artists.head.name),
