@@ -1,6 +1,6 @@
 package views.spotify.requests
 
-import io.bartholomews.spotify4s.entities.{FullTrack, SpotifyId}
+import io.bartholomews.spotify4s.core.entities.{FullTrack, SpotifyId}
 import play.api.libs.json.{Json, Reads}
 
 // https://www.playframework.com/documentation/latest/ScalaForms

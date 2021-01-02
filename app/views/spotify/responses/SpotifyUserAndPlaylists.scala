@@ -1,6 +1,6 @@
 package views.spotify.responses
 
-import io.bartholomews.spotify4s.entities.{FullPlaylist, Page, PrivateUser, SimplePlaylist}
+import io.bartholomews.spotify4s.core.entities.{Page, PrivateUser, SimplePlaylist}
 
 case class SpotifyUserAndPlaylists(user: PrivateUser, playlists: List[SimplePlaylist])
 

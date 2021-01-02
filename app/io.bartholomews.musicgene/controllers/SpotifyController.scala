@@ -2,15 +2,16 @@ package io.bartholomews.musicgene.controllers
 
 import cats.data.EitherT
 import com.google.inject.Inject
-import io.bartholomews.fsclient.core.http.SttpResponses.CirceJsonResponse
-import io.bartholomews.fsclient.core.oauth.{AuthorizationCode, SignerV2}
+import io.bartholomews.fsclient.core.http.SttpResponses.SttpResponse
+import io.bartholomews.fsclient.core.oauth.v2.OAuthV2.ResponseHandler
+import io.bartholomews.fsclient.core.oauth.{AccessTokenSigner, SignerV2}
 import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 import io.bartholomews.musicgene.controllers.http.{SpotifyCookies, SpotifySessionKeys}
 import io.bartholomews.musicgene.model.genetic.GA
 import io.bartholomews.musicgene.model.music._
 import io.bartholomews.musicgene.model.spotify.SpotifyService
-import io.bartholomews.spotify4s.api.SpotifyApi.{Offset, SpotifyUris}
-import io.bartholomews.spotify4s.entities._
+import io.bartholomews.spotify4s.core.api.SpotifyApi.{Offset, SpotifyUris}
+import io.bartholomews.spotify4s.core.entities._
 import javax.inject._
 import play.api.Logging
 import play.api.libs.json.{JsError, JsResult, JsValue, Json}
@@ -43,6 +44,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
   import eu.timepit.refined.auto.autoRefineV
   import io.bartholomews.musicgene.controllers.http.SpotifyHttpResults._
   import io.bartholomews.musicgene.model.helpers.CollectionsHelpers._
+  import io.bartholomews.spotify4s.circe._
 
   val spotifyService: SpotifyService[IO] = new SpotifyService()
 
@@ -82,10 +84,15 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
         _ <- EitherT.pure[IO, String](logger.debug(s"Callback for session: $session"))
 
         query = request.rawQueryString
-        uri <- EitherT.fromEither[IO](Uri.parse(s"${routes.SpotifyController.callback(session).absoluteURL()}?$query"))
+        redirectionUriResponse <- EitherT.fromEither[IO](
+          Uri.parse(s"${routes.SpotifyController.callback(session).absoluteURL()}?$query")
+        )
 
         authorizationCode <- EitherT(
-          spotifyService.client.auth.AuthorizationCode.fromUri(uri).map(_.body.leftMap(_.getMessage))
+          spotifyService.client.auth.AuthorizationCode
+          // FIXME: find a way to let infer the E type and work on mapping response
+            .acquire[io.circe.Error](spotifyService.userAuthorizationRequest(session), redirectionUriResponse)
+            .map(_.body.leftMap(_.getMessage))
         )
       } yield Redirect(
         session match {
@@ -115,7 +122,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       .extractRefreshToken(request)
       .fold(IO.pure(authenticate(request)))(token =>
         spotifyService.client.auth.AuthorizationCode
-          .refresh(token)
+          .refresh[io.circe.Error](token)
           .flatMap(_.toResultF[IO] { authorizationCode =>
             f(authorizationCode).map(
               _.withCookies(
@@ -129,7 +136,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
   def withToken[A](f: SignerV2 => IO[Result])(implicit request: Request[AnyContent]): IO[Result] =
     SpotifyCookies.extractAuthCode(request) match {
       case None => IO.pure(authenticate(request))
-      case Some(accessToken: AuthorizationCode) =>
+      case Some(accessToken: AccessTokenSigner) =>
         if (accessToken.isExpired()) refresh(f)
         else f(accessToken)
     }
@@ -137,7 +144,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
   def withSourceUserToken[A, R](f: SignerV2 => IO[Result])(implicit request: Request[AnyContent]): IO[Option[Result]] =
     SpotifyCookies.extractAuthCode(SpotifySessionUser.Source) match {
       case None => IO.pure(None)
-      case Some(accessToken: AuthorizationCode) =>
+      case Some(accessToken: AccessTokenSigner) =>
         if (accessToken.isExpired())
           refresh(f)(request.addAttr(SpotifySessionKeys.spotifySessionUser, SpotifySessionUser.Source))
             .map(_.some)
@@ -153,7 +160,10 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
         val pageLimit: SimplePlaylist.Limit = 50
         val pageOffset: Offset = (page - 1) * pageLimit.value
         spotifyService.client.users
-          .getPlaylists(limit = pageLimit, offset = pageOffset)(accessToken)
+          .getPlaylists(limit = pageLimit, offset = pageOffset)(
+            accessToken,
+            implicitly[ResponseHandler[io.circe.Error, Page[SimplePlaylist]]]
+          )
           .map(_.toResult(pg => Ok(views.html.spotify.playlists("Playlists", pg.items, page))))
       }
     }
@@ -284,8 +294,8 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
     }
   }
 
-  def addTracksToPlaylist(
-    playlistResult: CirceJsonResponse[FullPlaylist],
+  def addTracksToPlaylist[E](
+    playlistResult: SttpResponse[E, FullPlaylist],
     tracks: SpotifyUris
   )(implicit request: Request[AnyContent], signer: SignerV2): IO[Either[String, Result]] =
     //    playlistResult.toResultEither[IO] { playlist =>
@@ -321,7 +331,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
         collaborative = playlistRequest.collaborative,
         description = playlistRequest.description
       )
-      .flatMap { (newPlaylistResponse: CirceJsonResponse[FullPlaylist]) =>
+      .flatMap { (newPlaylistResponse: SttpResponse[io.circe.Error, FullPlaylist]) =>
         SpotifyUri
           .fromList(
             playlistToClone.tracks.items
@@ -373,7 +383,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       // FIXME: Should probably use getPlaylistFields(/tracks)
       sourceUserPlaylist <- EitherT(
         spotifyService.client.playlists
-          .getPlaylist(playlistId = playlistRequest.id, market = None)(sourceUserToken)
+          .getPlaylist[io.circe.Error](playlistId = playlistRequest.id, market = None)(sourceUserToken, implicitly)
           .map(_.body.leftMap(_.getMessage))
       )
 

@@ -16,7 +16,7 @@ scalaVersion := "2.13.2"
 
 routesImport ++= Seq(
   "views.spotify.responses._",
-  "io.bartholomews.spotify4s.entities._",
+  "io.bartholomews.spotify4s.core.entities._",
   "views.spotify.responses.GeneratedPlaylistResultId",
   "io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser"
 )
@@ -26,9 +26,11 @@ resolvers +=
 
 libraryDependencies += guice
 libraryDependencies ++=  Seq(
-  "io.bartholomews" %% "spotify4s" % "0.0.0+122-87a13c22+20201228-1221-SNAPSHOT",
-  "io.bartholomews" %% "discogs4s" % "0.0.1+23-46464d2f+20201228-1223-SNAPSHOT",
-  "com.softwaremill.sttp.client" %% "async-http-client-backend-cats" % "2.2.9",
+  "io.bartholomews" %% "spotify4s-circe" % "0.0.0+1-f7632b4e-SNAPSHOT",
+  // "io.bartholomews" %% "spotify4s-play" % "0.0.0+125-f7632b4e+20210102-2045-SNAPSHOT",
+  "io.bartholomews" %% "discogs4s" % "0.1.0", // 0.1.1+0-5901c43c+20210102-2243-SNAPSHOT",
+   "com.softwaremill.sttp.client" %% "async-http-client-backend-cats" % "2.2.9",
+  // "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % "3.0.0-RC13",
   // https://github.com/lloydmeta/enumeratum/releases
   "com.beachape" %% "enumeratum-play" % "1.6.1",
   // https://github.com/pauldijou/jwt-scala/releases
@@ -47,4 +49,4 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0
 // play.sbt.routes.RoutesKeys.routesImport += "io.bartholomews.binders._"
 
 // https://stackoverflow.com/a/58456468
-ThisBuild / useCoursier := false
+// ThisBuild / useCoursier := false

@@ -1,6 +1,6 @@
 package io.bartholomews.musicgene.model.music
 
-import io.bartholomews.spotify4s.entities.{AudioFeatures, FullTrack}
+import io.bartholomews.spotify4s.core.entities.{AudioFeatures, FullTrack}
 
 /**
   *

@@ -15,7 +15,7 @@ sealed abstract class HttpResults(tab: Tab) {
       httpResponseEntity.fold(errorToResult, f)
   }
 
-  implicit class HttpResponseImplicits[E, A](httpResponse: SttpResponse[ResponseError[E], A]) {
+  implicit class HttpResponseImplicits[E, A](httpResponse: SttpResponse[E, A]) {
     def toResult(responseToResult: A => Result)(implicit request: Request[AnyContent]): Result =
       httpResponse.body.fold(errorToResult, responseToResult)
 

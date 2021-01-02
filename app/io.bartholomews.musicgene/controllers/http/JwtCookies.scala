@@ -2,7 +2,7 @@ package io.bartholomews.musicgene.controllers.http
 
 import java.time.Clock
 
-import io.bartholomews.fsclient.core.oauth.AuthorizationCode
+import io.bartholomews.fsclient.core.oauth.AccessTokenSigner
 import io.bartholomews.fsclient.core.oauth.v2.OAuthV2.RefreshToken
 import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs.{
   authorizationTokenReads,
@@ -22,7 +22,7 @@ case object SpotifyCookies extends Logging {
     def refresh(session: SpotifySessionUser): String = s"spotify4s_refresh_session_${session.entryName}"
   }
 
-  def accessCookies(accessToken: AuthorizationCode)(implicit request: Request[AnyContent]): List[Cookie] = {
+  def accessCookies(accessToken: AccessTokenSigner)(implicit request: Request[AnyContent]): List[Cookie] = {
     val maybeSession = request.attrs.get(SpotifySessionKeys.spotifySessionUser)
     logger.debug(s"accessCookies => $maybeSession")
     maybeSession.fold(List.empty[Cookie])(session =>
@@ -32,16 +32,16 @@ case object SpotifyCookies extends Logging {
     )
   }
 
-  def extractAuthCode(session: SpotifySessionUser)(implicit request: Request[AnyContent]): Option[AuthorizationCode] = {
+  def extractAuthCode(session: SpotifySessionUser)(implicit request: Request[AnyContent]): Option[AccessTokenSigner] = {
     logger.debug(s"extractAuthCode => $session")
-    JwtCookies.extractCookie[AuthorizationCode](SessionKey.access(session), request)
+    JwtCookies.extractCookie[AccessTokenSigner](SessionKey.access(session), request)
   }
 
   // Todo S <: SignerV2
-  def extractAuthCode(request: Request[AnyContent]): Option[AuthorizationCode] = {
+  def extractAuthCode(request: Request[AnyContent]): Option[AccessTokenSigner] = {
     val maybeSession = request.attrs.get(SpotifySessionKeys.spotifySessionUser)
     logger.debug(s"extractAuthCode => $maybeSession")
-    maybeSession.flatMap(session => JwtCookies.extractCookie[AuthorizationCode](SessionKey.access(session), request))
+    maybeSession.flatMap(session => JwtCookies.extractCookie[AccessTokenSigner](SessionKey.access(session), request))
   }
 
   def extractRefreshToken(request: Request[AnyContent]): Option[RefreshToken] = {

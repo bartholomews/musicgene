@@ -6,7 +6,8 @@ import com.google.inject.Inject
 import io.bartholomews.discogs4s.DiscogsClient
 import io.bartholomews.discogs4s.endpoints.DiscogsAuthEndpoint
 import io.bartholomews.fsclient.core.oauth.v1.TemporaryCredentials
-import io.bartholomews.fsclient.core.oauth.{AccessTokenCredentials, CallbackUri, SignerV1, TokenCredentials}
+import io.bartholomews.fsclient.core.oauth.v2.OAuthV2.RedirectUri
+import io.bartholomews.fsclient.core.oauth.{AccessTokenCredentials, SignerV1, TokenCredentials}
 import io.bartholomews.musicgene.controllers.http.DiscogsCookies
 import javax.inject._
 import play.api.mvc._
@@ -27,7 +28,7 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs._
 
   // TODO: load from config
-  private val discogsCallback = CallbackUri(uri"http://localhost:9000/discogs/callback")
+  private val discogsCallback = RedirectUri(uri"http://localhost:9000/discogs/callback")
 
   val discogsClient: DiscogsClient[IO, SignerV1] = DiscogsClient.clientCredentialsFromConfig
 
@@ -56,7 +57,7 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
         val watt: IO[Either[Result, AccessTokenCredentials]] = (for {
           requestToken <- EitherT.fromEither[IO](extractSessionRequestToken)
           callbackUri <- EitherT.fromEither[IO](
-            maybeUri.bimap(parseFailure => badRequest(parseFailure), CallbackUri.apply)
+            maybeUri.leftMap(parseFailure => badRequest(parseFailure))
           )
           maybeAccessToken <- EitherT.liftF(discogsClient.auth.fromUri(callbackUri, requestToken))
           accessTokenCredentials <- EitherT.fromEither[IO](maybeAccessToken.body.leftMap(errorToResult))

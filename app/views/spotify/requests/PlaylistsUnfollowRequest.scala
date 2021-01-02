@@ -1,6 +1,6 @@
 package views.spotify.requests
 
-import io.bartholomews.spotify4s.entities.SpotifyUserId
+import io.bartholomews.spotify4s.core.entities.SpotifyUserId
 import play.api.libs.json.{Json, OFormat}
 
 case class PlaylistsUnfollowRequest(

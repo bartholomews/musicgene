@@ -3,6 +3,7 @@ package io.bartholomews.musicgene.controllers.http.codecs
 import io.bartholomews.fsclient.core.oauth._
 import io.bartholomews.fsclient.core.oauth.v1.OAuthV1.{Consumer, SignatureMethod, Token}
 import io.bartholomews.fsclient.core.oauth.v1.TemporaryCredentials
+import io.bartholomews.fsclient.core.oauth.v2._
 import io.bartholomews.fsclient.core.oauth.v2.OAuthV2._
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json._
@@ -33,25 +34,25 @@ object FsClientCodecs extends CodecsConfiguration {
   implicit val consumerReads: Reads[Consumer] =
     (JsPath \ "key").read[String].and((JsPath \ "secret").read[String])(Consumer.apply _)
 
-  implicit val nonRefreshableTokenWrites: OWrites[NonRefreshableToken] = Json.writes[NonRefreshableToken]
+  implicit val nonRefreshableTokenWrites: OWrites[NonRefreshableTokenSigner] = Json.writes[NonRefreshableTokenSigner]
 
-  implicit val nonRefreshableTokenReads: Reads[NonRefreshableToken] =
+  implicit val nonRefreshableTokenReads: Reads[NonRefreshableTokenSigner] =
     (JsPath \ "generated_at")
       .read[Long]
       .and((JsPath \ "access_token").read[AccessToken])
       .and(tokenTypeReads)
       .and((JsPath \ "expiresIn").read[Long])
-      .and(scopeReads)(NonRefreshableToken.apply _)
+      .and(scopeReads)(NonRefreshableTokenSigner.apply _)
 
-  implicit val authorizationTokenWrites: OWrites[AuthorizationCode] = Json.writes[AuthorizationCode]
-  implicit val authorizationTokenReads: Reads[AuthorizationCode] =
+  implicit val authorizationTokenWrites: OWrites[AccessTokenSigner] = Json.writes[AccessTokenSigner]
+  implicit val authorizationTokenReads: Reads[AccessTokenSigner] =
     (JsPath \ "generated_at")
       .read[Long]
       .and((JsPath \ "access_token").read[AccessToken])
       .and(tokenTypeReads)
       .and((JsPath \ "expires_in").read[Long])
       .and((JsPath \ "refresh_token").readNullable[RefreshToken])
-      .and(scopeReads)(AuthorizationCode.apply _)
+      .and(scopeReads)(AccessTokenSigner.apply _)
 
   implicit val signatureMethodReads: Reads[SignatureMethod] = (json: JsValue) =>
     json.validate[String].flatMap {
@@ -67,12 +68,12 @@ object FsClientCodecs extends CodecsConfiguration {
 //  implicit val accessTokenV1Reads: Reads[AccessTokenCredentials] =
 //    (JsPath \ "token").read[Token].and((JsPath \ "consumer").read[Consumer])(AccessTokenCredentials.apply _)
 
-  implicit val clientPasswordBasicAuthenticationV2Writes: OWrites[ClientPasswordBasicAuthenticationV2] =
-    Json.writes[ClientPasswordBasicAuthenticationV2]
-  implicit val clientPasswordBasicAuthenticationV2Reads: Reads[ClientPasswordBasicAuthenticationV2] =
-    (JsPath \ "client_password").read[ClientPassword].map(ClientPasswordBasicAuthenticationV2.apply)
+  implicit val clientPasswordBasicAuthenticationV2Writes: OWrites[ClientPasswordAuthentication] =
+    Json.writes[ClientPasswordAuthentication]
+  implicit val clientPasswordBasicAuthenticationV2Reads: Reads[ClientPasswordAuthentication] =
+    (JsPath \ "client_password").read[ClientPassword].map(ClientPasswordAuthentication.apply)
 
-  implicit val accessTokenSignerV2Format: OFormat[AccessTokenSignerV2] = Json.format[AccessTokenSignerV2]
+  implicit val accessTokenSignerV2Format: OFormat[AccessTokenSigner] = Json.format[AccessTokenSigner]
 
   import play.api.libs.json._
 

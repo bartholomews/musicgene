@@ -1,6 +1,6 @@
 package views.spotify.requests
 
-import io.bartholomews.spotify4s.entities.{SpotifyId, SpotifyUserId}
+import io.bartholomews.spotify4s.core.entities.{SpotifyId, SpotifyUserId}
 import play.api.libs.json.{Json, OFormat}
 
 case class PlaylistsMigrationRequest(

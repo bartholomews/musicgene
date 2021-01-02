@@ -1,6 +1,6 @@
 package io.bartholomews.musicgene.controllers.http.codecs
 
-import io.bartholomews.spotify4s.entities.{SpotifyId, SpotifyUserId}
+import io.bartholomews.spotify4s.core.entities.{SpotifyId, SpotifyUserId}
 import play.api.libs.json.{Format, Json}
 
 trait SpotifyCodecs extends CodecsConfiguration {
