@@ -1,6 +1,8 @@
 package views.spotify.requests
 
+import io.bartholomews.fsclient.play.codecs.withDiscriminator
 import io.bartholomews.musicgene.model.{constraints, music}
+import io.bartholomews.spotify4s.playJson.codecs._
 import play.api.libs.json.{Json, Reads}
 
 sealed trait SpotifyConstraint { def toDomain: constraints.Constraint[_] }

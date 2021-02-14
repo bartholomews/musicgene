@@ -1,7 +1,6 @@
 package io.bartholomews.musicgene.model.spotify
 
-import cats.NonEmptyParallel
-import cats.effect.ConcurrentEffect
+import cats.Monad
 import io.bartholomews.fsclient.core.http.SttpResponses.SttpResponse
 import io.bartholomews.fsclient.core.oauth.SignerV2
 import io.bartholomews.fsclient.core.oauth.v2.OAuthV2.RedirectUri
@@ -10,16 +9,16 @@ import io.bartholomews.musicgene.controllers.routes
 import io.bartholomews.spotify4s.core.SpotifyClient
 import io.bartholomews.spotify4s.core.api.AuthApi.SpotifyUserAuthorizationRequest
 import io.bartholomews.spotify4s.core.entities.{Page, PrivateUser, SimplePlaylist, SpotifyScope}
-import io.circe
+import play.api.libs.json.JsError
 import play.api.mvc.RequestHeader
-import sttp.client.{ResponseError, SttpBackend, UriContext}
+import sttp.client3.{ResponseException, SttpBackend, UriContext}
 import sttp.model.Uri
 
-class SpotifyService[F[_]: ConcurrentEffect: NonEmptyParallel]()(implicit backend: SttpBackend[F, Nothing, Nothing]) {
+class SpotifyService[F[_]: Monad](backend: SttpBackend[F, Any]) {
 
-  import io.bartholomews.spotify4s.circe._
+  import io.bartholomews.spotify4s.playJson.codecs._
 
-  val client: SpotifyClient[F] = SpotifyClient.unsafeFromConfig[F]()
+  val client: SpotifyClient[F] = SpotifyClient.unsafeFromConfig[F](backend)
 
   import cats.implicits._
   import eu.timepit.refined.auto.autoRefineV
@@ -38,7 +37,7 @@ class SpotifyService[F[_]: ConcurrentEffect: NonEmptyParallel]()(implicit backen
     )
   )
 
-  def me(implicit signer: SignerV2): F[SttpResponse[circe.Error, PrivateUser]] = client.users.me
+  def me(implicit signer: SignerV2): F[SttpResponse[JsError, PrivateUser]] = client.users.me
 
   def authorizeUrl(session: SpotifySessionUser)(implicit request: RequestHeader): Uri =
     client.auth.authorizeUrl(
@@ -48,12 +47,13 @@ class SpotifyService[F[_]: ConcurrentEffect: NonEmptyParallel]()(implicit backen
 
   def getUserAndPlaylists(
     implicit signer: SignerV2
-  ): F[Either[ResponseError[circe.Error], (PrivateUser, Page[SimplePlaylist])]] = {
+  ): F[Either[ResponseException[String, JsError], (PrivateUser, Page[SimplePlaylist])]] = {
     val getUser = client.users.me.map(_.body)
     val getUserPlaylists = client.users.getPlaylists(limit = 50).map(_.body)
 
     (getUser, getUserPlaylists)
-      .parMapN({
+    //      .parMapN({
+      .mapN({
         case (aaa, bbb) =>
           for {
             privateUser <- aaa

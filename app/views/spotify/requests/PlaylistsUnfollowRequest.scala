@@ -9,5 +9,6 @@ case class PlaylistsUnfollowRequest(
 )
 
 object PlaylistsUnfollowRequest {
+  import io.bartholomews.spotify4s.playJson.codecs._
   implicit val playlistsUnfollowRequestFormat: OFormat[PlaylistsUnfollowRequest] = Json.format
 }

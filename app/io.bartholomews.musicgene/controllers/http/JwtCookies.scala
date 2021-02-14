@@ -4,11 +4,6 @@ import java.time.Clock
 
 import io.bartholomews.fsclient.core.oauth.AccessTokenSigner
 import io.bartholomews.fsclient.core.oauth.v2.OAuthV2.RefreshToken
-import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs.{
-  authorizationTokenReads,
-  authorizationTokenWrites,
-  refreshTokenFormat
-}
 import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 import pdi.jwt.JwtSession
 import play.api.libs.json.{Reads, Writes}
@@ -17,6 +12,9 @@ import play.api.mvc._
 import play.api.{Configuration, Logging}
 
 case object SpotifyCookies extends Logging {
+
+  import io.bartholomews.fsclient.play.codecs._
+
   object SessionKey {
     def access(session: SpotifySessionUser): String = s"spotify4s_access_session_${session.entryName}"
     def refresh(session: SpotifySessionUser): String = s"spotify4s_refresh_session_${session.entryName}"

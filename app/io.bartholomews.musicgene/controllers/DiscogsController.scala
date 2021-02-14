@@ -1,7 +1,6 @@
 package io.bartholomews.musicgene.controllers
 
 import cats.data.EitherT
-import cats.effect.IO
 import com.google.inject.Inject
 import io.bartholomews.discogs4s.DiscogsClient
 import io.bartholomews.discogs4s.endpoints.DiscogsAuthEndpoint
@@ -11,40 +10,44 @@ import io.bartholomews.fsclient.core.oauth.{AccessTokenCredentials, SignerV1, To
 import io.bartholomews.musicgene.controllers.http.DiscogsCookies
 import javax.inject._
 import play.api.mvc._
-import sttp.client.UriContext
+import sttp.client3.{SttpBackend, UriContext}
 import sttp.model.Uri
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  *
  */
 @Singleton
 class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: ExecutionContext)
-    extends AbstractControllerIO(cc) {
+    extends AbstractController(cc) {
 
   import cats.implicits._
+  import io.bartholomews.fsclient.play.codecs._
   import io.bartholomews.musicgene.controllers.http.DiscogsHttpResults._
-  import io.bartholomews.musicgene.controllers.http.codecs.FsClientCodecs._
 
   // TODO: load from config
   private val discogsCallback = RedirectUri(uri"http://localhost:9000/discogs/callback")
 
-  val discogsClient: DiscogsClient[IO, SignerV1] = DiscogsClient.clientCredentialsFromConfig
+  import sttp.client3.asynchttpclient.future.AsyncHttpClientFutureBackend
+  implicit val discogsBackend: SttpBackend[Future, Any] = AsyncHttpClientFutureBackend()
 
-  private def hello(signer: SignerV1)(implicit request: Request[AnyContent]): IO[Result] =
+  val discogsClient: DiscogsClient[Future, SignerV1] = DiscogsClient.clientCredentialsFromConfig(discogsBackend)
+
+  private def hello(signer: SignerV1)(implicit request: Request[AnyContent]): Future[Result] =
     discogsClient.users.me(signer).map(_.toResult(me => Ok(views.html.discogs.hello(me))))
 
-  def hello(): Action[AnyContent] = ActionIO.async { implicit request =>
+  def hello(): Action[AnyContent] = Action.async { implicit request =>
     withToken(hello)
   }
 
-  def callback: Action[AnyContent] = ActionIO.async { implicit request =>
+  import io.bartholomews.fsclient.play.codecs.accessTokenSignerDecoder
+
+  def callback: Action[AnyContent] = Action.async { implicit request =>
     DiscogsCookies
-      .extract[AccessTokenCredentials](request)(accessTokenV1Format)
+      .extract[AccessTokenCredentials](request)
       .map(hello)
       .getOrElse {
-
 
         val query = request.rawQueryString
         val maybeUri = Uri.parse(s"${routes.DiscogsController.callback().absoluteURL()}?$query")
@@ -54,26 +57,26 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
             .extract[TemporaryCredentials](request)
             .toRight(badRequest("There was a problem retrieving the request token"))
 
-        val watt: IO[Either[Result, AccessTokenCredentials]] = (for {
-          requestToken <- EitherT.fromEither[IO](extractSessionRequestToken)
-          callbackUri <- EitherT.fromEither[IO](
+        val watt: Future[Either[Result, AccessTokenCredentials]] = (for {
+          requestToken <- EitherT.fromEither[Future](extractSessionRequestToken)
+          callbackUri <- EitherT.fromEither[Future](
             maybeUri.leftMap(parseFailure => badRequest(parseFailure))
           )
           maybeAccessToken <- EitherT.liftF(discogsClient.auth.fromUri(callbackUri, requestToken))
-          accessTokenCredentials <- EitherT.fromEither[IO](maybeAccessToken.body.leftMap(errorToResult))
+          accessTokenCredentials <- EitherT.fromEither[Future](maybeAccessToken.body.leftMap(errorToResult))
         } yield accessTokenCredentials).value
 
         watt.flatMap(
-            _.fold(
-              errorResult => IO.pure(errorResult),
-              signer => hello(signer).map(_.withCookies(DiscogsCookies.accessCookie(signer)))
-            )
+          _.fold(
+            errorResult => Future.successful(errorResult),
+            signer => hello(signer).map(_.withCookies(DiscogsCookies.accessCookie(signer)))
           )
+        )
       }
   }
 
-  def logout(): Action[AnyContent] = ActionIO.async { implicit request =>
-    IO.pure {
+  def logout(): Action[AnyContent] = Action.async { implicit request =>
+    Future {
       DiscogsCookies.extract[AccessTokenCredentials](request) match {
         case None => BadRequest("Need to be token-authenticated to logout!")
         case Some(accessToken: TokenCredentials) =>
@@ -102,7 +105,7 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
       )
 
   // http://pauldijou.fr/jwt-scala/samples/jwt-play/
-  def withToken[A](f: SignerV1 => IO[Result])(implicit request: Request[AnyContent]): IO[Result] =
+  def withToken[A](f: SignerV1 => Future[Result])(implicit request: Request[AnyContent]): Future[Result] =
     DiscogsCookies.extract[AccessTokenCredentials](request) match {
       case None              => authenticate(request)
       case Some(accessToken) => f(accessToken)

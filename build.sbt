@@ -26,11 +26,10 @@ resolvers +=
 
 libraryDependencies += guice
 libraryDependencies ++=  Seq(
-  "io.bartholomews" %% "spotify4s-circe" % "0.0.0+1-f7632b4e-SNAPSHOT",
-  // "io.bartholomews" %% "spotify4s-play" % "0.0.0+125-f7632b4e+20210102-2045-SNAPSHOT",
-  "io.bartholomews" %% "discogs4s" % "0.1.0", // 0.1.1+0-5901c43c+20210102-2243-SNAPSHOT",
-   "com.softwaremill.sttp.client" %% "async-http-client-backend-cats" % "2.2.9",
-  // "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % "3.0.0-RC13",
+  "io.bartholomews" %% "spotify4s-play" % "0.0.0+130-2dfcbf5a+20210214-1210-SNAPSHOT",
+  "io.bartholomews" %% "discogs4s" % "0.1.1+7-ae61f487+20210207-1845-SNAPSHOT",
+  "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.1.0",
+  "com.softwaremill.sttp.client3" %% "async-http-client-backend-future" % "3.1.0",
   // https://github.com/lloydmeta/enumeratum/releases
   "com.beachape" %% "enumeratum-play" % "1.6.1",
   // https://github.com/pauldijou/jwt-scala/releases

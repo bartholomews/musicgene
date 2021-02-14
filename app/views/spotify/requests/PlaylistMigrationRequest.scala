@@ -1,7 +1,9 @@
 package views.spotify.requests
 
 import io.bartholomews.spotify4s.core.entities.{SpotifyId, SpotifyUserId}
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Format, Json}
+
+import io.bartholomews.spotify4s.playJson.codecs._
 
 case class PlaylistsMigrationRequest(
   userId: SpotifyUserId,
@@ -9,7 +11,7 @@ case class PlaylistsMigrationRequest(
 )
 
 object PlaylistsMigrationRequest {
-  implicit val playlistsMigrationRequestFormat: OFormat[PlaylistsMigrationRequest] = Json.format
+  implicit val playlistsMigrationRequestFormat: Format[PlaylistsMigrationRequest] = Json.format
 }
 
 /*
@@ -24,5 +26,5 @@ case class PlaylistMigrationRequest(
 )
 
 object PlaylistMigrationRequest {
-  implicit val playlistMigrationRequestFormat: OFormat[PlaylistMigrationRequest] = Json.format
+  implicit val playlistMigrationRequestFormat: Format[PlaylistMigrationRequest] = Json.format
 }

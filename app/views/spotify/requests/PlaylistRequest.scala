@@ -14,6 +14,7 @@ case class PlaylistRequest(
 
 object PlaylistRequest {
 //  implicit val playlistRequestFormat: OFormat[PlaylistRequest] = Json.format
+  import io.bartholomews.spotify4s.playJson.codecs._
   implicit val playlistRequestReads: Reads[PlaylistRequest] = Json.reads[PlaylistRequest]
 //  val form: Form[PlaylistRequest] =
 //    Form(

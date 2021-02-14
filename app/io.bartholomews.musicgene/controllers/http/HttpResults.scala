@@ -5,12 +5,12 @@ import io.bartholomews.fsclient.core.http.SttpResponses.SttpResponse
 import play.api.libs.json.Json
 import play.api.mvc.Results.BadRequest
 import play.api.mvc.{AnyContent, Request, Result}
-import sttp.client.{DeserializationError, HttpError, ResponseError}
+import sttp.client3.{DeserializationException, HttpError, ResponseException}
 import views.common.Tab
 
 sealed abstract class HttpResults(tab: Tab) {
 
-  implicit class HttpResultResponseImplicits[E, A](httpResponseEntity: Either[ResponseError[E], A]) {
+  implicit class HttpResultResponseImplicits[DE, A](httpResponseEntity: Either[ResponseException[String, DE], A]) {
     def toResulto(f: A => Result)(implicit request: Request[AnyContent]): Result =
       httpResponseEntity.fold(errorToResult, f)
   }
@@ -25,21 +25,21 @@ sealed abstract class HttpResults(tab: Tab) {
       httpResponse.body.fold(err => f.pure(errorToResult(err)), responseToResult)
   }
 
-  def errorToJsonResult[E](error: ResponseError[E])(implicit request: Request[AnyContent]): Result =
+  def errorToJsonResult[DE](error: ResponseException[String, DE])(implicit request: Request[AnyContent]): Result =
     BadRequest(
       Json.parse(
         error match {
-          case HttpError(body, _)            => body
-          case DeserializationError(body, _) => body
+          case HttpError(body, _)                => body
+          case DeserializationException(body, _) => body
         }
       )
     )
 
-  def errorToResult[E](error: ResponseError[E])(implicit request: Request[AnyContent]): Result =
+  def errorToResult[DE](error: ResponseException[String, DE])(implicit request: Request[AnyContent]): Result =
     // TODO: https://github.com/jilen/play-circe
     error match {
-      case HttpError(body, _)            => badRequest(body)
-      case DeserializationError(body, _) => badRequest(body)
+      case HttpError(body, _)                => badRequest(body)
+      case DeserializationException(body, _) => badRequest(body)
     }
 
   def badRequest(message: String)(implicit request: Request[AnyContent]): Result =
