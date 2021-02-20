@@ -6,6 +6,10 @@
 .migrate-section-actions {
   height: 30px;
 
+  .fa-spinner {
+    margin-left: 5px;
+  }
+
   &.main {
     float: left;
     margin-left: 10px;

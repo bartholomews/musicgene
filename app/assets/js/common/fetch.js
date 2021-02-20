@@ -4,7 +4,7 @@ function handleResponse(response) {
     else return response.json();
 }
 
-function jsonRequest(route, payload, onError, onSuccess) {
+function jsonRequest(route, payload, onError, onSuccess, onFinally) {
     console.log("~~~~~~~~~~ Json request ~~~~~~~~~~")
     console.log(payload);
     console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -20,4 +20,5 @@ function jsonRequest(route, payload, onError, onSuccess) {
         .then(handleResponse)
         .then(onSuccess)
         .catch(onError)
+        .finally(onFinally)
 }

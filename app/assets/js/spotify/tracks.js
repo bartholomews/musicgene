@@ -1,10 +1,27 @@
 document.getElementById("playlist-input-length").value = 10;
+const actionElements = Array.from(document.getElementsByClassName('playlist-generation-action'));
+const spinner = createSpinner();
 
 // https://seiyria.com/bootstrap-slider
 const constraintsIndexRangeSlider = new Slider("#constraints-index-range",
-                                               {min: 0, max: 10, value: [0, 10], focus: true});
+    {min: 0, max: 10, value: [0, 10], focus: true});
+
+function createSpinner() {
+    const spinner = document.createElement('i');
+    spinner.id = 'playlist-generation-spinner'
+    spinner.className = "fa fa-spinner fa-spin fa-2x";
+    return spinner;
+}
+
+function onPlaylistGenerationActionClick(loading) {
+    actionElements.forEach(element => element.toggleAttribute('disabled', loading));
+    loading ?
+        document.getElementById('playlist-generation-spinner-wrapper').appendChild(spinner) :
+        document.getElementById('playlist-generation-spinner').remove();
+}
 
 function generatePlaylist(nameAndLength) {
+    onPlaylistGenerationActionClick(true);
     const route = jsRoutesControllers.SpotifyController.generatePlaylist();
     const constraints2 = [
         // TODO
@@ -24,12 +41,13 @@ function generatePlaylist(nameAndLength) {
         .filter(id => !!id);
 
     jsonRequest(route, {...nameAndLength, tracks, constraints},
-                err => console.log(err),
-                playlistResponse => {
-                    console.log(playlistResponse)
-                    generateConfidenceChart(playlistResponse.songs)
-                    generateBpmDbChart(playlistResponse.songs)
-                }
+        err => console.log(err),
+        playlistResponse => {
+            console.log(playlistResponse)
+            generateConfidenceChart(playlistResponse.songs)
+            generateBpmDbChart(playlistResponse.songs)
+        },
+        () => onPlaylistGenerationActionClick(false)
     );
 }
 

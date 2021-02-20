@@ -1,5 +1,22 @@
+const actionElements = Array.from(document.getElementsByClassName('playlist-table-action'));
+const spinnerDelete = createSpinner('delete');
+const spinnerMigrate = createSpinner('migrate');
 const selectedMainPlaylists = [];
 const selectedSrcPlaylists = [];
+
+function createSpinner(action) {
+    const spinner = document.createElement('i');
+    spinner.id = `playlist-table-action-spinner-${action}`
+    spinner.className = "fa fa-spinner fa-spin";
+    return spinner;
+}
+
+function getSpinner(action) {
+    switch(action) {
+        case 'delete': return spinnerDelete;
+        case 'migrate': return spinnerMigrate;
+    }
+}
 
 function onPlaylistRowClick(playlistRow) {
     const table = getParentTable(playlistRow);
@@ -15,16 +32,24 @@ function onPlaylistRowClick(playlistRow) {
         playlists.splice(playlists.map(p => p.id).indexOf(payload.id), 1);
 }
 
+function onPlaylistTableActionClick(action, loading) {
+    actionElements.forEach(element => element.toggleAttribute('disabled', loading));
+    const spinner = getSpinner(action);
+    loading ?
+        document.getElementById(`playlist-table-action-spinner-wrapper-${action}`).appendChild(spinner) :
+        window.location.reload(); // document.getElementById(spinner.id).remove();
+}
+
 function getActionPayload(action) {
     switch (action) {
-        case 'main':
+        case 'delete':
             return {
                 makePayload: playlistUnfollowPayload,
                 playlists: selectedMainPlaylists,
                 route: jsRoutesControllers.SpotifyController.unfollowPlaylists()
             }
 
-        case 'source':
+        case 'migrate':
             return {
                 makePayload: playlistMigrationPayload,
                 playlists: selectedSrcPlaylists,
@@ -68,11 +93,14 @@ function onSelectAllPlaylists(selectAllCheckbox) {
 }
 
 function onSubmit(btn) {
-    const {playlists, route} = getActionPayload(btn.dataset.action);
+    const action = btn.dataset.action;
+    const {playlists, route} = getActionPayload(action);
+    onPlaylistTableActionClick(action, true);
     jsonRequest(route, {user_id: btn.dataset.user, playlists},
         err => console.log(err),
         response => {
             console.log(response)
-        }
+        },
+        () => onPlaylistTableActionClick(action, false)
     );
 }

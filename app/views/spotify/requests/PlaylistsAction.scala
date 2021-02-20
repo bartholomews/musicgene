@@ -6,11 +6,11 @@ sealed trait PlaylistsAction {
 }
 
 case object MigratePlaylists extends PlaylistsAction {
-  override val label = "Migrate"
+  override val label = "migrate"
   override val userType = "source"
 }
 
 case object UnfollowPlaylists extends PlaylistsAction {
-  override val label = "Delete"
+  override val label = "delete"
   override val userType = "main"
 }
