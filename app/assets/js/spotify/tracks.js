@@ -82,14 +82,44 @@ constraints: [{
 }]
  */
 
-function updatePlaylistConstraintsDescription(description) {
+function onPlaylistConstraintUpdate() {
     document.getElementById('playlist-generation-no-constraints').hidden =
         constraints.length > 0;
+}
 
-    const ul = document.getElementById('playlist-generation-constraints-list');
+function onDeleteLi(li) {
+    const index = +li.dataset.index;
+    constraints.splice(index, 1);
+    // update all <li> after the removed one, decrementing the index
+    for (let i = index + 1; i <= constraints.length; i++) {
+        const li = document.getElementById(`playlist-generation-constraint-${i}`);
+        const newIndex = (i - 1).toString();
+        li.id = `playlist-generation-constraint-${newIndex}`;
+        li.setAttribute('data-index', newIndex);
+    }
+    document.getElementById(`playlist-generation-constraint-${index}`).remove();
+    onPlaylistConstraintUpdate();
+}
+
+function constraintDeleteIcon(li) {
+    const deleteIcon = document.createElement('i');
+    deleteIcon.className = 'fa fa-trash-alt';
+    const span = document.createElement('span');
+    span.className = 'playlist-generation-constraint-delete';
+    span.onclick = () => onDeleteLi(li);
+    span.appendChild(deleteIcon);
+    return span;
+}
+
+function appendPlaylistConstraintListItem(description) {
     const li = document.createElement('li');
+    const index = constraints.length - 1;
+    li.id = `playlist-generation-constraint-${index}`;
+    li.setAttribute('data-index', index.toString());
     li.textContent = description;
-    ul.appendChild(li);
+    li.appendChild(constraintDeleteIcon(li));
+    document.getElementById('playlist-generation-constraints-list').appendChild(li);
+    onPlaylistConstraintUpdate();
 }
 
 function applyPlaylistConstraints() {
@@ -117,11 +147,6 @@ function applyPlaylistConstraints() {
     //         {'index_range': constraintsIndexRangeSlider.getValue()},
     //         Object.fromEntries(new FormData(constraintsForm))
     //     );
-
-    console.log('TODO: save this constraint to a "li" which display english and have this json data attributes:')
-    console.log(constraint);
-    console.log(description);
-
     constraints.push(constraint);
-    updatePlaylistConstraintsDescription(description);
+    appendPlaylistConstraintListItem(description);
 }

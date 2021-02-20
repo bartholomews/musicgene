@@ -8,6 +8,13 @@
   top: 7px;
 }
 
+li {
+  .fa-trash-alt {
+    cursor: pointer;
+    margin-left: 10px;
+  }
+}
+
 #playlist-input-size {
   background-color: lightgrey;
   margin-left: 3px;
