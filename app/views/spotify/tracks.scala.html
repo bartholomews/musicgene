@@ -64,11 +64,12 @@
         @{constraintsModal()}
 
         <div class="playlist-description">
-            <p>A <label>
+            <div id="playlist-generation-constraints-description">A <label>
                 <input id="playlist-input-size" type="number"
                         onchange="onPlaylistSizeChange()"
                         min="5" max="50">
-            </label> tracks <b>Playlist</b> with no constraints</p>
+            </label> tracks <b>Playlist</b> <span id="playlist-generation-no-constraints">with no constraints</span></div>
+            <ul id="playlist-generation-constraints-list"></ul>
         </div>
 
         <div class="chart" id="confidence-chart"></div>

@@ -2,6 +2,7 @@
 const defaultPlaylistSize = 10;
 document.getElementById("playlist-input-size").value = defaultPlaylistSize;
 
+const constraints = [];
 const actionElements = Array.from(document.getElementsByClassName('playlist-generation-action'));
 const spinner = createSpinner();
 
@@ -54,7 +55,6 @@ function generatePlaylist() {
     // ]
 
     const size = getPlaylistSize();
-    const constraints = applyPlaylistConstraints();
 
     const tracks = Array.from(document.getElementsByClassName('spotify-track-row'))
         .map(el => el.id)
@@ -82,15 +82,32 @@ constraints: [{
 }]
  */
 
+function updatePlaylistConstraintsDescription(description) {
+    document.getElementById('playlist-generation-no-constraints').hidden =
+        constraints.length > 0;
+
+    const ul = document.getElementById('playlist-generation-constraints-list');
+    const li = document.createElement('li');
+    li.textContent = description;
+    ul.appendChild(li);
+}
+
 function applyPlaylistConstraints() {
     const constraintsForm = document.getElementById('playlist-constraints-form');
     const formData = new FormData(constraintsForm);
+
+    const constraintType = formData.get('constraint_type');
+    const attributeType = formData.get('attribute_type');
+    const indexRange = constraintsIndexRangeSlider.getValue();
+
+    const description = `with ${constraintType} ${attributeType} from track ${indexRange[0]} to ${indexRange[1]}`
+
     const constraint = {
-        'type': formData.get('constraint_type'),
+        'type': constraintType,
         // convert 1-index slider values to 0-index
-        'index_range': constraintsIndexRangeSlider.getValue().map(value => value - 1),
+        'index_range': indexRange.map(value => value - 1),
         'attribute': {
-            'type': formData.get('attribute_type'),
+            'type': attributeType,
             'value': +(formData.get('attribute_value'))
         }
     };
@@ -102,5 +119,9 @@ function applyPlaylistConstraints() {
     //     );
 
     console.log('TODO: save this constraint to a "li" which display english and have this json data attributes:')
-    return [constraint];
+    console.log(constraint);
+    console.log(description);
+
+    constraints.push(constraint);
+    updatePlaylistConstraintsDescription(description);
 }
