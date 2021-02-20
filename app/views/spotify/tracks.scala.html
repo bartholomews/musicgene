@@ -2,7 +2,7 @@
 @import io.bartholomews.musicgene.model.music.MusicUtil
 @import views.common.Tab
 @import io.bartholomews.spotify4s.core.entities.Page
-@import views.spotify.requests.PlaylistRequest
+@import views.spotify.requests.PlaylistGenerationRequest
 @import views.html.spotify.modals.constraintsModal
 
 @(tracksPage: Page[FullTrack])(implicit requestHeader: RequestHeader, messages: Messages)
@@ -47,12 +47,13 @@
             @* }*@
         </div>
         <button type="button"
-                onclick="generatePlaylist({name: 'My playlist', length: 20})"
+                onclick="generatePlaylist()"
                 class="btn btn-outline-dark playlist-generation-action">
             Generate
         </button>
 
         <button type="button"
+                id="playlist-generation-add-constraints-button"
                 class="btn btn-outline btn-outline-dark playlist-generation-action"
                 data-toggle="modal" data-target="#constraints-modal">
             Add constraints
@@ -64,7 +65,9 @@
 
         <div class="playlist-description">
             <p>A <label>
-                <input id="playlist-input-length" type="number" min="5" max="50">
+                <input id="playlist-input-size" type="number"
+                        onchange="onPlaylistSizeChange()"
+                        min="5" max="50">
             </label> tracks <b>Playlist</b> with no constraints</p>
         </div>
 
@@ -126,7 +129,7 @@
                     </thead>
                     <tbody class="music-collection-tbody">
                     @tracksPage.items.map { track =>
-                        <tr class="@PlaylistRequest.trackRowClassNames(track)"
+                        <tr class="@PlaylistGenerationRequest.trackRowClassNames(track)"
                         id="@track.id.map(_.value)" data-preview="@track.previewUrl.map(_.toString).getOrElse("")">
                             <th scope="row">@MusicUtil.millisecondsToMinutesAndSeconds(track.durationMs)</th>
                             <td id="@track.id-title">@track.name</td>

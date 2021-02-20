@@ -1,10 +1,13 @@
-document.getElementById("playlist-input-length").value = 10;
+
+const defaultPlaylistSize = 10;
+document.getElementById("playlist-input-size").value = defaultPlaylistSize;
+
 const actionElements = Array.from(document.getElementsByClassName('playlist-generation-action'));
 const spinner = createSpinner();
 
 // https://seiyria.com/bootstrap-slider
 const constraintsIndexRangeSlider = new Slider("#constraints-index-range",
-    {min: 0, max: 10, value: [0, 10], focus: true});
+    {min: 1, max: defaultPlaylistSize, value: [1, defaultPlaylistSize], focus: true});
 
 function createSpinner() {
     const spinner = document.createElement('i');
@@ -20,27 +23,44 @@ function onPlaylistGenerationActionClick(loading) {
         document.getElementById('playlist-generation-spinner').remove();
 }
 
-function generatePlaylist(nameAndLength) {
+function getPlaylistSize() {
+    return +document.getElementById('playlist-input-size').value;
+}
+
+// FIXME: Playlist size MUST be also <= songs size, otherwise the gen will throw an IndexOutOfBounds at the moment
+function isPlaylistSizeValid(size) {
+    return size <= 50 && size >= 5;
+}
+
+function onPlaylistSizeChange() {
+    const newPlaylistSize = getPlaylistSize();
+    document.getElementById('playlist-generation-add-constraints-button')
+        .toggleAttribute('disabled', !isPlaylistSizeValid(newPlaylistSize));
+
+    constraintsIndexRangeSlider.setAttribute('max', newPlaylistSize);
+    constraintsIndexRangeSlider.setValue([0, newPlaylistSize]);
+}
+
+
+function generatePlaylist() {
     onPlaylistGenerationActionClick(true);
     const route = jsRoutesControllers.SpotifyController.generatePlaylist();
-    const constraints2 = [
-        // TODO
-        {
-            type: 'include_all',
-            attribute: {type: 'tempo', value: 220}
-        }
-    ]
+    // const constraints2 = [
+    //     // TODO
+    //     {
+    //         type: 'include_all',
+    //         attribute: {type: 'tempo', value: 220}
+    //     }
+    // ]
 
+    const size = getPlaylistSize();
     const constraints = applyPlaylistConstraints();
-
-    console.log(constraints2);
-    console.log(constraints);
 
     const tracks = Array.from(document.getElementsByClassName('spotify-track-row'))
         .map(el => el.id)
-        .filter(id => !!id);
+        .filter(id => !!id)
 
-    jsonRequest(route, {...nameAndLength, tracks, constraints},
+    jsonRequest(route, { name: 'My Playlist', size, tracks, constraints},
         err => console.log(err),
         playlistResponse => {
             console.log(playlistResponse)
@@ -65,9 +85,10 @@ constraints: [{
 function applyPlaylistConstraints() {
     const constraintsForm = document.getElementById('playlist-constraints-form');
     const formData = new FormData(constraintsForm);
-    const jsonPayload = {
+    const constraint = {
         'type': formData.get('constraint_type'),
-        'index_range': constraintsIndexRangeSlider.getValue(),
+        // convert 1-index slider values to 0-index
+        'index_range': constraintsIndexRangeSlider.getValue().map(value => value - 1),
         'attribute': {
             'type': formData.get('attribute_type'),
             'value': +(formData.get('attribute_value'))
@@ -80,6 +101,6 @@ function applyPlaylistConstraints() {
     //         Object.fromEntries(new FormData(constraintsForm))
     //     );
 
-    console.log(jsonPayload);
-    return [jsonPayload];
+    console.log('TODO: save this constraint to a "li" which display english and have this json data attributes:')
+    return [constraint];
 }

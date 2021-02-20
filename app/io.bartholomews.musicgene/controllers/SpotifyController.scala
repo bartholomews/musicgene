@@ -21,7 +21,7 @@ import sttp.client3.{Response, SttpBackend}
 import sttp.model.Uri
 import views.spotify.requests.{
   PlaylistMigrationRequest,
-  PlaylistRequest,
+  PlaylistGenerationRequest,
   PlaylistsMigrationRequest,
   PlaylistsUnfollowRequest
 }
@@ -214,7 +214,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
 
   // FIXME: Add sessionNumber to request
   val generatePlaylist: Action[JsValue] = Action.async[JsValue](parse.json) { implicit request =>
-    val playlistRequestJson = request.body.validate[PlaylistRequest]
+    val playlistRequestJson = request.body.validate[PlaylistGenerationRequest]
     playlistRequestJson.fold(
       errors =>
         Future.successful(
@@ -237,7 +237,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
   }
 
   private def generatePlaylist(
-    playlistRequest: PlaylistRequest
+    playlistRequest: PlaylistGenerationRequest
   )(implicit request: Request[AnyContent]): F[Result] =
     withToken { implicit accessToken =>
       val getTracks: F[Either[Result, List[FullTrack]]] =
@@ -283,7 +283,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
               playlist = GA.generatePlaylist(
                 db = new MusicCollection(audioTracks),
                 c = playlistRequest.constraints.map(_.toDomain),
-                playlistRequest.length
+                playlistRequest.size
               )
             } yield Ok(Json.toJson(GeneratedPlaylist.fromPlaylist(playlistRequest.name, playlist))))
               .fold(identity, identity)

@@ -4,18 +4,18 @@ import io.bartholomews.spotify4s.core.entities.{FullTrack, SpotifyId}
 import play.api.libs.json.{Json, Reads}
 
 // https://www.playframework.com/documentation/latest/ScalaForms
-case class PlaylistRequest(
+case class PlaylistGenerationRequest(
   name: String,
-  length: Int,
+  size: Int,
   tracks: Set[SpotifyId],
   range: Option[Int],
   constraints: Set[SpotifyConstraint]
 )
 
-object PlaylistRequest {
+object PlaylistGenerationRequest {
 //  implicit val playlistRequestFormat: OFormat[PlaylistRequest] = Json.format
   import io.bartholomews.spotify4s.playJson.codecs._
-  implicit val playlistRequestReads: Reads[PlaylistRequest] = Json.reads[PlaylistRequest]
+  implicit val playlistRequestReads: Reads[PlaylistGenerationRequest] = Json.reads[PlaylistGenerationRequest]
 //  val form: Form[PlaylistRequest] =
 //    Form(
 //      mapping(
