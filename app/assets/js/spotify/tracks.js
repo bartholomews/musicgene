@@ -133,13 +133,13 @@ function applyPlaylistConstraints() {
     const description = `with ${constraintType} ${attributeType} from track ${indexRange[0]} to ${indexRange[1]}`
 
     const constraint = {
-        'type': constraintType,
+        type: constraintType,
         // convert 1-index slider values to 0-index
-        'index_range': indexRange.map(value => value - 1),
-        'attribute': {
-            'type': attributeType,
-            'value': +(formData.get('attribute_value'))
-        }
+        index_range: indexRange.map(value => value - 1),
+        attribute: attributeType //{
+            // 'type': attributeType,
+            // 'value': +(formData.get('attribute_value'))
+        // }
     };
 
     // const jsonPayload =

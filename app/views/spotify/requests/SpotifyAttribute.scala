@@ -9,7 +9,7 @@ object SpotifyAttribute {
   implicit val reads: Reads[SpotifyAttribute] = withDiscriminator.reads[SpotifyAttribute]
 }
 
-case class Loudness(value: Double, min: Option[Double], max: Option[Double]) extends SpotifyAttribute
+case class Loudness(min: Option[Double], max: Option[Double]) extends SpotifyAttribute
 object Loudness {
   implicit val reads: Reads[Loudness] = Json.reads[Loudness]
 }
