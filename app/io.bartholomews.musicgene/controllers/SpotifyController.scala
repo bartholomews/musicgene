@@ -274,10 +274,10 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
                 .map(af => af.map(f => Tuple2(f.id, f)).toMap)
               spotifyTracks <- getTracksResult
               audioTracks = spotifyTracks.map { track =>
-                track.id.fold(MusicUtil.toAudioTrack(track)) { trackId =>
+                track.id.fold(AudioTrack(track, None)) { trackId =>
                   audioFeaturesLookup
                     .get(trackId)
-                    .fold(MusicUtil.toAudioTrack(track))(af => MusicUtil.toAudioTrack2(track, af))
+                    .fold(AudioTrack(track, None))(af => AudioTrack(track, Some(af)))
                 }
               }
               playlist = GA.generatePlaylist(

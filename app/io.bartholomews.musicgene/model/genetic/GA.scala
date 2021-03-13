@@ -10,7 +10,7 @@ import scala.annotation.tailrec
   */
 object GA {
 
-  def generatePlaylist(db: MusicCollection, c: Set[Constraint[_]], length: Int): Playlist = {
+  def generatePlaylist(db: MusicCollection, c: Set[Constraint], length: Int): Playlist = {
     println("Generating playlist with cost-based fitness")
     println(c)
     GA.generatePlaylist(db, CostBasedFitness(c), length)

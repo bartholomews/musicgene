@@ -7,7 +7,7 @@ class MusicCollection(val songs: List[AudioTrack]) {
 
   def apply(i: Int) = songs(i)
   def size = songs.size
-  def IDs: List[String] = songs.map(t => t.id)
+  def IDs: List[String] = songs.map(t => t.id.getOrElse(""))
   /**
     * @param p the predicate which filter out songs
     * @return a new `MusicCollection` with the songs filtered by a predicate
@@ -16,15 +16,15 @@ class MusicCollection(val songs: List[AudioTrack]) {
 
   override def toString = songs.toString
 
-  def prettyPrintTitleArtist() = {
-    songs.foreach(s => {
-      s.attributes.foreach {
-        case Artist(name) => print("[ARTIST: " + name + "] ")
-        case Title(title) => print("[TITLE: " + title + "] ")
-        case _ =>
-      }
-      println
-    })
-  }
+//  def prettyPrintTitleArtist() = {
+//    songs.foreach(s => {
+//      s.attributes.foreach {
+//        case Artist(name) => print("[ARTIST: " + name + "] ")
+//        case Title(title) => print("[TITLE: " + title + "] ")
+//        case _ =>
+//      }
+//      println
+//    })
+//  }
 
 }
