@@ -24,9 +24,9 @@ case object SpotifyCookies extends Logging {
     val maybeSession = request.attrs.get(SpotifySessionKeys.spotifySessionUser)
     logger.debug(s"accessCookies => $maybeSession")
     maybeSession.fold(List.empty[Cookie])(session =>
-      JwtCookies.withCookie(SessionKey.access(session), accessToken) +:
-        accessToken.refreshToken.toList
-          .map(rt => JwtCookies.withCookie(SessionKey.refresh(session), rt))
+    List(
+      JwtCookies.withCookie(SessionKey.access(session), accessToken),
+      JwtCookies.withCookie(SessionKey.refresh(session), accessToken.refreshToken))
     )
   }
 
