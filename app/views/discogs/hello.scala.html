@@ -5,7 +5,7 @@
 @(user: UserIdentity)(implicit requestHeader: RequestHeader)
 @main(activeTab = Tab.Discogs) {
     <div class="main-section">
-        <h2>Hello, @user.username</h2>
+        <h2>Hello, @user.username.value</h2>
         <hr class="horizontal-rule">
         <form action="@controllers.routes.DiscogsController.logout()">
             <button class="btn btn-outline-dark"

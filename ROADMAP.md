@@ -9,3 +9,5 @@
    advanced stuff like caching can be considered later;
    
 ### 2. Migration page - error handling and feedback / pagination
+
+### 3. Tech - consider ScalaJS and maybe also replacing Play

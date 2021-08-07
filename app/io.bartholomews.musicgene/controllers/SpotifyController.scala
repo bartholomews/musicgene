@@ -2,8 +2,8 @@ package io.bartholomews.musicgene.controllers
 
 import cats.data.EitherT
 import com.google.inject.Inject
+import eu.timepit.refined.api.Refined
 import io.bartholomews.fsclient.core.http.SttpResponses.SttpResponse
-import io.bartholomews.fsclient.core.oauth.v2.OAuthV2.ResponseHandler
 import io.bartholomews.fsclient.core.oauth.{AccessTokenSigner, SignerV2}
 import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 import io.bartholomews.musicgene.controllers.http.{SpotifyCookies, SpotifySessionKeys}
@@ -11,22 +11,17 @@ import io.bartholomews.musicgene.model.genetic.GA
 import io.bartholomews.musicgene.model.music._
 import io.bartholomews.musicgene.model.spotify.SpotifyService
 import io.bartholomews.spotify4s.core.api.SpotifyApi.{Offset, SpotifyUris}
+import io.bartholomews.spotify4s.core.entities.SpotifyId.{SpotifyPlaylistId, SpotifyUserId}
 import io.bartholomews.spotify4s.core.entities._
-import io.bartholomews.spotify4s.core.entities.requests.{AddTracksToPlaylistRequest, CreatePlaylistRequest}
-import javax.inject._
 import play.api.Logging
-import play.api.libs.json.{Format, JsError, JsResult, JsSuccess, JsValue, Json, Reads}
+import play.api.libs.json.{JsError, JsResult, JsValue, Json}
 import play.api.mvc._
 import sttp.client3.{Response, SttpBackend}
 import sttp.model.Uri
-import views.spotify.requests.{
-  PlaylistMigrationRequest,
-  PlaylistGenerationRequest,
-  PlaylistsMigrationRequest,
-  PlaylistsUnfollowRequest
-}
+import views.spotify.requests.{PlaylistGenerationRequest, PlaylistMigrationRequest, PlaylistsMigrationRequest, PlaylistsUnfollowRequest}
 import views.spotify.responses._
 
+import javax.inject._
 import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -190,21 +185,19 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
     SpotifyAction.asyncWithSession(session) { implicit request =>
       withToken { accessToken =>
         val pageLimit: SimplePlaylist.Limit = 50
-        val pageOffset: Offset = (page - 1) * pageLimit.value
+        // FIXME - move page calc in spotify4s
+        val pageOffset: Offset = Refined.unsafeApply((page - 1) * pageLimit.value)
         spotifyService.client.users
-          .getPlaylists(limit = pageLimit, offset = pageOffset)(
-            accessToken,
-            implicitly[ResponseHandler[DE, Page[SimplePlaylist]]]
-          )
+          .getPlaylists(limit = pageLimit, offset = pageOffset)(accessToken)
           .map(_.toResult(pg => Ok(views.html.spotify.playlists("Playlists", pg.items, page))))
       }
     }
 
   def tracks(session: SpotifySessionUser, playlistId: SpotifyId): Action[AnyContent] =
     SpotifyAction.asyncWithSession(session) { implicit request =>
-      withToken { implicit accessToken =>
+      withToken { accessToken =>
         spotifyService.client.playlists
-          .getPlaylist[DE](playlistId)
+          .getPlaylist[DE](playlistId)(accessToken)
           .map(_.toResult { playlist =>
             val tracks: List[FullTrack] = playlist.tracks.items.map(_.track)
             Ok(views.html.spotify.tracks(playlist.tracks.copy(items = tracks)))
@@ -245,7 +238,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
           .groupedNes(size = 50)(SpotifyId.order.toOrdering)
           .map(xs =>
             spotifyService.client.tracks
-              .getTracks[DE](xs, market = None)
+              .getTracks[DE](xs, market = None)(accessToken)
               .map(_.body.leftMap(errorToJsonResult))
           )
           //          .parSequence
@@ -257,7 +250,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
           .groupedNes(size = 100)(SpotifyId.order.toOrdering)
           .map(xs =>
             spotifyService.client.tracks
-              .getAudioFeatures[DE](xs)
+              .getAudioFeatures[DE](xs)(accessToken)
               .map(_.body.leftMap(errorToJsonResult))
           )
           //          .parSequence
@@ -343,7 +336,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
             playlistId = playlist.id,
             uris = tracks, // FIXME: Need to get ALL pages...
             position = None
-          )
+          )(signer)
           .map(
             _.body.bimap(
               _.getMessage, // FIXME
@@ -366,7 +359,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
         public = playlistRequest.public,
         collaborative = playlistRequest.collaborative,
         description = playlistRequest.description
-      )
+      )(signer)
       .flatMap { (newPlaylistResponse: SttpResponse[DE, FullPlaylist]) =>
         SpotifyUri
           .fromList(
@@ -380,15 +373,15 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
           )
       }
 
-  def unfollowPlaylistsPPP(mainUserId: SpotifyUserId, playlistsToUnfollow: List[SpotifyId])(
+  def unfollowPlaylistsPPP(mainUserId: SpotifyUserId, playlistsToUnfollow: List[SpotifyPlaylistId])(
     implicit request: Request[AnyContent]
   ): F[Result] =
     withToken { implicit token =>
       playlistsToUnfollow
-        .map(spotifyService.client.follow.unfollowPlaylist)
+        .map(id => spotifyService.client.follow.unfollowPlaylist(id)(token))
         //        .parSequence
         .sequence
-        .map { (re: List[Response[Unit]]) =>
+        .map { re =>
           val (a, b) = re.partition(_.isSuccess)
           Ok(
             Json.obj(
@@ -420,7 +413,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       // FIXME: Should probably use getPlaylistFields(/tracks)
       sourceUserPlaylist <- EitherT(
         spotifyService.client.playlists
-          .getPlaylist[DE](playlistId = playlistRequest.id, market = None)(sourceUserToken, implicitly)
+          .getPlaylist[DE](playlistId = playlistRequest.id, market = None)(sourceUserToken)
           .map(_.body.leftMap(_.getMessage))
       )
 
@@ -440,7 +433,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
           )
         ),
       playlistRequests => {
-        logger.debug(s"user => ${playlistRequests.userId.toString}")
+        logger.debug(s"user => ${playlistRequests.userId.value}")
         playlistRequests.playlists.foreach { pr =>
           logger.debug(pr.toString)
         }

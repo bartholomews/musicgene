@@ -2,11 +2,10 @@ package io.bartholomews.musicgene.model.spotify
 
 import cats.Monad
 import io.bartholomews.fsclient.core.http.SttpResponses.SttpResponse
-import io.bartholomews.fsclient.core.oauth.SignerV2
-import io.bartholomews.fsclient.core.oauth.v2.OAuthV2.RedirectUri
+import io.bartholomews.fsclient.core.oauth.{RedirectUri, SignerV2}
 import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 import io.bartholomews.musicgene.controllers.routes
-import io.bartholomews.spotify4s.core.SpotifyClient
+import io.bartholomews.spotify4s.core.SpotifyAuthClient
 import io.bartholomews.spotify4s.core.api.AuthApi.SpotifyUserAuthorizationRequest
 import io.bartholomews.spotify4s.core.entities.{Page, PrivateUser, SimplePlaylist, SpotifyScope}
 import play.api.libs.json.JsError
@@ -18,7 +17,7 @@ class SpotifyService[F[_]: Monad](backend: SttpBackend[F, Any]) {
 
   import io.bartholomews.spotify4s.playJson.codecs._
 
-  val client: SpotifyClient[F] = SpotifyClient.unsafeFromConfig[F](backend)
+  val client: SpotifyAuthClient[F] = SpotifyAuthClient.unsafeFromConfig[F](backend)
 
   import cats.implicits._
   import eu.timepit.refined.auto.autoRefineV
@@ -37,7 +36,7 @@ class SpotifyService[F[_]: Monad](backend: SttpBackend[F, Any]) {
     )
   )
 
-  def me(implicit signer: SignerV2): F[SttpResponse[JsError, PrivateUser]] = client.users.me
+  def me(implicit signer: SignerV2): F[SttpResponse[JsError, PrivateUser]] = client.users.me(signer)
 
   def authorizeUrl(session: SpotifySessionUser)(implicit request: RequestHeader): Uri =
     client.auth.authorizeUrl(
@@ -48,8 +47,8 @@ class SpotifyService[F[_]: Monad](backend: SttpBackend[F, Any]) {
   def getUserAndPlaylists(
     implicit signer: SignerV2
   ): F[Either[ResponseException[String, JsError], (PrivateUser, Page[SimplePlaylist])]] = {
-    val getUser = client.users.me.map(_.body)
-    val getUserPlaylists = client.users.getPlaylists(limit = 50).map(_.body)
+    val getUser = client.users.me(signer).map(_.body)
+    val getUserPlaylists = client.users.getPlaylists(limit = 50)(signer).map(_.body)
 
     (getUser, getUserPlaylists)
     //      .parMapN({

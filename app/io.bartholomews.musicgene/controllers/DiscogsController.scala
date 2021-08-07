@@ -2,11 +2,10 @@ package io.bartholomews.musicgene.controllers
 
 import cats.data.EitherT
 import com.google.inject.Inject
-import io.bartholomews.discogs4s.DiscogsClient
+import io.bartholomews.discogs4s.{DiscogsClient, DiscogsOAuthClient}
 import io.bartholomews.discogs4s.endpoints.DiscogsAuthEndpoint
 import io.bartholomews.fsclient.core.oauth.v1.TemporaryCredentials
-import io.bartholomews.fsclient.core.oauth.v2.OAuthV2.RedirectUri
-import io.bartholomews.fsclient.core.oauth.{AccessTokenCredentials, SignerV1, TokenCredentials}
+import io.bartholomews.fsclient.core.oauth.{AccessTokenCredentials, RedirectUri, SignerV1, TokenCredentials}
 import io.bartholomews.musicgene.controllers.http.DiscogsCookies
 import javax.inject._
 import play.api.mvc._
@@ -14,7 +13,6 @@ import sttp.client3.{SttpBackend, UriContext}
 import sttp.model.Uri
 
 import scala.concurrent.{ExecutionContext, Future}
-
 /**
  *
  */
@@ -23,7 +21,7 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
     extends AbstractController(cc) {
 
   import cats.implicits._
-  import io.bartholomews.fsclient.play.codecs._
+  import io.bartholomews.discogs4s.playJson.codecs._
   import io.bartholomews.musicgene.controllers.http.DiscogsHttpResults._
 
   // TODO: load from config
@@ -32,7 +30,8 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   import sttp.client3.asynchttpclient.future.AsyncHttpClientFutureBackend
   implicit val discogsBackend: SttpBackend[Future, Any] = AsyncHttpClientFutureBackend()
 
-  val discogsClient: DiscogsClient[Future, SignerV1] = DiscogsClient.clientCredentialsFromConfig(discogsBackend)
+  val discogsClient: DiscogsOAuthClient[Future] =
+    DiscogsClient.oAuth.unsafeFromConfig(discogsBackend)
 
   private def hello(signer: SignerV1)(implicit request: Request[AnyContent]): Future[Result] =
     discogsClient.users.me(signer).map(_.toResult(me => Ok(views.html.discogs.hello(me))))
@@ -40,8 +39,6 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   def hello(): Action[AnyContent] = Action.async { implicit request =>
     withToken(hello)
   }
-
-  import io.bartholomews.fsclient.play.codecs.accessTokenSignerDecoder
 
   def callback: Action[AnyContent] = Action.async { implicit request =>
     DiscogsCookies
