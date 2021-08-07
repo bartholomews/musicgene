@@ -8,20 +8,22 @@
 # An example controller showing a sample home page
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 GET         /                                                           io.bartholomews.musicgene.controllers.HomeController.index()
-GET         /discogs/hello                                              io.bartholomews.musicgene.controllers.DiscogsController.hello()
+GET         /discogs/hello                                              io.bartholomews.musicgene.controllers.DiscogsController.helloPage()
 GET         /discogs/callback                                           io.bartholomews.musicgene.controllers.DiscogsController.callback()
 GET         /discogs/logout                                             io.bartholomews.musicgene.controllers.DiscogsController.logout()
-GET         /spotify/hello                                              io.bartholomews.musicgene.controllers.SpotifyController.hello
-GET         /spotify/:sessionNumber/authenticate                        io.bartholomews.musicgene.controllers.SpotifyController.authenticate(sessionNumber: SpotifySessionUser)
-GET         /spotify/:sessionNumber/callback                            io.bartholomews.musicgene.controllers.SpotifyController.callback(sessionNumber: SpotifySessionUser)
-GET         /spotify/:sessionNumber/logout                              io.bartholomews.musicgene.controllers.SpotifyController.logout(sessionNumber: SpotifySessionUser)
-GET         /spotify/:sessionNumber/playlists                           io.bartholomews.musicgene.controllers.SpotifyController.playlists(sessionNumber: SpotifySessionUser, page: Int ?= 1)
-GET         /spotify/:sessionNumber/playlists/:playlistId/tracks        io.bartholomews.musicgene.controllers.SpotifyController.tracks(sessionNumber: SpotifySessionUser, playlistId: SpotifyId)
+GET         /spotify/hello                                              io.bartholomews.musicgene.controllers.SpotifyController.helloPage()
+GET         /spotify/user/:sessionNumber/authenticate                   io.bartholomews.musicgene.controllers.SpotifyController.authenticate(sessionNumber: SpotifySessionUser)
+GET         /spotify/user/:sessionNumber/callback                       io.bartholomews.musicgene.controllers.SpotifyController.callback(sessionNumber: SpotifySessionUser)
+GET         /spotify/user/:sessionNumber/logout                         io.bartholomews.musicgene.controllers.SpotifyController.logout(sessionNumber: SpotifySessionUser)
+GET         /spotify/user/:sessionNumber/playlists                      io.bartholomews.musicgene.controllers.SpotifyController.playlists(sessionNumber: SpotifySessionUser, page: Int ?= 1)
+GET         /spotify/user/:sessionNumber/playlists/:playlistId/tracks   io.bartholomews.musicgene.controllers.SpotifyController.tracks(sessionNumber: SpotifySessionUser, playlistId: SpotifyId)
 POST        /spotify/playlist/generate                                  io.bartholomews.musicgene.controllers.SpotifyController.generatePlaylist
 GET         /spotify/playlist/generate/:id                              io.bartholomews.musicgene.controllers.SpotifyController.renderGeneratedPlaylist(id: GeneratedPlaylistResultId)
-GET         /spotify/migrate                                            io.bartholomews.musicgene.controllers.SpotifyController.migrate()
-POST        /spotify/migrate                                            io.bartholomews.musicgene.controllers.SpotifyController.migratePlaylists
-POST        /spotify/unfollow                                           io.bartholomews.musicgene.controllers.SpotifyController.unfollowPlaylists
+GET         /spotify/migrate                                            io.bartholomews.musicgene.controllers.SpotifyController.migratePage()
+GET         /spotify/migrate/followers                                  io.bartholomews.musicgene.controllers.SpotifyController.migrateFollowersPage()
+GET         /spotify/migrate/playlists                                  io.bartholomews.musicgene.controllers.SpotifyController.migratePlaylistsPage()
+POST        /spotify/migrate/playlists                                  io.bartholomews.musicgene.controllers.SpotifyController.migratePlaylists
+POST        /spotify/migrate/unfollow                                   io.bartholomews.musicgene.controllers.SpotifyController.unfollowPlaylists
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Map static resources from the /public folder to the /assets URL path

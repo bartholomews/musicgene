@@ -5,9 +5,8 @@
 
 @*TODO: Pagination*@
 @(playlists: Page[SimplePlaylist], user: PrivateUser, action: PlaylistsAction)
-<div class="migrate-section-actions @{
-    action.userType
-}">
+<div>
+    <div class="migrate-section-actions @{action.userType}">
     <div>
         <button
         type="button"
@@ -37,7 +36,7 @@
                     </div>
                 </th>
                 <th>Title</th>
-                <th>Description</th>
+@*                <th>Description</th>*@
             </tr>
         </thead>
         <tbody id="migrate-source-playlist-tbody">@playlists.items.zipWithIndex.map { case (p, index) =>
@@ -48,8 +47,9 @@
         data-description="@p.description"
         onclick="onPlaylistRowClick(this)">
             <th scope="row">@index</th>
+            <!-- TODO: fixed height and ellipsis -->
             <td>@p.name</td>
-            <td>@p.description.getOrElse("-")</td>
+@*            <td>@p.description.getOrElse("-")</td>*@
         </tr>
                 <!-- FIXME: Would be nice collapsible (and selectable) inner rows,
                     also have a different icon for "playable" instead of cursor hand,
@@ -58,4 +58,5 @@
         }
         </tbody>
     </table>
+</div>
 </div>

@@ -36,7 +36,7 @@ class DiscogsController @Inject() (cc: ControllerComponents)(implicit ec: Execut
   private def hello(signer: SignerV1)(implicit request: Request[AnyContent]): Future[Result] =
     discogsClient.users.me(signer).map(_.toResult(me => Ok(views.html.discogs.hello(me))))
 
-  def hello(): Action[AnyContent] = Action.async { implicit request =>
+  def helloPage(): Action[AnyContent] = Action.async { implicit request =>
     withToken(hello)
   }
 

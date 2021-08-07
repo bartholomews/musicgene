@@ -44,10 +44,12 @@ class SpotifyService[F[_]: Monad](backend: SttpBackend[F, Any]) {
       showDialog = true
     )
 
+  def getUser(implicit signer: SignerV2): F[Either[ResponseException[String, JsError], PrivateUser]] =
+    client.users.me(signer).map(_.body)
+
   def getUserAndPlaylists(
     implicit signer: SignerV2
   ): F[Either[ResponseException[String, JsError], (PrivateUser, Page[SimplePlaylist])]] = {
-    val getUser = client.users.me(signer).map(_.body)
     val getUserPlaylists = client.users.getPlaylists(limit = 50)(signer).map(_.body)
 
     (getUser, getUserPlaylists)

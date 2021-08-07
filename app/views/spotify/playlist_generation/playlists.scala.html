@@ -2,9 +2,9 @@
 @import views.common.Tab
 @import io.bartholomews.musicgene.controllers
 @import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
-
 @import play.mvc.Results.redirect
 @import play.api.mvc.Results.Redirect
+
 @(title: String, playlists: Seq[SimplePlaylist], page: Int)(implicit requestHeader: RequestHeader)
 @css = @{
     List(

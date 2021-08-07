@@ -17,11 +17,11 @@ object Tab {
 
   case object Spotify extends Tab {
     override def name: String = "Spotify"
-    override def href: Call = controllers.routes.SpotifyController.hello()
+    override def href: Call = controllers.routes.SpotifyController.helloPage()
   }
 
   case object Discogs extends Tab {
     override def name: String = "Discogs"
-    override def href: Call = controllers.routes.DiscogsController.hello()
+    override def href: Call = controllers.routes.DiscogsController.helloPage()
   }
 }

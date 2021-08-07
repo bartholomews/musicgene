@@ -6,7 +6,7 @@
 @(user: PrivateUser)(implicit requestHeader: RequestHeader)
 @main(activeTab = Tab.Spotify) {
     <div class="main-section">
-        <div class="custom-asd-inline"><h2>@user.displayName.getOrElse(user.id)</h2></div>
+        <div><h2>@user.displayName.getOrElse(user.id)</h2></div>
         <div class="btn-group">
                 <!-- TODO: pagination -->
             <form action="@controllers.routes.SpotifyController.playlists(SpotifySessionUser.Main)">
@@ -18,7 +18,7 @@
             </form>
         </div>
         <hr class="horizontal-rule"/>
-        <form action=@controllers.routes.SpotifyController.migrate()>
+        <form action=@controllers.routes.SpotifyController.migratePage()>
             <button class="btn btn-outline-dark" type="submit">Migrate</button>
         </form>
     </div>

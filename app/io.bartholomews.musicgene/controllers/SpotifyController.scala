@@ -16,9 +16,15 @@ import io.bartholomews.spotify4s.core.entities._
 import play.api.Logging
 import play.api.libs.json.{JsError, JsResult, JsValue, Json}
 import play.api.mvc._
-import sttp.client3.{Response, SttpBackend}
+import sttp.client3.{Response, ResponseException, SttpBackend}
 import sttp.model.Uri
-import views.spotify.requests.{PlaylistGenerationRequest, PlaylistMigrationRequest, PlaylistsMigrationRequest, PlaylistsUnfollowRequest}
+import views.common.Tab
+import views.spotify.requests.{
+  PlaylistGenerationRequest,
+  PlaylistMigrationRequest,
+  PlaylistsMigrationRequest,
+  PlaylistsUnfollowRequest
+}
 import views.spotify.responses._
 
 import javax.inject._
@@ -86,7 +92,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       .getOrElse(InternalServerError("Something went wrong handling spotify session, please contact support."))
   }
 
-  def hello(): Action[AnyContent] = SpotifyAction.asyncWithMainUser { implicit request =>
+  def helloPage(): Action[AnyContent] = SpotifyAction.asyncWithMainUser { implicit request =>
     withToken { signer =>
       logger.info("hello")
       spotifyService
@@ -113,8 +119,8 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
         )
       } yield Redirect(
         session match {
-          case SpotifySessionUser.Main   => routes.SpotifyController.hello()
-          case SpotifySessionUser.Source => routes.SpotifyController.migrate()
+          case SpotifySessionUser.Main   => routes.SpotifyController.helloPage()
+          case SpotifySessionUser.Source => routes.SpotifyController.migratePage()
         }
       ).withCookies(SpotifyCookies.accessCookies(authorizationCode): _*)).value.map(_.fold(errorString => {
         logger.error(errorString)
@@ -129,7 +135,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
         Redirect(routes.HomeController.index())
           .discardingCookies(SpotifyCookies.discardAllCookies: _*)
       case SpotifySessionUser.Source =>
-        Redirect(routes.SpotifyController.migrate())
+        Redirect(routes.SpotifyController.migratePage())
           .discardingCookies(SpotifyCookies.discardCookies(session): _*)
     })
   }
@@ -189,7 +195,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
         val pageOffset: Offset = Refined.unsafeApply((page - 1) * pageLimit.value)
         spotifyService.client.users
           .getPlaylists(limit = pageLimit, offset = pageOffset)(accessToken)
-          .map(_.toResult(pg => Ok(views.html.spotify.playlists("Playlists", pg.items, page))))
+          .map(_.toResult(pg => Ok(views.html.spotify.playlist_generation.playlists("Playlists", pg.items, page))))
       }
     }
 
@@ -200,7 +206,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
           .getPlaylist[DE](playlistId)(accessToken)
           .map(_.toResult { playlist =>
             val tracks: List[FullTrack] = playlist.tracks.items.map(_.track)
-            Ok(views.html.spotify.tracks(playlist.tracks.copy(items = tracks)))
+            Ok(views.html.spotify.playlist_generation.tracks(playlist.tracks.copy(items = tracks)))
           })
       }
     }
@@ -287,10 +293,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
     Action.async { implicit request =>
       // TODO could store previously generated playlist results
       Future.successful(
-        Ok(
-          views.html.spotify
-            .playlist_generation(generatedPlaylistResultId, List.empty)
-        )
+        Ok(views.html.spotify.playlist_generation.playlistGeneration(generatedPlaylistResultId, List.empty))
       )
     }
 
@@ -300,9 +303,11 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
     withSourceUserToken { implicit signer =>
       logger.info("getSourceUserForMigration")
       spotifyService.getUserAndPlaylists.map(
-        _.toResulto(entity => Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, Some(entity))))))
+        _.toResulto(entity =>
+          Ok(views.html.spotify.migrate.playlists.migratePlaylists(Right(Tuple2(mainUser, Some(entity)))))
+        )
       )
-    }.map(_.getOrElse(Ok(views.html.spotify.migrate(Right(Tuple2(mainUser, None))))))
+    }.map(_.getOrElse(Ok(views.html.spotify.migrate.playlists.migratePlaylists(Right(Tuple2(mainUser, None))))))
 
   private def getMainUserAndPlaylists(
     andThen: ((PrivateUser, Page[SimplePlaylist])) => F[Result]
@@ -310,15 +315,50 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
     withToken { implicit signer =>
       spotifyService.getUserAndPlaylists.flatMap(
         _.fold(
-          _ => Ok(views.html.spotify.migrate(Left("Something went wrong while fetching the main user"))).pure[F],
+          _ =>
+            Ok(
+              views.html.spotify.migrate.playlists
+                .migratePlaylists(Left("Something went wrong while fetching the main user"))
+            ).pure[F],
           entity => andThen(entity)
         )
       )
     }
 
-  def migrate(): Action[AnyContent] = SpotifyAction.asyncWithMainUser { implicit request =>
+  private def withMainAndSourceUsers(
+    fa: PrivateUser => Result,
+    fb: (PrivateUser, Some[PrivateUser]) => Result
+  )(implicit request: Request[AnyContent]): F[Result] = withToken { main =>
+      spotifyService
+        .getUser(main)
+        .flatMap(
+          _.fold(
+            error => Future.successful(BadRequest(views.html.common.error(error.getMessage, Tab.Spotify))),
+            mainUser =>
+              withSourceUserToken { src =>
+                spotifyService.getUser(src).map(_.fold(_ => fa(mainUser), srcUser => fb(mainUser, Some(srcUser))))
+              }.map(_.getOrElse(fa(mainUser)))
+          )
+        )
+    }
+
+  def migratePage(): Action[AnyContent] = SpotifyAction.asyncWithMainUser { implicit request =>
+    withMainAndSourceUsers(
+      mainUser => Ok(views.html.spotify.migrate.migratePage(mainUser, None)),
+      (mainUser, srcUser) => Ok(views.html.spotify.migrate.migratePage(mainUser, srcUser))
+    )
+  }
+
+  def migrateFollowersPage(): Action[AnyContent] = SpotifyAction.asyncWithMainUser { implicit request =>
+    withMainAndSourceUsers(
+      mainUser => Ok(views.html.spotify.migrate.followers.migrateFollowers(mainUser, None)),
+      (mainUser, srcUser) => Ok(views.html.spotify.migrate.followers.migrateFollowers(mainUser, srcUser))
+    )
+  }
+
+  def migratePlaylistsPage(): Action[AnyContent] = SpotifyAction.asyncWithMainUser { implicit request =>
     withToken { implicit signer =>
-      logger.info("migrate")
+      logger.info("migratePlaylistsPage")
       getMainUserAndPlaylists(getSourceUserForMigration)
     }
   }

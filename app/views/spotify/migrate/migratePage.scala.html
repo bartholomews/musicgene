@@ -1,0 +1,73 @@
+@import io.bartholomews.musicgene.controllers
+@import views.common.Tab
+@import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
+
+@import io.bartholomews.spotify4s.core.entities.PrivateUser
+@(mainUser: PrivateUser, maybeSrcUser: Option[PrivateUser])(implicit requestHeader: RequestHeader)
+@css = @{
+    List(
+        routes.Assets.versioned("stylesheets/spotify/migrate.css")
+    )
+}
+
+@js = @{
+    List(
+        routes.Assets.versioned("js/spotify/migrate.js"),
+    )
+}
+
+@main(activeTab = Tab.Spotify, scripts = js, styles = css) {
+
+    <div class="main-section">
+        <h2><i>Migrate data from another Spotify account</i></h2>
+        <br/>
+        @maybeSrcUser match {
+            case None => {
+                <div class="row">
+                    <div class="col-md pull-left">
+                        <h2>@{mainUser.displayName.getOrElse(mainUser.id)}</h2>
+                    </div>
+                    <div class="col-md pull-right">
+                        <form action=@controllers.routes.SpotifyController.authenticate(SpotifySessionUser.Source)>
+                            <button class="btn btn-outline-dark" type="submit">Login</button>
+                        </form>
+                    </div>
+                </div>
+            }
+            case Some(sourceUser) => {
+                <div class="container-fluid">
+                    <div class="migrate-section row">
+                            <!-- main user column -->
+                        <div class="col-sm main">
+                            <div class="migrate-section-top">
+                                <h2>@mainUser.displayName.getOrElse(mainUser.id)</h2>
+                            </div>
+                        </div>
+                            <!-- source user column -->
+                        <div class="col-sm source">
+                            <div class="migrate-section-top">
+                                <h2>@sourceUser.displayName.getOrElse(sourceUser.id)</h2>
+                                <form action=@controllers.routes.SpotifyController.logout(SpotifySessionUser.Source)>
+                                    <button class="btn btn-outline-danger" type="submit">Revoke</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="horizontal-rule"/>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="btn-group">
+                                <form action=@controllers.routes.SpotifyController.migrateFollowersPage()>
+                                    <button class="btn btn-outline-dark" type="submit">Followers</button>
+                                </form>
+                                <form action=@controllers.routes.SpotifyController.migratePlaylistsPage()>
+                                    <button class="btn btn-outline-dark" type="submit">Playlists</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+}

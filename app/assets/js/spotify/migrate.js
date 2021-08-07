@@ -98,9 +98,7 @@ function onSubmit(btn) {
     onPlaylistTableActionClick(action, true);
     jsonRequest(route, {user_id: btn.dataset.user, playlists},
         err => console.log(err),
-        response => {
-            console.log(response)
-        },
+        response => {console.log(response) },
         () => onPlaylistTableActionClick(action, false)
     );
 }

@@ -34,7 +34,7 @@
     <logger name="akka.serialization.jackson.JacksonObjectMapperProvider$" level="OFF"/>
     <logger name="play.api.libs.Files$DefaultTemporaryFileCreator" level="OFF"/>
 
-    <root level="DEBUG">
+    <root level="INFO">
         <!--<appender-ref ref="ASYNCFILE" />-->
         <appender-ref ref="ASYNCSTDOUT"/>
     </root>
