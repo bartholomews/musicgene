@@ -27,36 +27,36 @@
         <h2><i>Migrate playlists data</i></h2>
         <br/>
         @result.source match {
-          case None => {
-              <div class="row">
-                  <div class="col-md">
-                      <div class="playlist-table">@playlistTable(result.main, UnfollowPlaylists)</div>
-                  </div>
-              </div>
-          }
-          case Some(srcUserData) => {
-              <div class="container-fluid">
-                  <div class="migrate-section row">
-                          <!-- main user column -->
-                      <div class="col-md-6 main">
-                          <div class="migrate-section-top">
-                              <h2>@result.main.user.displayName.getOrElse(result.main.user.id)</h2>
-                          </div>
-                          @playlistTable(result.main, UnfollowPlaylists)
-                      </div>
-                          <!-- source user column -->
-                      <div class="col-md-6 source">
-                          <div class="migrate-section-top">
-                              <h2>@srcUserData.user.displayName.getOrElse(srcUserData.user.id)</h2>
-                              <form action=@controllers.routes.SpotifyController.logout(SpotifySessionUser.Source)>
-                                  <button class="btn btn-outline-danger" type="submit">Revoke</button>
-                              </form>
-                          </div>
-                          @playlistTable(srcUserData, MigratePlaylists)
-                      </div>
-                  </div>
-              </div>
-          }
+            case None => {
+                <div class="row">
+                    <div class="col-md">
+                        <div class="playlist-table">@playlistTable(result.main, UnfollowPlaylists)</div>
+                    </div>
+                </div>
+            }
+            case Some(srcUserData) => {
+                <div class="container-fluid">
+                    <div class="migrate-section row">
+                            <!-- main user column -->
+                        <div class="col-md-6 main">
+                            <div class="migrate-section-top">
+                                <h2>@result.main.user.displayName.getOrElse(result.main.user.id)</h2>
+                            </div>
+                            @playlistTable(result.main, UnfollowPlaylists)
+                        </div>
+                            <!-- source user column -->
+                        <div class="col-md-6 source">
+                            <div class="migrate-section-top">
+                                <h2>@srcUserData.user.displayName.getOrElse(srcUserData.user.id)</h2>
+                                <form action=@controllers.routes.SpotifyController.logout(SpotifySessionUser.Source)>
+                                    <button class="btn btn-outline-danger" type="submit">Revoke</button>
+                                </form>
+                            </div>
+                            @playlistTable(srcUserData, MigratePlaylists)
+                        </div>
+                    </div>
+                </div>
+            }
         }
         <hr class="horizontal-rule"/>
     </div>

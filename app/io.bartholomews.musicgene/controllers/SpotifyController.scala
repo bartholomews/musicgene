@@ -16,7 +16,7 @@ import io.bartholomews.spotify4s.core.entities._
 import play.api.Logging
 import play.api.libs.json.{JsError, JsResult, JsValue, Json}
 import play.api.mvc._
-import sttp.client3.{Response, ResponseException, SttpBackend}
+import sttp.client3.{ResponseException, SttpBackend}
 import sttp.model.Uri
 import views.common.Tab
 import views.spotify.requests.{
@@ -299,38 +299,32 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       )
     }
 
-  private def getUserAndPlaylists(implicit signer: SignerV2): F[Either[ResponseException[String, DE], (PrivateUser, Page[SimplePlaylist])]] = {
-    (spotifyService.getUser, spotifyService.getPlaylists)
-      //      .parMapN({
-      .mapN({
-        case (aaa, bbb) =>
-          for {
-            privateUser <- aaa
-            playlists <- bbb
-          } yield Tuple2(privateUser, playlists)
-      })
-  }
-
-  private def withMainAndSourceUsersF[T](fetchData: SignerV2 => F[Response[T]],
-                                         withUsersData: MainAndSourceUserData[T] => Result
-                                    )(implicit request: Request[AnyContent]): F[Result] = withToken { main =>
+  private def withMainAndSourceUsersF[T](
+    fetchData: SignerV2 => F[Response[T]],
+    withUsersData: MainAndSourceUserData[T] => Result
+  )(implicit request: Request[AnyContent]): F[Result] = withToken { main =>
     spotifyService
       .getUser(main)
       .flatMap(
         _.fold(
           error => pure(BadRequest(views.html.common.error(error.getMessage, Tab.Spotify))),
           mainUser =>
-            fetchData(main).flatMap(mainRes => {
+            fetchData(main).flatMap { mainRes =>
               val mainUserData = UserDataResponse(mainUser, mainRes)
               withSourceUserToken { src =>
-                spotifyService.getUser(src).flatMap(_.fold(
-                  _ => pure(withUsersData(MainAndSourceUserData(main = mainUserData, source = None))),
-                  srcUser =>
-                    fetchData(src).map(srcRes => {
-                      withUsersData(MainAndSourceUserData(mainUserData, Some(UserDataResponse(srcUser, srcRes))))
-                    })))
+                spotifyService
+                  .getUser(src)
+                  .flatMap(
+                    _.fold(
+                      _ => pure(withUsersData(MainAndSourceUserData(main = mainUserData, source = None))),
+                      srcUser =>
+                        fetchData(src).map { srcRes =>
+                          withUsersData(MainAndSourceUserData(mainUserData, Some(UserDataResponse(srcUser, srcRes))))
+                        }
+                    )
+                  )
               }.map(_.getOrElse(withUsersData(MainAndSourceUserData(main = mainUserData, source = None))))
-            })
+            }
         )
       )
   }
@@ -339,18 +333,18 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
     fa: PrivateUser => Result,
     fb: (PrivateUser, Some[PrivateUser]) => Result
   )(implicit request: Request[AnyContent]): F[Result] = withToken { main =>
-      spotifyService
-        .getUser(main)
-        .flatMap(
-          _.fold(
-            error => pure(BadRequest(views.html.common.error(error.getMessage, Tab.Spotify))),
-            mainUser =>
-              withSourceUserToken { src =>
-                spotifyService.getUser(src).map(_.fold(_ => fa(mainUser), srcUser => fb(mainUser, Some(srcUser))))
-              }.map(_.getOrElse(fa(mainUser)))
-          )
+    spotifyService
+      .getUser(main)
+      .flatMap(
+        _.fold(
+          error => pure(BadRequest(views.html.common.error(error.getMessage, Tab.Spotify))),
+          mainUser =>
+            withSourceUserToken { src =>
+              spotifyService.getUser(src).map(_.fold(_ => fa(mainUser), srcUser => fb(mainUser, Some(srcUser))))
+            }.map(_.getOrElse(fa(mainUser)))
         )
-    }
+      )
+  }
 
   def migratePage(): Action[AnyContent] = SpotifyAction.asyncWithMainUser { implicit request =>
     withMainAndSourceUsers(

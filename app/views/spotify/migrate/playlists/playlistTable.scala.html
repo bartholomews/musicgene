@@ -7,62 +7,70 @@
 @*TODO: Pagination*@
 @(data: UserDataResponse[Page[SimplePlaylist]], action: PlaylistsAction)
 <div>
-    <div class="migrate-section-actions @{action.userType}">
-    <div>
-        <button
-        type="button"
-        data-action="@action.label"
-        data-user="@data.user.id.value"
-        onclick="onSubmit(this)"
-        class="btn btn-outline-dark btn-sm playlist-table-action">@action.label.capitalize</button>
-
-        <span id="playlist-table-action-spinner-wrapper-@action.label"></span>
-    </div>
-</div>
-  @data.response match {
-    case Left(error) => {<p>@error</p>}
-    case Right(playlists) => {
-        <div class="migrate-section-table">
-            <table
-            class="table table-hover"
+    <div class="migrate-section-actions @{
+        action.userType
+    }">
+        <div>
+            <button
+            type="button"
             data-action="@action.label"
-            id="migrate-playlist-table-source">
-                <thead>
-                    <tr>
-                        <th>
-                            <div class="form-check">
-                                <input id="migrate-playlist-@{action.userType}-select-all"
-                                onclick="onSelectAllPlaylists(this)"
-                                class="select-all-checkbox form-check-input" type="checkbox">
-                                <label class="form-check-label" for="migrate-playlist-@{action.userType}-select-all">
-                                    <span>Select all</span>
-                                </label>
-                            </div>
-                        </th>
-                        <th>Title</th>
-                        @*                <th>Description</th>*@
+            data-user="@data.user.id.value"
+            onclick="onSubmit(this)"
+            class="btn btn-outline-dark btn-sm playlist-table-action">@action.label.capitalize</button>
+
+            <span id="playlist-table-action-spinner-wrapper-@action.label"></span>
+        </div>
+    </div>
+    @data.response match {
+        case Left(error) => {
+            <p>@error</p>
+        }
+        case Right(playlists) => {
+            <div class="migrate-section-table">
+                <table
+                class="table table-hover"
+                data-action="@action.label"
+                id="migrate-playlist-table-source">
+                    <thead>
+                        <tr>
+                            <th>
+                                <div class="form-check">
+                                    <input id="migrate-playlist-@{
+                                        action.userType
+                                    }-select-all"
+                                    onclick="onSelectAllPlaylists(this)"
+                                    class="select-all-checkbox form-check-input" type="checkbox">
+                                    <label class="form-check-label" for="migrate-playlist-@{
+                                        action.userType
+                                    }-select-all">
+                                        <span>Select all</span>
+                                    </label>
+                                </div>
+                            </th>
+                            <th>Title</th>
+                            @* <th>Description</th>*@
+                        </tr>
+                    </thead>
+                    <tbody id="migrate-source-playlist-tbody">@playlists.items.zipWithIndex.map { case (p, index) =>
+                    <tr id="@p.id.value" class="clickable"
+                    data-name="@p.name"
+                    data-public="@p.public"
+                    data-collaborative="@p.collaborative"
+                    data-description="@p.description"
+                    onclick="onPlaylistRowClick(this)">
+                        <th scope="row">@index</th>
+                            <!-- TODO: fixed height and ellipsis -->
+                        <td>@p.name</td>
+                        @* <td>@p.description.getOrElse("-")</td>*@
                     </tr>
-                </thead>
-                <tbody id="migrate-source-playlist-tbody">@playlists.items.zipWithIndex.map { case (p, index) =>
-                <tr id="@p.id.value" class="clickable"
-                data-name="@p.name"
-                data-public="@p.public"
-                data-collaborative="@p.collaborative"
-                data-description="@p.description"
-                onclick="onPlaylistRowClick(this)">
-                    <th scope="row">@index</th>
-                        <!-- TODO: fixed height and ellipsis -->
-                    <td>@p.name</td>
-                    @*            <td>@p.description.getOrElse("-")</td>*@
-                </tr>
-                        <!-- FIXME: Would be nice collapsible (and selectable) inner rows,
+                            <!-- FIXME: Would be nice collapsible (and selectable) inner rows,
                     also have a different icon for "playable" instead of cursor hand,
                     and should have it in the chart point also. Currently it has cursor
                     hand even if the song is not playable. -->
-                }
-                </tbody>
-            </table>
-        </div>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
     }
-  }
 </div>
