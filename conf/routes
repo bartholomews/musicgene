@@ -20,7 +20,7 @@ GET         /spotify/user/:sessionNumber/playlists/:playlistId/tracks   io.barth
 POST        /spotify/playlist/generate                                  io.bartholomews.musicgene.controllers.SpotifyController.generatePlaylist
 GET         /spotify/playlist/generate/:id                              io.bartholomews.musicgene.controllers.SpotifyController.renderGeneratedPlaylist(id: GeneratedPlaylistResultId)
 GET         /spotify/migrate                                            io.bartholomews.musicgene.controllers.SpotifyController.migratePage()
-GET         /spotify/migrate/followers                                  io.bartholomews.musicgene.controllers.SpotifyController.migrateFollowersPage()
+GET         /spotify/migrate/followed                                   io.bartholomews.musicgene.controllers.SpotifyController.migrateFollowedPage()
 GET         /spotify/migrate/playlists                                  io.bartholomews.musicgene.controllers.SpotifyController.migratePlaylistsPage()
 POST        /spotify/migrate/playlists                                  io.bartholomews.musicgene.controllers.SpotifyController.migratePlaylists
 POST        /spotify/migrate/unfollow                                   io.bartholomews.musicgene.controllers.SpotifyController.unfollowPlaylists

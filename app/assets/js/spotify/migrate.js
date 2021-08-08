@@ -1,5 +1,5 @@
 const actionElements = Array.from(document.getElementsByClassName('playlist-table-action'));
-const spinnerDelete = createSpinner('delete');
+const spinnerDelete = createSpinner('unfollow');
 const spinnerMigrate = createSpinner('migrate');
 const selectedMainPlaylists = [];
 const selectedSrcPlaylists = [];
@@ -13,7 +13,7 @@ function createSpinner(action) {
 
 function getSpinner(action) {
     switch(action) {
-        case 'delete': return spinnerDelete;
+        case 'unfollow': return spinnerDelete;
         case 'migrate': return spinnerMigrate;
     }
 }
@@ -42,7 +42,7 @@ function onPlaylistTableActionClick(action, loading) {
 
 function getActionPayload(action) {
     switch (action) {
-        case 'delete':
+        case 'unfollow':
             return {
                 makePayload: playlistUnfollowPayload,
                 playlists: selectedMainPlaylists,

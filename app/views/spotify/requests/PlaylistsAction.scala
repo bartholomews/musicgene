@@ -11,6 +11,6 @@ case object MigratePlaylists extends PlaylistsAction {
 }
 
 case object UnfollowPlaylists extends PlaylistsAction {
-  override val label = "delete"
+  override val label = "unfollow"
   override val userType = "main"
 }

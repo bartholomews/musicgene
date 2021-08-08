@@ -40,5 +40,6 @@
     </root>
 
     <logger name="fsclient" level="DEBUG"/>
+    <logger name="spotify4s" level="DEBUG"/>
 
 </configuration>

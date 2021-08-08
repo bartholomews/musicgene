@@ -1,0 +1,48 @@
+@import io.bartholomews.musicgene.controllers
+@import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
+@import views.common.Tab
+@*FIXME: This is wrong, need to fetch already a diff with getFollowedArtists + *@
+@import views.spotify.responses.UsersFollowingDiff
+
+@(result: UsersFollowingDiff)(implicit requestHeader: RequestHeader)
+@css = @{
+    List(routes.Assets.versioned("stylesheets/spotify/migrate.css"))
+}
+
+@js = @{
+    List(routes.Assets.versioned("js/spotify/migrate.js"))
+}
+
+@main(activeTab = Tab.Spotify, scripts = js, styles = css) {
+
+    <div class="main-section">
+        <h2><i>Migrate followed artists</i></h2>
+        <br/>
+        <div class="container-fluid">
+            <div class="migrate-section row">
+                    <!-- main user column -->
+                <div class="col-sm main">
+                    <div class="migrate-section-top">
+                        <h2>@result.main.displayName.getOrElse(result.main.id)</h2>
+                    </div>
+                </div>
+                    <!-- source user column -->
+                <div class="col-sm source">
+                    <div class="migrate-section-top">
+                        <h2>@result.src.displayName.getOrElse(result.src.id)</h2>
+                        <form action=@controllers.routes.SpotifyController.logout(SpotifySessionUser.Source)>
+                            <button class="btn btn-outline-danger" type="submit">Revoke</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <hr class="horizontal-rule"/>
+            <div class="row">
+                <div class="col-sm">
+                    <p>@result.src.displayName.getOrElse(result.src.id) is following @result.diff.size artists on this page,
+                        out of which @result.diff.filterNot(_.isFollowing).size are currently not followed by you.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+}

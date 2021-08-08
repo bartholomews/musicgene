@@ -10,6 +10,7 @@ import io.bartholomews.musicgene.controllers.http.{SpotifyCookies, SpotifySessio
 import io.bartholomews.musicgene.model.genetic.GA
 import io.bartholomews.musicgene.model.music._
 import io.bartholomews.musicgene.model.spotify.SpotifyService
+import io.bartholomews.spotify4s.core.api.FollowApi.ArtistsFollowingIds
 import io.bartholomews.spotify4s.core.api.SpotifyApi.{Offset, SpotifyUris}
 import io.bartholomews.spotify4s.core.entities.SpotifyId.{SpotifyPlaylistId, SpotifyUserId}
 import io.bartholomews.spotify4s.core.entities._
@@ -19,12 +20,7 @@ import play.api.mvc._
 import sttp.client3.{ResponseException, SttpBackend}
 import sttp.model.Uri
 import views.common.Tab
-import views.spotify.requests.{
-  PlaylistGenerationRequest,
-  PlaylistMigrationRequest,
-  PlaylistsMigrationRequest,
-  PlaylistsUnfollowRequest
-}
+import views.spotify.requests.{PlaylistGenerationRequest, PlaylistMigrationRequest, PlaylistsMigrationRequest, PlaylistsUnfollowRequest}
 import views.spotify.responses._
 
 import javax.inject._
@@ -59,10 +55,10 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
     )(block: Request[AnyContent] => F[Result]): Action[AnyContent] =
       Action.async(req => block(req.addAttr(SpotifySessionKeys.spotifySessionUser, session)))
 
-    final def asyncWithMainUser(block: Request[AnyContent] => F[Result]): Action[AnyContent] =
+    final def asyncWithMainSession(block: Request[AnyContent] => F[Result]): Action[AnyContent] =
       Action.async(req => block(req.addAttr(SpotifySessionKeys.spotifySessionUser, SpotifySessionUser.Main)))
 
-    final def jsonAsyncWithMainUser(block: Request[JsValue] => F[Result]): Action[JsValue] =
+    final def jsonAsyncWithMainSession(block: Request[JsValue] => F[Result]): Action[JsValue] =
       Action.async[JsValue](parse.json)(req =>
         block(req.addAttr(SpotifySessionKeys.spotifySessionUser, SpotifySessionUser.Main))
       )
@@ -94,7 +90,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       .getOrElse(InternalServerError("Something went wrong handling spotify session, please contact support."))
   }
 
-  def helloPage(): Action[AnyContent] = SpotifyAction.asyncWithMainUser { implicit request =>
+  def helloPage(): Action[AnyContent] = SpotifyAction.asyncWithMainSession { implicit request =>
     withToken { signer =>
       logger.info("hello")
       spotifyService
@@ -181,8 +177,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       case None => Future.successful(None)
       case Some(accessToken: AccessTokenSigner) =>
         if (accessToken.isExpired())
-          refresh(f)(request.addAttr(SpotifySessionKeys.spotifySessionUser, SpotifySessionUser.Source))
-            .map(_.some)
+          refresh(f)(request.addAttr(SpotifySessionKeys.spotifySessionUser, SpotifySessionUser.Source)).map(_.some)
         else f(accessToken).map(_.some)
     }
 
@@ -299,68 +294,93 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       )
     }
 
+  // Perform the same `fetchData` action on main and src, handling the src result as optional
   private def withMainAndSourceUsersF[T](
     fetchData: SignerV2 => F[Response[T]],
     withUsersData: MainAndSourceUserData[T] => Result
-  )(implicit request: Request[AnyContent]): F[Result] = withToken { main =>
-    spotifyService
-      .getUser(main)
-      .flatMap(
-        _.fold(
-          error => pure(BadRequest(views.html.common.error(error.getMessage, Tab.Spotify))),
-          mainUser =>
-            fetchData(main).flatMap { mainRes =>
-              val mainUserData = UserDataResponse(mainUser, mainRes)
-              withSourceUserToken { src =>
-                spotifyService
-                  .getUser(src)
-                  .flatMap(
-                    _.fold(
-                      _ => pure(withUsersData(MainAndSourceUserData(main = mainUserData, source = None))),
-                      srcUser =>
-                        fetchData(src).map { srcRes =>
-                          withUsersData(MainAndSourceUserData(mainUserData, Some(UserDataResponse(srcUser, srcRes))))
-                        }
-                    )
-                  )
-              }.map(_.getOrElse(withUsersData(MainAndSourceUserData(main = mainUserData, source = None))))
-            }
+  )(implicit request: Request[AnyContent]): F[Result] =
+    withMainUser { (mainSigner, mainUser) =>
+      fetchData(mainSigner).flatMap { mainRes =>
+        val mainUserData = UserDataResponse(mainUser, mainRes)
+        withSourceUser(
+          _ => pure(withUsersData(MainAndSourceUserData(main = mainUserData, source = None))),
+          (srcSigner, srcUser) =>
+            fetchData(srcSigner).map(srcRes =>
+              withUsersData(MainAndSourceUserData(mainUserData, Some(UserDataResponse(srcUser, srcRes))))
+            )
         )
-      )
-  }
+      }
+    }
+
+  private def withMainUser(f: (SignerV2, PrivateUser) => F[Result])(implicit request: Request[AnyContent]): F[Result] =
+    withToken { signer =>
+      spotifyService
+        .getUser(signer)
+        .flatMap(
+          _.fold(
+            error => pure(BadRequest(views.html.common.error(error.getMessage, Tab.Spotify))),
+            mainUser => f(signer, mainUser)
+          )
+        )
+    }
+
+  private def withSourceUser(fa: Option[String] => F[Result], fb: (SignerV2, PrivateUser) => F[Result])(
+    implicit request: Request[AnyContent]
+  ): F[Result] =
+    withSourceUserToken { signer =>
+      spotifyService
+        .getUser(signer)
+        .flatMap(_.fold(error => fa(Some(error.getMessage)), res => fb(signer, res)))
+    }.flatMap(_.fold(fa(None))(pure))
 
   private def withMainAndSourceUsers(
-    fa: PrivateUser => Result,
-    fb: (PrivateUser, Some[PrivateUser]) => Result
-  )(implicit request: Request[AnyContent]): F[Result] = withToken { main =>
-    spotifyService
-      .getUser(main)
-      .flatMap(
-        _.fold(
-          error => pure(BadRequest(views.html.common.error(error.getMessage, Tab.Spotify))),
-          mainUser =>
-            withSourceUserToken { src =>
-              spotifyService.getUser(src).map(_.fold(_ => fa(mainUser), srcUser => fb(mainUser, Some(srcUser))))
-            }.map(_.getOrElse(fa(mainUser)))
-        )
-      )
+    fa: PrivateUser => F[Result],
+    fb: (PrivateUser, Some[PrivateUser]) => F[Result]
+  )(implicit request: Request[AnyContent]): F[Result] = withMainUser { (_, mainUser) =>
+    withSourceUser(_ => fa(mainUser), (_, srcUser) => fb(mainUser, Some(srcUser)))
   }
 
-  def migratePage(): Action[AnyContent] = SpotifyAction.asyncWithMainUser { implicit request =>
+  def migratePage(): Action[AnyContent] = SpotifyAction.asyncWithMainSession { implicit request =>
     withMainAndSourceUsers(
-      mainUser => Ok(views.html.spotify.migrate.migratePage(mainUser, None)),
-      (mainUser, srcUser) => Ok(views.html.spotify.migrate.migratePage(mainUser, srcUser))
+      mainUser => pure(Ok(views.html.spotify.migrate.migratePage(mainUser, None))),
+      (mainUser, srcUser) => pure(Ok(views.html.spotify.migrate.migratePage(mainUser, srcUser)))
     )
   }
 
-  def migrateFollowersPage(): Action[AnyContent] = SpotifyAction.asyncWithMainUser { implicit request =>
-    withMainAndSourceUsers(
-      mainUser => Ok(views.html.spotify.migrate.followers.migrateFollowers(mainUser, None)),
-      (mainUser, srcUser) => Ok(views.html.spotify.migrate.followers.migrateFollowers(mainUser, srcUser))
+  def migrateFollowedPage(): Action[AnyContent] = SpotifyAction.asyncWithMainSession { implicit request =>
+    withSourceUser(
+      maybeError =>
+        pure(BadRequest(views.html.common.error(maybeError.getOrElse("Something went wrong"), Tab.Spotify))),
+      (srcSigner, srcUser) => {
+
+        val maybeResult: Future[Either[String, Result]] = (for {
+          // TODO page arg with last id
+          followedArtists <- EitherT(
+            spotifyService.getFollowedArtists(after = None)(srcSigner).map(_.leftMap(_.getMessage))
+          )
+          followedArtistsIds <- EitherT.fromEither[F](ArtistsFollowingIds.fromList(followedArtists.items.map(_.id)))
+          res <- EitherT.right[String](withMainUser { (mainSigner, mainUser) =>
+            spotifyService
+              .isFollowingArtists(followedArtistsIds)(mainSigner)
+              .map(
+                _.fold(
+                  error => BadRequest(views.html.common.error(error.getMessage, Tab.Spotify)),
+                  diff =>
+                    Ok(
+                      views.html.spotify.migrate.followers
+                        .migrateFollowed(UsersFollowingDiff(mainUser, srcUser, diff.toList.map(MaybeFollowingArtist.apply)))
+                    )
+                )
+              )
+          })
+        } yield res).value
+
+        maybeResult.map(_.fold(error => BadRequest(views.html.common.error(error, Tab.Spotify)), identity))
+      }
     )
   }
 
-  def migratePlaylistsPage(): Action[AnyContent] = SpotifyAction.asyncWithMainUser { implicit request =>
+  def migratePlaylistsPage(): Action[AnyContent] = SpotifyAction.asyncWithMainSession { implicit request =>
     withMainAndSourceUsersF(
       fetchData = signer => spotifyService.getPlaylists(signer),
       withUsersData = (data: MainAndSourceUserData[Page[SimplePlaylist]]) =>
@@ -465,7 +485,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       res <- EitherT(clonePlaylist(mainUserId, playlistRequest, sourceUserPlaylist)(request, mainUserToken))
     } yield res).value
 
-  val unfollowPlaylists: Action[JsValue] = SpotifyAction.jsonAsyncWithMainUser { implicit request =>
+  val unfollowPlaylists: Action[JsValue] = SpotifyAction.jsonAsyncWithMainSession { implicit request =>
     val unfollowPlaylistsRequest = request.body.validate[PlaylistsUnfollowRequest]
     unfollowPlaylistsRequest.fold(
       errors =>
@@ -523,7 +543,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
 
   // Would be nice to give feedback while loading spinner, e.g. "Migrating playlist xxx..."
   // https://www.playframework.com/documentation/2.8.x/ScalaWebSockets
-  val migratePlaylists: Action[JsValue] = SpotifyAction.jsonAsyncWithMainUser { implicit request: Request[JsValue] =>
+  val migratePlaylists: Action[JsValue] = SpotifyAction.jsonAsyncWithMainSession { implicit request: Request[JsValue] =>
     implicit val anyContentRequest: Request[AnyContent] = request.map(AnyContent.apply)
     val playlistIdsRequest: JsResult[PlaylistsMigrationRequest] = request.body.validate[PlaylistsMigrationRequest]
     playlistIdsRequest.fold(

@@ -7,7 +7,9 @@ import io.bartholomews.musicgene.controllers.http.session.SpotifySessionUser
 import io.bartholomews.musicgene.controllers.routes
 import io.bartholomews.spotify4s.core.SpotifyAuthClient
 import io.bartholomews.spotify4s.core.api.AuthApi.SpotifyUserAuthorizationRequest
-import io.bartholomews.spotify4s.core.entities.{Page, PrivateUser, SimplePlaylist, SpotifyScope}
+import io.bartholomews.spotify4s.core.api.FollowApi.ArtistsFollowingIds
+import io.bartholomews.spotify4s.core.entities.SpotifyId.SpotifyArtistId
+import io.bartholomews.spotify4s.core.entities._
 import play.api.libs.json.JsError
 import play.api.mvc.RequestHeader
 import sttp.client3.{ResponseException, SttpBackend, UriContext}
@@ -32,7 +34,9 @@ class SpotifyService[F[_]: Monad](backend: SttpBackend[F, Any]) {
       SpotifyScope.PLAYLIST_MODIFY_PRIVATE,
       SpotifyScope.PLAYLIST_MODIFY_PUBLIC,
       SpotifyScope.PLAYLIST_READ_PRIVATE,
-      SpotifyScope.PLAYLIST_READ_COLLABORATIVE
+      SpotifyScope.PLAYLIST_READ_COLLABORATIVE,
+      SpotifyScope.USER_FOLLOW_READ,
+      SpotifyScope.USER_FOLLOW_MODIFY
     )
   )
 
@@ -49,4 +53,14 @@ class SpotifyService[F[_]: Monad](backend: SttpBackend[F, Any]) {
 
   def getPlaylists(implicit signer: SignerV2): F[Either[ResponseException[String, JsError], Page[SimplePlaylist]]] =
     client.users.getPlaylists(limit = 50)(signer).map(_.body)
+
+  def getFollowedArtists(
+    after: Option[SpotifyArtistId]
+  )(implicit signer: SignerV2): F[Either[ResponseException[String, JsError], Page[FullArtist]]] =
+    client.follow.getFollowedArtists(after, limit = 50)(signer).map(_.body)
+
+  def isFollowingArtists(
+    ids: ArtistsFollowingIds
+  )(implicit signer: SignerV2): F[Either[ResponseException[String, JsError], Map[SpotifyArtistId, Boolean]]] =
+    client.follow.isFollowingArtists(ids)(signer).map(_.body)
 }
