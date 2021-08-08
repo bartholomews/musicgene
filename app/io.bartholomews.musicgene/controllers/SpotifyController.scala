@@ -50,6 +50,8 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
 
   type DE = JsError
   type F[X] = Future[X]
+  type Response[T] = Either[ResponseException[String, DE], T]
+  def pure[A](a: A): F[A] = Future.successful(a)
 
   object SpotifyAction {
     final def asyncWithSession(
@@ -297,33 +299,41 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
       )
     }
 
-  private def getSourceUserForMigration(
-    mainUser: (PrivateUser, Page[SimplePlaylist])
-  )(implicit request: Request[AnyContent]): F[Result] =
-    withSourceUserToken { implicit signer =>
-      logger.info("getSourceUserForMigration")
-      spotifyService.getUserAndPlaylists.map(
-        _.toResulto(entity =>
-          Ok(views.html.spotify.migrate.playlists.migratePlaylists(Right(Tuple2(mainUser, Some(entity)))))
-        )
-      )
-    }.map(_.getOrElse(Ok(views.html.spotify.migrate.playlists.migratePlaylists(Right(Tuple2(mainUser, None))))))
+  private def getUserAndPlaylists(implicit signer: SignerV2): F[Either[ResponseException[String, DE], (PrivateUser, Page[SimplePlaylist])]] = {
+    (spotifyService.getUser, spotifyService.getPlaylists)
+      //      .parMapN({
+      .mapN({
+        case (aaa, bbb) =>
+          for {
+            privateUser <- aaa
+            playlists <- bbb
+          } yield Tuple2(privateUser, playlists)
+      })
+  }
 
-  private def getMainUserAndPlaylists(
-    andThen: ((PrivateUser, Page[SimplePlaylist])) => F[Result]
-  )(implicit request: Request[AnyContent]): F[Result] =
-    withToken { implicit signer =>
-      spotifyService.getUserAndPlaylists.flatMap(
+  private def withMainAndSourceUsersF[T](fetchData: SignerV2 => F[Response[T]],
+                                         withUsersData: MainAndSourceUserData[T] => Result
+                                    )(implicit request: Request[AnyContent]): F[Result] = withToken { main =>
+    spotifyService
+      .getUser(main)
+      .flatMap(
         _.fold(
-          _ =>
-            Ok(
-              views.html.spotify.migrate.playlists
-                .migratePlaylists(Left("Something went wrong while fetching the main user"))
-            ).pure[F],
-          entity => andThen(entity)
+          error => pure(BadRequest(views.html.common.error(error.getMessage, Tab.Spotify))),
+          mainUser =>
+            fetchData(main).flatMap(mainRes => {
+              val mainUserData = UserDataResponse(mainUser, mainRes)
+              withSourceUserToken { src =>
+                spotifyService.getUser(src).flatMap(_.fold(
+                  _ => pure(withUsersData(MainAndSourceUserData(main = mainUserData, source = None))),
+                  srcUser =>
+                    fetchData(src).map(srcRes => {
+                      withUsersData(MainAndSourceUserData(mainUserData, Some(UserDataResponse(srcUser, srcRes))))
+                    })))
+              }.map(_.getOrElse(withUsersData(MainAndSourceUserData(main = mainUserData, source = None))))
+            })
         )
       )
-    }
+  }
 
   private def withMainAndSourceUsers(
     fa: PrivateUser => Result,
@@ -333,7 +343,7 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
         .getUser(main)
         .flatMap(
           _.fold(
-            error => Future.successful(BadRequest(views.html.common.error(error.getMessage, Tab.Spotify))),
+            error => pure(BadRequest(views.html.common.error(error.getMessage, Tab.Spotify))),
             mainUser =>
               withSourceUserToken { src =>
                 spotifyService.getUser(src).map(_.fold(_ => fa(mainUser), srcUser => fb(mainUser, Some(srcUser))))
@@ -357,10 +367,11 @@ class SpotifyController @Inject() (cc: ControllerComponents)(
   }
 
   def migratePlaylistsPage(): Action[AnyContent] = SpotifyAction.asyncWithMainUser { implicit request =>
-    withToken { implicit signer =>
-      logger.info("migratePlaylistsPage")
-      getMainUserAndPlaylists(getSourceUserForMigration)
-    }
+    withMainAndSourceUsersF(
+      fetchData = signer => spotifyService.getPlaylists(signer),
+      withUsersData = (data: MainAndSourceUserData[Page[SimplePlaylist]]) =>
+        Ok(views.html.spotify.migrate.playlists.migratePlaylists(data))
+    )
   }
 
   def addTracksToPlaylist[E](
